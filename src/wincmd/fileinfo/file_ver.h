@@ -44,9 +44,9 @@
 #define IDS_OS                          2
 #define IDS_FT                          3
 
-#define Name_STR "Company Name\nFile Description\nFile Version\nInternal Name\nLegal Copyright\nOriginal Filename\nProduct Name\nProduct Version\nComments\nLegal Trademarks\nPrivate Build\nSpecial Build"
-#define OS_STR "MS-DOS\nWin16\nWin32\nWin16 (MS-DOS)\nWin32 API (MS-DOS)\nOS/2 16bit\n OS/2 32bit\nWindows NT\nWin32 API (Windows NT)\nUnknown"
-#define Type_STR "Display Driver\nInstallable Driver\nKeyboard Driver\nLanguage Driver\nMouse Driver\nNetwork Driver\nPrinter Driver\nSound Driver\nSystem Driver\nUnknown Driver Type\nRaster Font\nTruetype Font\nVector Font\nFont\nApplication\nDynamic Link Library\nStatic Link Library\nVirtual Device\nUnknown File Type"
+#define Name_STR _T("Company Name\nFile Description\nFile Version\nInternal Name\nLegal Copyright\nOriginal Filename\nProduct Name\nProduct Version\nComments\nLegal Trademarks\nPrivate Build\nSpecial Build")
+#define OS_STR _T("MS-DOS\nWin16\nWin32\nWin16 (MS-DOS)\nWin32 API (MS-DOS)\nOS/2 16bit\n OS/2 32bit\nWindows NT\nWin32 API (Windows NT)\nUnknown")
+#define Type_STR _T("Display Driver\nInstallable Driver\nKeyboard Driver\nLanguage Driver\nMouse Driver\nNetwork Driver\nPrinter Driver\nSound Driver\nSystem Driver\nUnknown Driver Type\nRaster Font\nTruetype Font\nVector Font\nFont\nApplication\nDynamic Link Library\nStatic Link Library\nVirtual Device\nUnknown File Type")
 // BOOL AfxExtractSubString(CString& rString, LPCTSTR lpszFullString, int iSubString, TCHAR chSep = '\n');
 
 //*****************************************************************************

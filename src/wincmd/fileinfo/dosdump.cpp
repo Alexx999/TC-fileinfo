@@ -5,15 +5,15 @@
 //
 // Dump the IMAGE_FILE_HEADER for a DOS EXE file
 //
-CString DumpMZHeader( PIMAGE_DOS_HEADER pdosHeader )
+CStringA DumpMZHeader( PIMAGE_DOS_HEADER pdosHeader )
 {
-    CString str="", strTemp="";    int j;
+    CStringA str="", strTemp="";    int j;
    if (pdosHeader->e_res[0] == LZ)
-      str += (CString) "\tCompressed Executable by LZEXE"+ rtfReturn+ rtfReturn;
+      str += (CStringA) "\tCompressed Executable by LZEXE"+ rtfReturn+ rtfReturn;
    if (pdosHeader->e_res[1] == PK)
-      str += (CString) "\tCompressed Executable by PKLITE"+ rtfReturn+ rtfReturn;
+      str += (CStringA) "\tCompressed Executable by PKLITE"+ rtfReturn+ rtfReturn;
 
-    str += (CString) ("Header Information :")+ rtfReturn+ rtfReturn;
+    str += (CStringA) ("Header Information :")+ rtfReturn+ rtfReturn;
     strTemp.Format("\t%s\t%04Xh ", "Signature :", pdosHeader->e_magic);
    str += strTemp + rtfReturn;
 /*   switch(pdosHeader->e_magic)
@@ -51,7 +51,7 @@ CString DumpMZHeader( PIMAGE_DOS_HEADER pdosHeader )
     str += strTemp + rtfReturn;
 	
 	str += rtfReturn;
-    str += (CString) ("Extra Header Information :")+ rtfReturn;
+    str += (CStringA) ("Extra Header Information :")+ rtfReturn;
 /***************   OEM Text
    char *pStr = (char *) pdosHeader->e_res;
    strTemp = "";
@@ -112,44 +112,44 @@ CString DumpMZHeader( PIMAGE_DOS_HEADER pdosHeader )
 
 // DOS/4GW  'Linear Executable' LE and LX.
 
-CString DumpNEHeader( PIMAGE_DOS_HEADER dosHeader )
+CStringA DumpNEHeader( PIMAGE_DOS_HEADER dosHeader )
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     PIMAGE_OS2_HEADER pNEHeader;
     ULONG_PTR base = (ULONG_PTR)dosHeader;
 
     pNEHeader = MakePtr( PIMAGE_OS2_HEADER, dosHeader, dosHeader->e_lfanew );
     if ( pNEHeader->ne_magic != IMAGE_OS2_SIGNATURE )
-      return (CString) "Not a New Executable (NE) File"+ rtfReturn;
+      return (CStringA) "Not a New Executable (NE) File"+ rtfReturn;
 
-   str += (CString) ("File Characteristics : ")+ rtfReturn;
+   str += (CStringA) ("File Characteristics : ")+ rtfReturn;
    if (pNEHeader->ne_flags & NESOLO) 
-      str += (CString) ("\t\tFile is a dynamic-link library (DLL) (SINGLEDATA)")+ rtfReturn;
+      str += (CStringA) ("\t\tFile is a dynamic-link library (DLL) (SINGLEDATA)")+ rtfReturn;
    if (pNEHeader->ne_flags & NEINST) 
-      str += (CString) ("\t\tFile is a Windows application (MULTIPLEDATA)")+ rtfReturn;
+      str += (CStringA) ("\t\tFile is a Windows application (MULTIPLEDATA)")+ rtfReturn;
    if (!(pNEHeader->ne_flags & 3))
-      str += (CString) ("\t\tNOAUTODATA")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEPPLI) str += (CString) ("\t\tFile uses Per-process library initialization")+ rtfReturn; // Per-process library initialization
-   if (pNEHeader->ne_flags & NEPROT) str += (CString) ("\t\tFile uses Protected mode only")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEI086) str += (CString) ("\t\tFile uses 8086 instructions")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEI286) str += (CString) ("\t\tFile uses 286 instructions")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEI386) str += (CString) ("\t\tFile uses 386 instructions")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEFLTP) str += (CString) ("\t\tFile uses Floating-point instructions")+ rtfReturn;
-   if ((pNEHeader->ne_flags & NEAPPTYP) == 0) str += (CString) ("\t\tFull screen (not aware of Windows/P.M. API)")+ rtfReturn;
-   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NEWINAPI) str += (CString) ("\t\tFile uses P.M. Windowing API")+ rtfReturn;
-   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NEWINCOMPAT) str += (CString) ("\t\tFile is compatible with P.M. Windowing")+ rtfReturn;
-   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NENOTWINCOMPAT) str += (CString) ("\t\tFile is not compatible with P.M. Windowing")+ rtfReturn;
-   if (pNEHeader->ne_flags & (1 << 11)) str += (CString) ("\t\tBound as family app")+ rtfReturn;
-   // (pNEHeader->ne_flags & (1 << 12)) str += (CString) ("\t\tUnused"+ rtfReturn);
-   if (pNEHeader->ne_flags & NEIERR) str += (CString) ("\t\tFile has errors in image")+ rtfReturn;
-   // (pNEHeader->ne_flags & (1 << 14)) str += (CString) ("\t\tUnused"+ rtfReturn);
-   if (pNEHeader->ne_flags & (1 << 15)) str += (CString) ("\t\tFile is a Library Module ")+ rtfReturn;
-   if (pNEHeader->ne_flags & NENOTP) str += (CString) ("\t\tFile is not a process ")+ rtfReturn;
+      str += (CStringA) ("\t\tNOAUTODATA")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEPPLI) str += (CStringA) ("\t\tFile uses Per-process library initialization")+ rtfReturn; // Per-process library initialization
+   if (pNEHeader->ne_flags & NEPROT) str += (CStringA) ("\t\tFile uses Protected mode only")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEI086) str += (CStringA) ("\t\tFile uses 8086 instructions")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEI286) str += (CStringA) ("\t\tFile uses 286 instructions")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEI386) str += (CStringA) ("\t\tFile uses 386 instructions")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEFLTP) str += (CStringA) ("\t\tFile uses Floating-point instructions")+ rtfReturn;
+   if ((pNEHeader->ne_flags & NEAPPTYP) == 0) str += (CStringA) ("\t\tFull screen (not aware of Windows/P.M. API)")+ rtfReturn;
+   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NEWINAPI) str += (CStringA) ("\t\tFile uses P.M. Windowing API")+ rtfReturn;
+   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NEWINCOMPAT) str += (CStringA) ("\t\tFile is compatible with P.M. Windowing")+ rtfReturn;
+   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NENOTWINCOMPAT) str += (CStringA) ("\t\tFile is not compatible with P.M. Windowing")+ rtfReturn;
+   if (pNEHeader->ne_flags & (1 << 11)) str += (CStringA) ("\t\tBound as family app")+ rtfReturn;
+   // (pNEHeader->ne_flags & (1 << 12)) str += (CStringA) ("\t\tUnused"+ rtfReturn);
+   if (pNEHeader->ne_flags & NEIERR) str += (CStringA) ("\t\tFile has errors in image")+ rtfReturn;
+   // (pNEHeader->ne_flags & (1 << 14)) str += (CStringA) ("\t\tUnused"+ rtfReturn);
+   if (pNEHeader->ne_flags & (1 << 15)) str += (CStringA) ("\t\tFile is a Library Module ")+ rtfReturn;
+   if (pNEHeader->ne_flags & NENOTP) str += (CStringA) ("\t\tFile is not a process ")+ rtfReturn;
 
-    str += (CString) ("Header Information :")+ rtfReturn+ rtfReturn;
+    str += (CStringA) ("Header Information :")+ rtfReturn+ rtfReturn;
 
    char szModuleName[300];
-   lstrcpyn(szModuleName, 
+   lstrcpynA(szModuleName,
       (LPSTR)pNEHeader + pNEHeader->ne_restab +1,
         min((BYTE)*((LPSTR)pNEHeader + pNEHeader->ne_restab) + 1,300));
 
@@ -231,13 +231,13 @@ CString DumpNEHeader( PIMAGE_DOS_HEADER dosHeader )
    strTemp.Format("\tOther .EXE flags :\t%x ", pNEHeader->ne_flagsothers);
    str += strTemp + rtfReturn;
    if (pNEHeader->ne_flagsothers & (1)) //Windows 2.x application that runs in version 3.x protected mode
-      str += (CString) ("\t\tsupports long filenames") + rtfReturn;
+      str += (CStringA) ("\t\tsupports long filenames") + rtfReturn;
    if (pNEHeader->ne_flagsothers & (1 << 1)) //Windows 2.x application that runs in version 3.x protected mode
-      str += (CString) ("\t\t2.X protected mode" )+ rtfReturn;
+      str += (CStringA) ("\t\t2.X protected mode" )+ rtfReturn;
    if (pNEHeader->ne_flagsothers & (1 << 2)) //Windows 2.x application that supports proportional fonts.
-      str += (CString) ("\t\t2.X proportional font") + rtfReturn;
+      str += (CStringA) ("\t\t2.X proportional font") + rtfReturn;
    if (pNEHeader->ne_flagsothers & (1 << 3)) //contains a fast-load area.
-      str += (CString) ("\t\tfast-load area" )+ rtfReturn;
+      str += (CStringA) ("\t\tfast-load area" )+ rtfReturn;
 
     strTemp.Format("\toffset to return thunks :\t%x ", pNEHeader->ne_pretthunks);
    str += strTemp + rtfReturn;
@@ -254,26 +254,26 @@ CString DumpNEHeader( PIMAGE_DOS_HEADER dosHeader )
 #define    LXVDDM     0x28000     /* Virtual Device Driver module    101000000000000000*/
 #define    LXPDDM     0x20000     /* Physical Device Driver module   100000000000000000*/
 #define    LXPMLM     0x18000     /* Protected Memory Library module  11000000000000000 */
-CString DumpCommonLEHeader( PIMAGE_VXD_HEADER pLXHeader )
+CStringA DumpCommonLEHeader( PIMAGE_VXD_HEADER pLXHeader )
 {
-    CString str="", strTemp="";
-   str += (CString) ("File Characteristics : " )+ rtfReturn;
-   if (pLXHeader->e32_mflags & NEPPLI) str += (CString) ("\t\tFile uses Per-process library initialization" )+ rtfReturn; // Per-process library initialization
-   if ((pLXHeader->e32_mflags  & NEAPPTYP) ==  NEWINAPI) str += (CString) ("\tFile uses P.M. Windowing API" )+ rtfReturn;
-   if ((pLXHeader->e32_mflags  & NEAPPTYP) ==  NEWINCOMPAT) str += (CString) ("\t\tFile is compatible with P.M. Windowing" )+ rtfReturn;
-   if ((pLXHeader->e32_mflags  & NEAPPTYP) ==  NENOTWINCOMPAT) str += (CString) ("\t\tFile is not compatible with P.M. Windowing" )+ rtfReturn;
-   if (pLXHeader->e32_mflags  & NEIERR) str += (CString) ("\t\tFile contains errors in image" )+ rtfReturn;
-   if (pLXHeader->e32_mflags & NENOTP) str += (CString) ("\t\tFile is not a process " )+ rtfReturn;
+    CStringA str="", strTemp="";
+   str += (CStringA) ("File Characteristics : " )+ rtfReturn;
+   if (pLXHeader->e32_mflags & NEPPLI) str += (CStringA) ("\t\tFile uses Per-process library initialization" )+ rtfReturn; // Per-process library initialization
+   if ((pLXHeader->e32_mflags  & NEAPPTYP) ==  NEWINAPI) str += (CStringA) ("\tFile uses P.M. Windowing API" )+ rtfReturn;
+   if ((pLXHeader->e32_mflags  & NEAPPTYP) ==  NEWINCOMPAT) str += (CStringA) ("\t\tFile is compatible with P.M. Windowing" )+ rtfReturn;
+   if ((pLXHeader->e32_mflags  & NEAPPTYP) ==  NENOTWINCOMPAT) str += (CStringA) ("\t\tFile is not compatible with P.M. Windowing" )+ rtfReturn;
+   if (pLXHeader->e32_mflags  & NEIERR) str += (CStringA) ("\t\tFile contains errors in image" )+ rtfReturn;
+   if (pLXHeader->e32_mflags & NENOTP) str += (CStringA) ("\t\tFile is not a process " )+ rtfReturn;
 /*   if ((pLXHeader->e32_mflags  & LXAPPTYP) ==  LXPMLM) str += ("\t\tFile is a Protected Memory Library module\r\n");
    if ((pLXHeader->e32_mflags  & LXAPPTYP) ==  LXPDDM) str += ("\t\tFile is a Physical Device Driver module\r\n");
    if ((pLXHeader->e32_mflags  & LXAPPTYP) ==  LXVDDM) str += ("\t\tFile is a Virtual Device Driver module\r\n");
 */
    switch(pLXHeader->e32_mflags  & LXAPPTYP)
    {
-      case LXPMLM : str += (CString) ("\t\tFile is a Protected Memory Library module" )+ rtfReturn; break;
-      case LXPDDM : str += (CString) ("\t\tFile is a Physical Device Driver module" )+ rtfReturn;break;
-      case LXVDDM : str += (CString) ("\t\tFile is a Virtual Device Driver module" )+ rtfReturn;break;
-      case LXVDX  : str += (CString) ("\t\tFile is a Virtual Device Driver module" )+ rtfReturn;break;
+      case LXPMLM : str += (CStringA) ("\t\tFile is a Protected Memory Library module" )+ rtfReturn; break;
+      case LXPDDM : str += (CStringA) ("\t\tFile is a Physical Device Driver module" )+ rtfReturn;break;
+      case LXVDDM : str += (CStringA) ("\t\tFile is a Virtual Device Driver module" )+ rtfReturn;break;
+      case LXVDX  : str += (CStringA) ("\t\tFile is a Virtual Device Driver module" )+ rtfReturn;break;
    }
     str += ("HEADER INFORMATION :");
 	str += rtfReturn;str += rtfReturn;
@@ -398,14 +398,14 @@ CString DumpCommonLEHeader( PIMAGE_VXD_HEADER pLXHeader )
    return str;
 }
 
-CString DumpLXHeader( EXE_FILE *pEXE )
+CStringA DumpLXHeader( EXE_FILE *pEXE )
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
 	PIMAGE_DOS_HEADER pdosHeader = pEXE->GetdosHeader();
     PIMAGE_VXD_HEADER pLXHeader;
     pLXHeader = MakePtr( PIMAGE_VXD_HEADER, pdosHeader, pdosHeader->e_lfanew );
     if ( pLXHeader->e32_magic != IMAGE_LX_SIGNATURE )
-      return (CString) "Not a Linear eXecutable (LX) File"+ rtfReturn;
+      return (CStringA) "Not a Linear eXecutable (LX) File"+ rtfReturn;
 
    str += DumpCommonLEHeader( pLXHeader );
 
@@ -498,14 +498,14 @@ typedef struct LE_ResourceTable_Entrie
 #define LECONF     0x00004000    /* Conforming */
 #define LEIOPL     0x00008000    /* Object_i/o_privilage_level */
 
-CString DumpLEHeader( EXE_FILE *pEXE )
+CStringA DumpLEHeader( EXE_FILE *pEXE )
 {
-	CString str="", strTemp="";
+	CStringA str="", strTemp="";
 	PIMAGE_DOS_HEADER pdosHeader = pEXE->GetdosHeader();
     PIMAGE_VXD_HEADER pLXHeader;
     pLXHeader = MakePtr( PIMAGE_VXD_HEADER, pdosHeader, pdosHeader->e_lfanew );
     if ( pLXHeader->e32_magic != IMAGE_LE_SIGNATURE )
-      return (CString) "Not a Linear Executable (LE) File"+ rtfReturn;
+      return (CStringA) "Not a Linear Executable (LE) File"+ rtfReturn;
 
 	str += DumpCommonLEHeader( pLXHeader );
 
@@ -541,8 +541,8 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 				PEXPTBL += size + 1;
 				size = *PEXPTBL;
 			}
-		} else str += (CString) "error in import table"+ rtfReturn;
-	}	else str += (CString) "none"+ rtfReturn;
+		} else str += (CStringA) "error in import table"+ rtfReturn;
+	}	else str += (CStringA) "none"+ rtfReturn;
 
 	str += rtfReturn;
 	str += "IMPORT proc TABLE :\t";
@@ -564,8 +564,8 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 				PEXPTBL += size + 1;
 				size = *PEXPTBL;			
 			} 
-		} else str += (CString) "error in import proc table"+ rtfReturn;
-	}	else str += (CString) "none"+ rtfReturn;
+		} else str += (CStringA) "error in import proc table"+ rtfReturn;
+	}	else str += (CStringA) "none"+ rtfReturn;
 
 	str += rtfReturn;
 	str += "EXPORT TABLE : (Resident)\t";
@@ -591,9 +591,9 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 				strTemp.Format("\tOrd %u :\t%s ", ord, name);
 				str += strTemp + rtfReturn;
 				delete [] name;
-			} else str += (CString) "none"+ rtfReturn;
-		} else str += (CString) "error in export table"+ rtfReturn;
-	} else str += (CString) "none"+ rtfReturn;
+			} else str += (CStringA) "none"+ rtfReturn;
+		} else str += (CStringA) "error in export table"+ rtfReturn;
+	} else str += (CStringA) "none"+ rtfReturn;
 	str += rtfReturn;
 	str += "EXPORT TABLE : (Non-Resident)\t";
 	if (pLXHeader->e32_nrestab)
@@ -615,8 +615,8 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 				PEXPTBL += size + 3;
 				size = *PEXPTBL;			
 			}
-		} else str += (CString) "error in export table (NR)"+ rtfReturn;
-	}	else str += (CString) "none"+ rtfReturn;
+		} else str += (CStringA) "error in export table (NR)"+ rtfReturn;
+	}	else str += (CStringA) "none"+ rtfReturn;
 	if (pLXHeader->e32_objtab)
 	{ 
 /*
@@ -646,26 +646,26 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 					str += strTemp + rtfReturn;
 					strTemp.Format("\tObject Flags :\t%08xh ", PObjTbl->FLAGS);
 					str += strTemp + rtfReturn;
-					if (PObjTbl->FLAGS & LEREAD) str += (CString) "\t\tReadable Object"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LEWRIT) str += (CString) "\t\tWritable Object"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LEEXEC) str += (CString) "\t\tExecutable Object"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LERESO) str += (CString) "\t\tResource Object"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LEDISC) str += (CString) "\t\tDiscardable Object"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LESHAR) str += (CString) "\t\tObject is Shared"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LEPREL) str += (CString) "\t\tObject has Preload Pages"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LEINVA) str += (CString) "\t\tObject has Invalid Pages"+ rtfReturn; 
-					if ((PObjTbl->FLAGS & LETMSK) ==  LENORM) str += (CString) "\t\tObject is nonpermanent"+ rtfReturn;
-					if ((PObjTbl->FLAGS & LETMSK) ==  LEZFIL) str += (CString) "\t\tObject has Zero Filled Pages"+ rtfReturn;
-					if ((PObjTbl->FLAGS & LETMSK) ==  LERESI) str += (CString) "\t\tObject is Resident (valid for VDDs, PDDs only)"+ rtfReturn;
-					if ((PObjTbl->FLAGS & LETMSK) ==  LERSCO) str += (CString) "\t\tObject is Resident & Contiguous (VDDs, PDDs only)"+ rtfReturn;
-					if (PObjTbl->FLAGS & LERESI) str += (CString) "\t\tObject is Resident & 'long-lockable' (VDDs, PDDs only)"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LEALIA) str += (CString) "\t\t16:16 Alias Required (80x86 Specific)"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LEBIG) str += (CString) "\t\tBig/Default Bit Setting (80x86 Specific)"+ rtfReturn; 
-					if (PObjTbl->FLAGS & LECONF) str += (CString) "\t\tObject is conforming for code (80x86 Specific)"+ rtfReturn;  //("\t\tConforming\r\n"); 
-					if (PObjTbl->FLAGS & LEIOPL) str += (CString) "\t\tObject I/O privilege level (80x86 Specific)"+ rtfReturn;  // Only used for 16:16 Alias Objects
+					if (PObjTbl->FLAGS & LEREAD) str += (CStringA) "\t\tReadable Object"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LEWRIT) str += (CStringA) "\t\tWritable Object"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LEEXEC) str += (CStringA) "\t\tExecutable Object"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LERESO) str += (CStringA) "\t\tResource Object"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LEDISC) str += (CStringA) "\t\tDiscardable Object"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LESHAR) str += (CStringA) "\t\tObject is Shared"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LEPREL) str += (CStringA) "\t\tObject has Preload Pages"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LEINVA) str += (CStringA) "\t\tObject has Invalid Pages"+ rtfReturn; 
+					if ((PObjTbl->FLAGS & LETMSK) ==  LENORM) str += (CStringA) "\t\tObject is nonpermanent"+ rtfReturn;
+					if ((PObjTbl->FLAGS & LETMSK) ==  LEZFIL) str += (CStringA) "\t\tObject has Zero Filled Pages"+ rtfReturn;
+					if ((PObjTbl->FLAGS & LETMSK) ==  LERESI) str += (CStringA) "\t\tObject is Resident (valid for VDDs, PDDs only)"+ rtfReturn;
+					if ((PObjTbl->FLAGS & LETMSK) ==  LERSCO) str += (CStringA) "\t\tObject is Resident & Contiguous (VDDs, PDDs only)"+ rtfReturn;
+					if (PObjTbl->FLAGS & LERESI) str += (CStringA) "\t\tObject is Resident & 'long-lockable' (VDDs, PDDs only)"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LEALIA) str += (CStringA) "\t\t16:16 Alias Required (80x86 Specific)"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LEBIG) str += (CStringA) "\t\tBig/Default Bit Setting (80x86 Specific)"+ rtfReturn; 
+					if (PObjTbl->FLAGS & LECONF) str += (CStringA) "\t\tObject is conforming for code (80x86 Specific)"+ rtfReturn;  //("\t\tConforming\r\n"); 
+					if (PObjTbl->FLAGS & LEIOPL) str += (CStringA) "\t\tObject I/O privilege level (80x86 Specific)"+ rtfReturn;  // Only used for 16:16 Alias Objects
 					PObjTbl++;
 				}
-			} else str += (CString) "error in object table"+ rtfReturn;
+			} else str += (CStringA) "error in object table"+ rtfReturn;
 	}
 /*
 	if (pLXHeader->e32_objmap)
@@ -732,8 +732,8 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 				str += strTemp + rtfReturn;
 				PResTblEnt++;
 			}
-		} else str += (CString) "error in resource table"+ rtfReturn;
-	} else str += (CString) "none"+ rtfReturn;
+		} else str += (CStringA) "error in resource table"+ rtfReturn;
+	} else str += (CStringA) "none"+ rtfReturn;
 
 	PEntry_Point ep = MakePtr( PEntry_Point, pLXHeader, pLXHeader->e32_enttab );
 	if (pEXE->IsValidPtr((ULONG_PTR)ep))
@@ -745,12 +745,12 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 
 		switch(ep->type)
 		{
-			case 0 : str+= (CString) "\tunused entry"+ rtfReturn; break;
-			case 1 : str+= (CString) "\t16-bits entry"+ rtfReturn; break;
-			case 2 : str+= (CString) "\t286 Call Gate Entry"+ rtfReturn; break;
-			case 3 : str+= (CString) "\t32-bits entry"+ rtfReturn; break;
-			case 4 : str+= (CString) "\tForwarder Entry"+ rtfReturn; break;
-			case 8 : str+= (CString) "\tParameter Typing Information Present"+ rtfReturn; break;
+			case 0 : str+= (CStringA) "\tunused entry"+ rtfReturn; break;
+			case 1 : str+= (CStringA) "\t16-bits entry"+ rtfReturn; break;
+			case 2 : str+= (CStringA) "\t286 Call Gate Entry"+ rtfReturn; break;
+			case 3 : str+= (CStringA) "\t32-bits entry"+ rtfReturn; break;
+			case 4 : str+= (CStringA) "\tForwarder Entry"+ rtfReturn; break;
+			case 8 : str+= (CStringA) "\tParameter Typing Information Present"+ rtfReturn; break;
 		}
 
 		strTemp.Format("\tNumber of entries :\t%d ", ep->nb);
@@ -776,7 +776,7 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 				PVxD_Desc_Block pVXDBlock = MakePtr( PVxD_Desc_Block, pLXHeader, ed->offset.o16);
 			}
 		}
-   } else str += (CString) "error in entry table"+ rtfReturn;
+   } else str += (CStringA) "error in entry table"+ rtfReturn;
    return str;
 }
 

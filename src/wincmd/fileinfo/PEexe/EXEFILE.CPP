@@ -11,7 +11,7 @@
 
 
 ///=====================================================
-EXE_FILE::EXE_FILE( PSTR pszFileName ) : MEMORY_MAPPED_FILE( pszFileName )
+EXE_FILE::EXE_FILE( LPCTSTR pszFileName ) : MEMORY_MAPPED_FILE( pszFileName )
 {
     m_errorType = errEXE_FILE_FILE_NOT_FOUND;
     m_secondaryHeaderOffset = -1;   // A bogus value to catch bugs

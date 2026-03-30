@@ -30,8 +30,8 @@ void MODULE_DEPENDENCY_LIST::LoadPE( PE_EXE *pPE )
 	m_pPE = pPE;
 
 	// If a path was part of the input filename, save the current directory, then switch to the new directory.
-	char szOriginalPath[MAX_PATH];
-	if ( *(pPE->GetPath()) != '\0')
+	TCHAR szOriginalPath[MAX_PATH];
+	if ( *(pPE->GetPath()) != _T('\0'))
 	{	
 		GetCurrentDirectory(MAX_PATH, szOriginalPath);  // Save original dir
 		SetCurrentDirectory( pPE->GetPath() );				 // Switch to app's dir
@@ -40,7 +40,7 @@ void MODULE_DEPENDENCY_LIST::LoadPE( PE_EXE *pPE )
 	m_errorType = AddDirectModule( );
 	m_errorType = AddDirectDelayedModule( );
 	 
-	if ( *(pPE->GetPath()) != '\0')
+	if ( *(pPE->GetPath()) != _T('\0'))
 		SetCurrentDirectory( szOriginalPath );
 }
 
@@ -78,12 +78,12 @@ MODULE_DEPENDENCY_LIST::~MODULE_DEPENDENCY_LIST( )
 // Given the name of a file, find the MODULE_FILE_INFO structure that
 // represents it.  The fFullName parameter specifies whether the full path
 // names or just the base file names will be compared.
-PMODULE_FILE_INFO MODULE_DEPENDENCY_LIST::LookupModule( PSTR pszFileName, BOOL fFullName )
+PMODULE_FILE_INFO MODULE_DEPENDENCY_LIST::LookupModule( LPCTSTR pszFileName, BOOL fFullName )
 {
 	PMODULE_FILE_INFO p = m_pList;  // Start at the list head
 	while ( p ) // While there's still entries in the list...
 	{
-		PSTR pszCompName = fFullName ? p->m_szFullName : p->m_szBaseName;
+		LPCTSTR pszCompName = fFullName ? p->m_szFullName : p->m_szBaseName;
 		if ( 0 == lstrcmpi( pszFileName, pszCompName ) )
 			return p;
 		p = p->m_pNext;
@@ -108,7 +108,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 	PSTR pszBaseName;
 
 	if (m_pList) 	DeletePList( m_pList );
-	m_pList = new MODULE_FILE_INFO( (const PSTR) m_pPE->GetName(), 0, FALSE);
+	m_pList = new MODULE_FILE_INFO( m_pPE->GetName(), 0, FALSE);
 	if ( !m_pList ) return errMDL_GENERAL_FAILURE;	
 	PMODULE_FILE_INFO pNew = m_pList;
 	PMODULE_FILE_INFO pTemp;
@@ -127,9 +127,9 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 	if ( !pImportDir ) return errMDL_NO_ERROR;
 	if ( !m_pPE->IsValidPtr( (ULONG_PTR) pImportDir))
 	{
-		pNew->m_pNext = new MODULE_FILE_INFO( "Error in IMPORT TABLE", 0, FALSE);
+		pNew->m_pNext = new MODULE_FILE_INFO( _T("Error in IMPORT TABLE"), 0, FALSE);
 		return errMDL_NO_ERROR;
-	} 
+	}
 	while ( pszBaseName = (PSTR) m_pPE->GetReadablePointerFromRVA(pImportDir->Name))
 	{
 // correct bug from Cygwin
@@ -139,20 +139,21 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 			continue;
 		} lastNameAdd = pImportDir->Name;
 // end
-		char szPath[MAX_PATH];
-		PSTR pszDontCare;
+		TCHAR szPath[MAX_PATH];
+		LPTSTR pszDontCare;
 		if ( pszBaseName )
 		{
-			pTemp = LookupModule( pszBaseName, FALSE );	
+			CString strBaseName(pszBaseName);  // ANSI to wide conversion
+			pTemp = LookupModule( strBaseName, FALSE );
 			findyet = (pTemp != NULL);
-			if ( !findyet && !SearchPath(0, pszBaseName, 0, MAX_PATH, szPath, &pszDontCare))
-				pTemp = pNew->m_pNext = new MODULE_FILE_INFO( pszBaseName, pImportDir->Name, FALSE);
+			if ( !findyet && !SearchPath(0, strBaseName, 0, MAX_PATH, szPath, &pszDontCare))
+				pTemp = pNew->m_pNext = new MODULE_FILE_INFO( strBaseName, pImportDir->Name, FALSE);
 			else
 			{
-				if (!findyet) 
+				if (!findyet)
 					pTemp = pNew->m_pNext = new MODULE_FILE_INFO( szPath, pImportDir->Name, TRUE );
 			}
-			CString strTemp="";
+			CString strTemp=_T("");
 
 //	Add function
 			PIMAGE_THUNK_DATA32 thunk, thunkIAT=0;
@@ -178,16 +179,16 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 					if ( thunk64->u1.AddressOfData == 0 ) break;
 					if ( thunk64->u1.Ordinal & IMAGE_ORDINAL_FLAG64 )
 					{
-						strTemp.Format( "ordinal %d", IMAGE_ORDINAL(thunk64->u1.Ordinal) );
+						strTemp.Format( _T("ordinal %d"), IMAGE_ORDINAL(thunk64->u1.Ordinal) );
 						pTemp->AddFunc( strTemp );
 					}
-					else				
+					else
 					{
 						PIMAGE_IMPORT_BY_NAME pOrdinalName;
 						pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)thunk64->u1.AddressOfData);
 						if ((pOrdinalName) && test_Name((PCHAR) pOrdinalName->Name))
-							pTemp->AddFunc( (PCHAR) pOrdinalName->Name );
-						else pTemp->AddFunc( (PCHAR) "<invalid name>" );
+							pTemp->AddFunc( CString((PCHAR) pOrdinalName->Name) );
+						else pTemp->AddFunc( _T("<invalid name>") );
 					}
 					thunk64++;            // Advance to next thunk
 					thunkIAT64++;         // advance to next thunk
@@ -200,7 +201,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 					if ( thunk->u1.AddressOfData == 0 ) break;
 					if ( thunk->u1.Ordinal & IMAGE_ORDINAL_FLAG32 )
 					{
-						strTemp.Format( "ordinal %d", IMAGE_ORDINAL(thunk->u1.Ordinal) );
+						strTemp.Format( _T("ordinal %d"), IMAGE_ORDINAL(thunk->u1.Ordinal) );
 						pTemp->AddFunc( strTemp );
 					}
 					else
@@ -208,22 +209,22 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 						PIMAGE_IMPORT_BY_NAME pOrdinalName;
 						pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)thunk->u1.AddressOfData);
 						if ((ULONG_PTR) pOrdinalName <= Importsz)
-						{	
-#ifdef _DEBUG 
-	AfxMessageBox("Ptr out of bound", MB_OK|MB_ICONEXCLAMATION);
+						{
+#ifdef _DEBUG
+	AfxMessageBox(_T("Ptr out of bound"), MB_OK|MB_ICONEXCLAMATION);
 #endif /**/
 							break;
 						}
-						
+
 						if ((pOrdinalName) && test_Name((PCHAR) pOrdinalName->Name))
-							pTemp->AddFunc( (PCHAR) pOrdinalName->Name );
-						else pTemp->AddFunc( (PCHAR) "<invalid name>" );
+							pTemp->AddFunc( CString((PCHAR) pOrdinalName->Name) );
+						else pTemp->AddFunc( _T("<invalid name>") );
 					}
 					thunk++;            // Advance to next thunk
 					thunkIAT++;         // advance to next thunk
 				}
 			}
-		} else pNew->m_pNext = new MODULE_FILE_INFO( "unknown or error", 0, FALSE);		
+		} else pNew->m_pNext = new MODULE_FILE_INFO( _T("unknown or error"), 0, FALSE);
 		if ( !pNew ) return errMDL_GENERAL_FAILURE;
 		if (!findyet) 
 		{
@@ -239,7 +240,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 {
 	if (m_pListDelayed) 	DeletePList( m_pListDelayed );
-	m_pListDelayed = new MODULE_FILE_INFO( (const PSTR) m_pPE->GetName(), 0, FALSE);
+	m_pListDelayed = new MODULE_FILE_INFO( m_pPE->GetName(), 0, FALSE);
 	if ( !m_pListDelayed ) return errMDL_GENERAL_FAILURE;
 	PMODULE_FILE_INFO pNew = m_pListDelayed;
 
@@ -254,13 +255,13 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 		return errMDL_NO_ERROR;
 	if ( !m_pPE->IsValidPtr( (ULONG_PTR) pDImportDesc))
 	{
-		pNew->m_pNext = new MODULE_FILE_INFO( "Error in DELAYED IMPORT TABLE", 0, FALSE);
+		pNew->m_pNext = new MODULE_FILE_INFO( _T("Error in DELAYED IMPORT TABLE"), 0, FALSE);
 		return errMDL_NO_ERROR;
 	}
 	while( pDImportDesc->rvaDLLName )
 	{
-		char szPath[MAX_PATH];
-		PSTR pszDontCare;
+		TCHAR szPath[MAX_PATH];
+		LPTSTR pszDontCare;
 
 		bool bUsingRVA = pDImportDesc->grAttrs & 1;
 		PSTR pszDLLName = bUsingRVA
@@ -268,21 +269,22 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 			: (PSTR)m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)pDImportDesc->rvaDLLName);
 		if (!pszDLLName)
 		{
-#ifdef _DEBUG 
-	AfxMessageBox("Error in DELAYED IMPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
+#ifdef _DEBUG
+	AfxMessageBox(_T("Error in DELAYED IMPORT TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
-			pNew->m_pNext = new MODULE_FILE_INFO( "Error in DELAYED IMPORT TABLE", 0, FALSE);
+			pNew->m_pNext = new MODULE_FILE_INFO( _T("Error in DELAYED IMPORT TABLE"), 0, FALSE);
 			return errMDL_NO_ERROR;
 		}
-		if (pszDLLName) 
+		if (pszDLLName)
 		{
-			if ( !SearchPath(0, pszDLLName, 0, MAX_PATH, szPath, &pszDontCare))
-				pNew->m_pNext = new MODULE_FILE_INFO( pszDLLName, 0, FALSE );
+			CString strDLLName(pszDLLName);  // ANSI to wide conversion
+			if ( !SearchPath(0, strDLLName, 0, MAX_PATH, szPath, &pszDontCare))
+				pNew->m_pNext = new MODULE_FILE_INFO( strDLLName, 0, FALSE );
 			else
 			{
 				pNew->m_pNext = new MODULE_FILE_INFO( szPath, 0, TRUE );
 			}
-			CString strTemp="";
+			CString strTemp=_T("");
 // Add functions
 			bool bUsingRVA = pDImportDesc->grAttrs & 1;
 			PIMAGE_THUNK_DATA32 thunk = bUsingRVA
@@ -296,7 +298,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 					if ( thunk64->u1.AddressOfData == 0 )	break;
 					if ( thunk64->u1.Ordinal & IMAGE_ORDINAL_FLAG64 )
 					{
-						strTemp.Format( "ordinal %d", IMAGE_ORDINAL(thunk64->u1.Ordinal) );
+						strTemp.Format( _T("ordinal %d"), IMAGE_ORDINAL(thunk64->u1.Ordinal) );
 						pNew->m_pNext->AddFunc( strTemp );
 					}
 					else
@@ -306,9 +308,9 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)thunk64->u1.AddressOfData);
 						else
 							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)thunk64->u1.AddressOfData);
-						if (pOrdinalName) 
-							pNew->m_pNext->AddFunc( (PCHAR) pOrdinalName->Name );
-						else pNew->m_pNext->AddFunc( (PCHAR) "<invalid name>" );
+						if (pOrdinalName)
+							pNew->m_pNext->AddFunc( CString((PCHAR) pOrdinalName->Name) );
+						else pNew->m_pNext->AddFunc( _T("<invalid name>") );
 					}
 					thunk64++;
 				}
@@ -320,7 +322,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 					if ( thunk->u1.AddressOfData == 0 )	break;
 					if ( thunk->u1.Ordinal & IMAGE_ORDINAL_FLAG32 )
 					{
-						strTemp.Format( "ordinal %d", IMAGE_ORDINAL(thunk->u1.Ordinal) );
+						strTemp.Format( _T("ordinal %d"), IMAGE_ORDINAL(thunk->u1.Ordinal) );
 						pNew->m_pNext->AddFunc( strTemp );
 					}
 					else
@@ -330,15 +332,15 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)thunk->u1.AddressOfData);
 						else
 							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)thunk->u1.AddressOfData);
-						if (pOrdinalName) 
-							pNew->m_pNext->AddFunc( (PCHAR) pOrdinalName->Name );
-						else pNew->m_pNext->AddFunc( (PCHAR) "<invalid name>" );
+						if (pOrdinalName)
+							pNew->m_pNext->AddFunc( CString((PCHAR) pOrdinalName->Name) );
+						else pNew->m_pNext->AddFunc( _T("<invalid name>") );
 						
 					}
 					thunk++;            // Advance to next thunk
 				}
 			}
-		} else pNew->m_pNext = new MODULE_FILE_INFO( "unknown or error", 0, FALSE);		
+		} else pNew->m_pNext = new MODULE_FILE_INFO( _T("unknown or error"), 0, FALSE);
 		pNew = pNew->m_pNext;
 		if ( !pNew ) return errMDL_GENERAL_FAILURE;
 		m_cDelayedModules++;

@@ -16,18 +16,18 @@ private:
     MODULE_FILE_INFO * m_pNext;
 	long	m_Address;
 	CStringList m_Flist;
-	char	*m_szBaseName;
-	char	m_szFullName[MAX_PATH];
+	TCHAR	*m_szBaseName;
+	TCHAR	m_szFullName[MAX_PATH];
 	BOOL	m_bFound, m_bIFound, m_Tested;
 	
 	friend class MODULE_DEPENDENCY_LIST;
 
 public:
-    MODULE_FILE_INFO( const PSTR pszFileName, long address, BOOL Found);
+    MODULE_FILE_INFO( LPCTSTR pszFileName, long address, BOOL Found);
     ~MODULE_FILE_INFO( void ){}
 
-    PSTR GetBaseName( void ){ return m_szBaseName; }
-    PSTR GetFullName( void ){ return m_szFullName; }
+    LPCTSTR GetBaseName( void ){ return m_szBaseName; }
+    LPCTSTR GetFullName( void ){ return m_szFullName; }
 	void SetImportedFPresent(BOOL pres) { m_bIFound = pres; };
 	BOOL TestFunction( );
 	CStringList *GetFList() { return &m_Flist; }

@@ -12,8 +12,8 @@
 		BOOL sort;
 		BOOL pdata;
 		BOOL reloc;
-		char *p_ini;
-		char tlexc[256];
+		TCHAR *p_ini;
+		TCHAR tlexc[256];
    };
 
 #endif

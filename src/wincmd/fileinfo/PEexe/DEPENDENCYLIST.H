@@ -46,7 +46,7 @@ public:
     PSTR GetErrorString( void );
     PMODULE_FILE_INFO GetNextModule( PMODULE_FILE_INFO p ) { return p ? p->m_pNext : m_pList; } 
 	PMODULE_FILE_INFO GetNextDelayedModule( PMODULE_FILE_INFO p ) { return p ? p->m_pNext : m_pListDelayed; } 
-    PMODULE_FILE_INFO LookupModule( PSTR pszFileName, BOOL fFullName );
+    PMODULE_FILE_INFO LookupModule( LPCTSTR pszFileName, BOOL fFullName );
     unsigned GetNumberOfModules( void ){ return m_cModules; }
 	unsigned GetNumberOfDelayedModules( void ){ return m_cDelayedModules; }
 

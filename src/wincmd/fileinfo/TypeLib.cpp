@@ -746,7 +746,7 @@ int StringFromGUID2T(REFGUID rguid, LPTSTR lpszGUID, int cbMax )
 	int nCount = ::StringFromGUID2(rguid,lpszOle, cbMax*sizeof(OLECHAR));
 	if (nCount == 0)
 	{
-		lpszGUID[0] = '\0';
+		lpszGUID[0] = _T('\0');
 		return 0; // buffer too small for the returned string
 	}
 	LPTSTR lpszRes = OLE2T(lpszOle);
@@ -2071,15 +2071,9 @@ HRESULT DumpConst( IStream* pstm, ITypeInfo* pti, TYPEATTR* pattr, MEMBERID memi
 			if (pvardesc->lpvarValue->vt == VT_ERROR || pvardesc->lpvarValue->vt == VT_HRESULT)
 			{
 				varValue.vt = VT_BSTR ;
-#ifdef _UNICODE
 				varValue.bstrVal = ::SysAllocString(
-					T2OLE((unsigned short*)_GetScodeString(pvardesc->lpvarValue->scode))
+					CT2OLE(_GetScodeString(pvardesc->lpvarValue->scode))
 					) ;
-#else
-				varValue.bstrVal = ::SysAllocString(
-					T2OLE(_GetScodeString(pvardesc->lpvarValue->scode))
-					) ;
-#endif
 				hr = S_OK ;
 			}
 			else

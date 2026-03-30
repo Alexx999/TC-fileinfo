@@ -112,7 +112,7 @@ CString CreateText1(PVOID ptr, CWait &wait)
 /************* File Properties ******************/
 
 //CString CreateText0(PVOID ptr)
-CString CreateText0(char const *FileToLoad )
+CString CreateText0(LPCTSTR FileToLoad )
 {
 //	char *FileToLoad = (char *) ptr;
 	CString Temp, str;
@@ -173,47 +173,47 @@ CString CreateText0(char const *FileToLoad )
 	}
 		
 	str += "FileSize\t:"; DWORD size = GetFileSize(hFile, NULL);
-	Temp.Format(" %d bytes ( %.3f KB,  %.3f MB ) \r\n", size, (float) size/1024.0, (float) size/(1024.0*1024.0));
+	Temp.Format(_T(" %d bytes ( %.3f KB,  %.3f MB ) \r\n"), size, (float) size/1024.0, (float) size/(1024.0*1024.0));
 	str +=Temp;
-	
+
 	CloseHandle( hFile );
 
 	if (!m_info.IsValid()) return str;
 
-	str += "FileVersionInfoSize\t:";
-	Temp.Format(" %d bytes  \r\n", m_info.GetFileVersionSize());
+	str += _T("FileVersionInfoSize\t:");
+	Temp.Format(_T(" %d bytes  \r\n"), m_info.GetFileVersionSize());
 	str +=Temp;
 
-	str += "File type\t: " + m_info.GetFileType(IDS_FT);
-	Temp.Format(" (0x%X) \r\n", m_info.GetFileType());
+	str += _T("File type\t: ") + m_info.GetFileType(IDS_FT);
+	Temp.Format(_T(" (0x%X) \r\n"), m_info.GetFileType());
 	str +=Temp;
 
 
-	str += "Target OS\t: " + m_info.GetTargetOs(IDS_OS);
-	Temp.Format(" (0x%X) \r\n", m_info.GetTargetOs());
+	str += _T("Target OS\t: ") + m_info.GetTargetOs(IDS_OS);
+	Temp.Format(_T(" (0x%X) \r\n"), m_info.GetTargetOs());
 	str += Temp;
 
-	str += "File/Product version\t: " + m_info.GetFileVersionString() + " / " + m_info.GetProductVersionString();
-	str += "\r\n";
+	str += _T("File/Product version\t: ") + m_info.GetFileVersionString() + _T(" / ") + m_info.GetProductVersionString();
+	str += _T("\r\n");
 
-	str += "Language \t: " + m_info.GetLanguageName();
-	Temp.Format(" (0x%X) \r\n", m_info.GetLanguageId());
+	str += _T("Language \t: ") + m_info.GetLanguageName();
+	Temp.Format(_T(" (0x%X) \r\n"), m_info.GetLanguageId());
 	str +=Temp;
 
-	str += "Character Set\t: " + m_info.GetCharSetName();
-	Temp.Format(" (0x%X) \r\n",m_info.GetCharSet());
+	str += _T("Character Set\t: ") + m_info.GetCharSetName();
+	Temp.Format(_T(" (0x%X) \r\n"),m_info.GetCharSet());
 	str += Temp;
 
-	str += "\r\nBuild Information : \r\n";
-	Temp.Format("Debug Version\t: %s \r\n", (m_info.IsDebugVersion()?"yes":"no"));
+	str += _T("\r\nBuild Information : \r\n");
+	Temp.Format(_T("Debug Version\t: %s \r\n"), (m_info.IsDebugVersion()?_T("yes"):_T("no")));
 	str += Temp;
-	Temp.Format("Patched Version\t: %s \r\n", (m_info.IsPatched()?"yes":"no"));
+	Temp.Format(_T("Patched Version\t: %s \r\n"), (m_info.IsPatched()?_T("yes"):_T("no")));
 	str += Temp;
-	Temp.Format("Prerelease Version\t: %s \r\n", (m_info.IsPreRelease()?"yes":"no"));
+	Temp.Format(_T("Prerelease Version\t: %s \r\n"), (m_info.IsPreRelease()?_T("yes"):_T("no")));
 	str += Temp;
-	Temp.Format("Private Version\t: %s \r\n", (m_info.IsPrivateBuild()?"yes":"no"));
+	Temp.Format(_T("Private Version\t: %s \r\n"), (m_info.IsPrivateBuild()?_T("yes"):_T("no")));
 	str += Temp;
-	Temp.Format("Special Build\t: %s \r\n ", (m_info.IsSpecialBuild()?"yes":"no"));
+	Temp.Format(_T("Special Build\t: %s \r\n "), (m_info.IsSpecialBuild()?_T("yes"):_T("no")));
 	str += Temp;
 
 	return str;
@@ -244,28 +244,28 @@ CString CreateText3(PVOID ptr, CWait &wait)
 
 	
 #else 
-	char szPath[MAX_PATH];
-	char szOriginalPath[MAX_PATH];
+	TCHAR szPath[MAX_PATH];
+	TCHAR szOriginalPath[MAX_PATH];
 	GetCurrentDirectory(MAX_PATH, szOriginalPath);  // Save original dir
 
-	PSTR pszDontCare;
-	if (!SearchPath(0, "cadt.dll", 0, MAX_PATH, szPath, &pszDontCare))
+	LPTSTR pszDontCare;
+	if (!SearchPath(0, _T("cadt.dll"), 0, MAX_PATH, szPath, &pszDontCare))
 	{
  		if (GetModuleFileName(GetModuleHandle(ModuleName), szPath, MAX_PATH))
 		{
-			char *end = strrchr( szPath, '\\');
-			*end='\0';
+			TCHAR *end = _tcsrchr( szPath, _T('\\'));
+			*end=_T('\0');
 			SetCurrentDirectory( szPath );				 // Switch to app's dir
-			strncat( szPath, "\\cadt.dll", 10);
+			_tcsncat( szPath, _T("\\cadt.dll"), 10);
 		}
 	}
 	if (!LoadLibraryEx(szPath, NULL, DONT_RESOLVE_DLL_REFERENCES))
 	{
-		str = "cadt.dll not found";
+		str = _T("cadt.dll not found");
 		return str;
 	}
 
-	wait.SetStatus("Disassembling...");
+	wait.SetStatus(_T("Disassembling..."));
 	try
 	{
 		char dBuff[1024];
@@ -281,19 +281,19 @@ CString CreateText3(PVOID ptr, CWait &wait)
 		Options.AddHexDump = TRUE;
 		Options.MnemonicAlign = 35;
 
-		Temp.Format( "Code Analization and Disassembling Tool (%s)\n\n", GetCadtVersion());
+		Temp.Format( _T("Code Analization and Disassembling Tool (%hs)\n\n"), GetCadtVersion());
 		str += Temp;
-		str += "Entry Point : \t";
+		str += _T("Entry Point : \t");
 		if (pPE->GetOrEntryPoint())
-			Temp.Format("%08Xh\r\n", pPE->GetOrEntryPoint());
-		else Temp.Format("%s\r\n", "Invalid or not in CODE section (possible Encrypted or Packed Executable)");
+			Temp.Format(_T("%08Xh\r\n"), pPE->GetOrEntryPoint());
+		else Temp.Format(_T("%s\r\n"), _T("Invalid or not in CODE section (possible Encrypted or Packed Executable)"));
 
 		str += Temp;
 		if (pPE->IsCoded() && pPE->IsAttached())
 		{
-			Temp.Format( "Compressed Executable, Using Decompressed Image\n");
+			Temp.Format( _T("Compressed Executable, Using Decompressed Image\n"));
 			str += Temp;
-			Temp.Format( "Corrected Entry point : %08Xh \n\n", pPE->GetEntryPoint());
+			Temp.Format( _T("Corrected Entry point : %08Xh \n\n"), pPE->GetEntryPoint());
 			str += Temp;
 		}
 		
@@ -306,7 +306,7 @@ CString CreateText3(PVOID ptr, CWait &wait)
 
 			InstrDasm(&Instr, &Command, FALSE);
 			MakeMnemonic(dBuff, &Command, &Options);
-			Temp.Format( "%s \n", dBuff);
+			Temp.Format( _T("%hs \n"), dBuff);
 			str += Temp;
 
 			if (pPE->IsValidPtr((ULONG_PTR) cPtr + Len))

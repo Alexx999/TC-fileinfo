@@ -20,7 +20,7 @@ class PE_EXE : public EXE_FILE
 	MODULE_DEPENDENCY_LIST *m_pdep;
 	DWORD EntryPointRAW, EntryPointRVA;
 public:
-	PE_EXE( PSTR pszFileName );
+	PE_EXE( LPCTSTR pszFileName );
 	~PE_EXE( );
 	BOOL IsValid() { return m_pNtHdr ? TRUE : FALSE; }
 	BOOL IsCoded();

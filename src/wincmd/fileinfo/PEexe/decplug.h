@@ -10,7 +10,7 @@ public:
    DecPlugin( PE_EXE *pe );
     ~DecPlugin( );
    static CStringList pluglist;
-   CString GetDecStr() { if (m_bComp) return m_sDecStr; else return ""; }
+   CString GetDecStr() { if (m_bComp) return m_sDecStr; else return _T(""); }
    DWORD GetSize() { return m_dwMemSize; }
    LPVOID GetNewHeader() { return m_pNewHeader; }
    BOOL IsComp() { return m_bComp; }

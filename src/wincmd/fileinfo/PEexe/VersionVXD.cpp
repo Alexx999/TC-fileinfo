@@ -13,6 +13,7 @@
 //**********************************************************************
 
 #include <windows.h>
+#include <tchar.h>
 #include <stdio.h>
 
 #define SWAPWORDS(X) ( (X<<16) | (X>>16) )
@@ -62,7 +63,7 @@ typedef struct _VXD_VERSION_RESOURCE {
 // 
 //**********************************************************************
 
-BOOL GetVxdVersion( LPSTR szFile, LPDWORD lpdwLen, LPVOID lpData ) {
+BOOL GetVxdVersion( LPCTSTR szFile, LPDWORD lpdwLen, LPVOID lpData ) {
 
   HANDLE hFile        = NULL;
   HANDLE hFileMapping = NULL;
@@ -186,7 +187,7 @@ BOOL GetVxdVersion( LPSTR szFile, LPDWORD lpdwLen, LPVOID lpData ) {
 // 
 //**********************************************************************
 
-DWORD GetVxdVersionInfoSize( LPSTR szFile ) {
+DWORD GetVxdVersionInfoSize( LPCTSTR szFile ) {
 
   DWORD dwResult = 0;
 
@@ -228,7 +229,7 @@ DWORD GetVxdVersionInfoSize( LPSTR szFile ) {
 // 
 //**********************************************************************
 
-BOOL GetVxdVersionInfo( LPSTR szFile, DWORD dwLen, LPVOID lpData ) {
+BOOL GetVxdVersionInfo( LPCTSTR szFile, DWORD dwLen, LPVOID lpData ) {
 
   return GetVxdVersion( szFile, &dwLen, lpData );
 }
@@ -249,43 +250,43 @@ BOOL GetVxdVersionInfo( LPSTR szFile, DWORD dwLen, LPVOID lpData ) {
 // 
 //**********************************************************************
 
-void main( int argc, char *argv[] ) {
+void _tmain( int argc, TCHAR *argv[] ) {
 
   void *   lpData;
   DWORD    dwResSize;
   BOOL     bSuccess;
   UINT     uFfiLen;
-  char     szLangCp[9];
+  TCHAR    szLangCp[9];
   LPDWORD  lpdwLangCp;
   UINT     uTranLen;
-  char *   szVer;
+  TCHAR *  szVer;
   UINT     uVerLen;
   int      iIndex;
   int      iString;
-  char     szSfi[255];
+  TCHAR    szSfi[255];
   VS_FIXEDFILEINFO *pFfi;
 
-  char *VerStrings[] = { "CompanyName",
-                         "FileDescription",
-                         "FileVersion",
-                         "InternalName",
-                         "LegalCopyright",
-                         "OriginalFilename",
-                         "ProductName",
-                         "ProductVersion",
-                         "Comments",
-                         "LegalTrademarks",
-                         "PrivateBuild",
-                         "SpecialBuild" };
+  LPCTSTR VerStrings[] = { _T("CompanyName"),
+                           _T("FileDescription"),
+                           _T("FileVersion"),
+                           _T("InternalName"),
+                           _T("LegalCopyright"),
+                           _T("OriginalFilename"),
+                           _T("ProductName"),
+                           _T("ProductVersion"),
+                           _T("Comments"),
+                           _T("LegalTrademarks"),
+                           _T("PrivateBuild"),
+                           _T("SpecialBuild") };
 
   if ( argc < 2 ) {
-     printf( "usage: VxdVer <filename>" );
+     _tprintf( _T("usage: VxdVer <filename>") );
      return;
   }
 
   dwResSize = GetVxdVersionInfoSize( argv[1] );
   if ( !dwResSize ) {
-     printf( "GetVxdVersionInfoSize() failed with error %d.\n",
+     _tprintf( _T("GetVxdVersionInfoSize() failed with error %d.\n"),
            GetLastError() );
      return;
   }
@@ -299,39 +300,39 @@ void main( int argc, char *argv[] ) {
 
         bSuccess = GetVxdVersionInfo( argv[1], dwResSize, lpData );
         if ( !bSuccess ) {
-           printf( "GetVxdVersionInfo() failed with error %d.\n",
+           _tprintf( _T("GetVxdVersionInfo() failed with error %d.\n"),
                  GetLastError() );
            __leave;
         }
 
-        bSuccess = VerQueryValue( lpData, "\\", (void **) &pFfi,
+        bSuccess = VerQueryValue( lpData, _T("\\"), (void **) &pFfi,
               &uFfiLen );
         if ( !bSuccess ) {
-           printf( "VerQueryValue() failed with error %d.\n",
+           _tprintf( _T("VerQueryValue() failed with error %d.\n"),
                  GetLastError() );
            __leave;
         }
 
-        printf("VS_FIXEDFILEINFO Structure\n");
-        printf("--------------------------\n");
-        printf("dwSignature = %lu\n", pFfi->dwSignature);
-        printf("dwStrucVersion = %lu\n", pFfi->dwStrucVersion);
-        printf("dwFileVersionMS = %lu\n", pFfi->dwFileVersionMS);
-        printf("dwFileVersionLS = %lu\n", pFfi->dwFileVersionLS);
-        printf("dwProductVersionMS = %lu\n", pFfi->dwProductVersionMS);
-        printf("dwProductVersionLS = %lu\n", pFfi->dwProductVersionLS);
-        printf("dwFileFlagsMask = %lu\n", pFfi->dwFileFlagsMask);
-        printf("dwFileFlags = %lu\n", pFfi->dwFileFlags);
-        printf("dwFileOS = %lu\n", pFfi->dwFileOS);
-        printf("dwFileType = %lu\n", pFfi->dwFileType);
-        printf("dwFileSubtype = %lu\n", pFfi->dwFileSubtype);
-        printf("dwFileDateMS = %lu\n", pFfi->dwFileDateMS);
-        printf("dwFileDateLS = %lu\n", pFfi->dwFileDateLS);
+        _tprintf(_T("VS_FIXEDFILEINFO Structure\n"));
+        _tprintf(_T("--------------------------\n"));
+        _tprintf(_T("dwSignature = %lu\n"), pFfi->dwSignature);
+        _tprintf(_T("dwStrucVersion = %lu\n"), pFfi->dwStrucVersion);
+        _tprintf(_T("dwFileVersionMS = %lu\n"), pFfi->dwFileVersionMS);
+        _tprintf(_T("dwFileVersionLS = %lu\n"), pFfi->dwFileVersionLS);
+        _tprintf(_T("dwProductVersionMS = %lu\n"), pFfi->dwProductVersionMS);
+        _tprintf(_T("dwProductVersionLS = %lu\n"), pFfi->dwProductVersionLS);
+        _tprintf(_T("dwFileFlagsMask = %lu\n"), pFfi->dwFileFlagsMask);
+        _tprintf(_T("dwFileFlags = %lu\n"), pFfi->dwFileFlags);
+        _tprintf(_T("dwFileOS = %lu\n"), pFfi->dwFileOS);
+        _tprintf(_T("dwFileType = %lu\n"), pFfi->dwFileType);
+        _tprintf(_T("dwFileSubtype = %lu\n"), pFfi->dwFileSubtype);
+        _tprintf(_T("dwFileDateMS = %lu\n"), pFfi->dwFileDateMS);
+        _tprintf(_T("dwFileDateLS = %lu\n"), pFfi->dwFileDateLS);
 
-        bSuccess = VerQueryValue( lpData, "\\VarFileInfo\\Translation",
+        bSuccess = VerQueryValue( lpData, _T("\\VarFileInfo\\Translation"),
               (void **) &lpdwLangCp, &uTranLen );
         if ( !bSuccess ) {
-           printf( "VerQueryValue() failed with error %d.\n",
+           _tprintf( _T("VerQueryValue() failed with error %d.\n"),
                  GetLastError() );
            __leave;
         }
@@ -339,22 +340,22 @@ void main( int argc, char *argv[] ) {
         for ( iIndex = 0; iIndex < (int)( uTranLen / sizeof(void*) );
               iIndex++ ) {
 
-           int iItems = sizeof(VerStrings)/sizeof(char *);
+           int iItems = sizeof(VerStrings)/sizeof(LPCTSTR);
 
            // Flip the words to display lang first.
-           wsprintf( szLangCp, "%08X",
+           wsprintf( szLangCp, _T("%08X"),
                  SWAPWORDS( *(lpdwLangCp + iIndex) ) );
-           printf( "\nlang-codepage = %s\n", szLangCp );
-           printf( "------------------------\n" );
+           _tprintf( _T("\nlang-codepage = %s\n"), szLangCp );
+           _tprintf( _T("------------------------\n") );
 
            // Cycle through possible string values.
            for ( iString = 0; iString < iItems; iString++ ) {
-              wsprintf( szSfi, "\\StringFileInfo\\%s\\%s", szLangCp,
+              wsprintf( szSfi, _T("\\StringFileInfo\\%s\\%s"), szLangCp,
                     VerStrings[iString] );
               bSuccess = VerQueryValue( lpData, szSfi,
                     (void **) &szVer, &uVerLen );
               if ( bSuccess )
-                 printf( "%s = %s\n", VerStrings[iString], szVer );
+                 _tprintf( _T("%s = %s\n"), VerStrings[iString], szVer );
            }
         }
 

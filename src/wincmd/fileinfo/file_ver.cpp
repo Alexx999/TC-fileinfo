@@ -69,10 +69,10 @@ CFileVersionInfo::CFileVersionInfo(LPCTSTR lpszFile)
 {
 	m_pVersionInfo = NULL;
 	NTver = (GetOSVersion() != 0);
-	if (lpszFile && strlen(lpszFile))
+	if (lpszFile && _tcslen(lpszFile))
 	{
 //		EXE_FILE le( (char *) lpszFile );
-		PE_EXE pPE( (char *) lpszFile );
+		PE_EXE pPE( lpszFile );
 		
 		if ((pPE.GetExeType()==exeType_LE) && NTver)
 			if (ReadVersionInfo16(pPE))
@@ -144,7 +144,7 @@ BOOL CFileVersionInfo::ReadVersionInfo16(EXE_FILE &le)
 	{  // ???????????????????
 		int szKeySize = strlen(&pVerRes->cName);
 #ifdef _DEBUG
-		AfxMessageBox("??????");
+		AfxMessageBox(_T("??????"));
 #endif
 		pVerRes = (VXD_VERSION_RESOURCE *) (((BYTE *) pVerRes) + 13 );
 	}
@@ -158,7 +158,7 @@ BOOL CFileVersionInfo::ReadVersionInfo16(EXE_FILE &le)
 	if (::VerQueryValue(m_pVersionInfo, _T ("\\"), &lpVoid, &m_fileVersionSize))
 		memcpy(&m_fixedFileInfo, lpVoid, m_fileVersionSize); /**/
 #ifdef _DEBUG
-	else AfxMessageBox("Pas de struct m_fixedFileInfo");
+	else AfxMessageBox(_T("Pas de struct m_fixedFileInfo"));
 #endif
 	if (ReadBlock()) return TRUE;
 	return FALSE;
@@ -169,7 +169,7 @@ BOOL CFileVersionInfo::ReadVersionInfo(const CString& strFile)
 {
 	DWORD	dwDummy;
 	LPVOID	lpVoid;
-	all = "";
+	all = _T("");
 	Clear();			// clear previous data first
 	
 	UINT	m_fileVersionSize;
@@ -244,9 +244,9 @@ VS_Dflt_NT *CFileVersionInfo::ReadStringFI_NT(VS_Dflt_NT *vi_st)
 		{
 			WideCharToMultiByte( CP_ACP, 0, vi_st->szKey, -1, sTemp, BufferLen, NULL, NULL );
 			UINT id = getval(0)*4096+getval(1)*256+getval(2)*16+getval(3);
-			temp.Format("\nVersion language : %s\n", GetLanguageName(id));
+			temp.Format(_T("\nVersion language : %s\n"), (LPCTSTR)GetLanguageName(id));
 			all += temp;
-			
+
 			szKeySize = ((wcslen(vi_st->szKey) + 1) << 1) + sizeof(VS_Dflt_NT);
 			while (szKeySize%4)	szKeySize++;
 			decal += szKeySize;
@@ -255,24 +255,24 @@ VS_Dflt_NT *CFileVersionInfo::ReadStringFI_NT(VS_Dflt_NT *vi_st)
 //		if (vi_st->wType == 1)
 		{
 			WideCharToMultiByte( CP_ACP, 0, vi_st->szKey, -1, sTemp, BufferLen, NULL, NULL );
-			temp.Format("      %s",sTemp);
+			temp.Format(_T("      %hs"),sTemp);
 			all += temp;
 			szKeySize = ((wcslen(vi_st->szKey) + 1) << 1) + sizeof(VS_Dflt_NT);
 			while (szKeySize%4)	szKeySize++;
 			decal += szKeySize;
 
-			//String 
+			//String
 			vi_string = (WCHAR *) ( decal );
 			if (vi_st->wValueLength)
-			{		
+			{
 				WideCharToMultiByte( CP_ACP, 0, vi_string, vi_st->wValueLength, sTemp, BufferLen, NULL, NULL );
 				sTemp[vi_st->wValueLength]='\0';
-				temp.Format("\t: %s\n",sTemp);
+				temp.Format(_T("\t: %hs\n"),sTemp);
 				all += temp;
 				szKeySize = vi_st->wLength - szKeySize;
 			} else 
 			{
-				all += "\t:\n";
+				all += _T("\t:\n");
 				szKeySize = 0;
 			}
 			while (szKeySize%4)	szKeySize++;
@@ -360,7 +360,7 @@ BOOL CFileVersionInfo::ReadBlockNT()
 	  if ((((BYTE *) m_pVersionInfo + m_fileVersionBlockSize) - (BYTE *) vi_st) <= 0)
 	  {
 #ifdef _DEBUG
-		AfxMessageBox("??????");
+		AfxMessageBox(_T("??????"));
 #endif
 		  return ret;
 	  }
@@ -397,16 +397,16 @@ VS_Dflt *CFileVersionInfo::ReadStringFI(VS_Dflt *vi_st)
 		if (vi_st->wValueLength == 0 && vi_st->szKey[0] == 48)
 		{
 			UINT id = getval(0)*4096+getval(1)*256+getval(2)*16+getval(3);
-			temp.Format("\nVersion language : %s\n", GetLanguageName(id));
+			temp.Format(_T("\nVersion language : %s\n"), (LPCTSTR)GetLanguageName(id));
 			all += temp;
-			
+
 			szKeySize = strlen(vi_st->szKey)+1;
 			while (szKeySize%4)	szKeySize++;
 			decal += sizeof(VS_Dflt) + (szKeySize );
 			vi_st = (VS_Dflt *) ( decal );
 		}
 
-		temp.Format("      %s",vi_st->szKey);
+		temp.Format(_T("      %hs"),vi_st->szKey);
 		all += temp;
 		szKeySize = strlen(vi_st->szKey)+1;
 		while (szKeySize%4)	szKeySize++;
@@ -419,13 +419,13 @@ VS_Dflt *CFileVersionInfo::ReadStringFI(VS_Dflt *vi_st)
 			char *pst = new char[vi_st->wValueLength+1];
 			strncpy(pst, vi_string, vi_st->wValueLength);
 			pst[vi_st->wValueLength]='\0';
-			temp.Format("\t: %s\n",pst);
+			temp.Format(_T("\t: %hs\n"),pst);
 			all += temp;
 			szKeySize = vi_st->wValueLength;
 			delete [] pst;
 		} else 
 		{
-			all += "\t:\n";
+			all += _T("\t:\n");
 			szKeySize = 0;
 		}
 		while (szKeySize%4)	szKeySize++;
@@ -531,7 +531,7 @@ CString CFileVersionInfo::GetCharSetName() const
     for (int i=0; i < NUMBER_CHARSET_DESCRIPTIONS ; i++ )
         if ( cs == CharSetName[i].flag )
             return CharSetName[i].name;
-	return "Not referenced";
+	return _T("Not referenced");
 }	// GetCharSetName
 
 

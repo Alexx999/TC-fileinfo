@@ -95,5 +95,5 @@ BOOL COption::OnInitDialog()
 
 void COption::OnBnClickedEdit()
 {
-	ShellExecute(0,"open", "notepad.exe", op.p_ini, 0, SW_NORMAL);
+	ShellExecute(0, _T("open"), _T("notepad.exe"), op.p_ini, 0, SW_NORMAL);
 }

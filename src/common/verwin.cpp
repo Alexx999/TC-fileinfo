@@ -121,42 +121,42 @@ VERSION GetSystemVersion()
 		else  
 		{
 			HKEY hKey;
-			char szProductType[BUFSIZE];
-			DWORD dwBufLen=BUFSIZE;
+			TCHAR szProductType[BUFSIZE];
+			DWORD dwBufLen=BUFSIZE * sizeof(TCHAR);
 			LONG lRet;
 			lRet = RegOpenKeyEx( HKEY_LOCAL_MACHINE,
-			   "SYSTEM\\CurrentControlSet\\Control\\ProductOptions",
+			   _T("SYSTEM\\CurrentControlSet\\Control\\ProductOptions"),
 			   0, KEY_QUERY_VALUE, &hKey );
 			if( lRet != ERROR_SUCCESS )
 			   return ver;
 
-			lRet = RegQueryValueEx( hKey, "ProductType", NULL, NULL,
+			lRet = RegQueryValueEx( hKey, _T("ProductType"), NULL, NULL,
 			   (LPBYTE) szProductType, &dwBufLen);
-			if( (lRet != ERROR_SUCCESS) || (dwBufLen > BUFSIZE) )
+			if( (lRet != ERROR_SUCCESS) || (dwBufLen > BUFSIZE * sizeof(TCHAR)) )
 			   return ver;
 
 			RegCloseKey( hKey );
 
-			if ( lstrcmpi( "WINNT", szProductType) == 0 )
+			if ( lstrcmpi( _T("WINNT"), szProductType) == 0 )
 				if (osvi.dwMajorVersion == 4)
 					ver.type = WND_WKS4;
 				else ver.type = WND_WKS3;
-			if ( lstrcmpi( "LANMANNT", szProductType) == 0 )
+			if ( lstrcmpi( _T("LANMANNT"), szProductType) == 0 )
 				if (osvi.dwMajorVersion == 4)
 					ver.type = WND_4S;
 				else ver.type = WND_S;
-			if ( lstrcmpi( "SERVERNT", szProductType) == 0 )
+			if ( lstrcmpi( _T("SERVERNT"), szProductType) == 0 )
 					ver.type = WND_AS;
 		}
 // Display service pack (if any) and build number.
         if( osvi.dwMajorVersion == 4 && 
-             lstrcmpi( osvi.szCSDVersion, "Service Pack 6" ) == 0 )
+             lstrcmpi( osvi.szCSDVersion, _T("Service Pack 6") ) == 0 )
         {
             HKEY hKey;
             LONG lRet;
 
             // Test for SP6 versus SP6a.
-            lRet = RegOpenKeyEx( HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Hotfix\\Q246009", 0, KEY_QUERY_VALUE, &hKey );
+            lRet = RegOpenKeyEx( HKEY_LOCAL_MACHINE, _T("SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Hotfix\\Q246009"), 0, KEY_QUERY_VALUE, &hKey );
             if( lRet == ERROR_SUCCESS )
 			{
 				ver.sp = 7; // sp6a
@@ -203,62 +203,62 @@ CString GetSystemVersionName(VERSION &ver)
 	SYSTEM_INFO si; PGNSI pGNSI;
 	CString str;
 	// Use GetProcAddress to avoid load issues on Windows 2000
-	pGNSI = (PGNSI) GetProcAddress(GetModuleHandle("kernel32.dll"),
+	pGNSI = (PGNSI) GetProcAddress(GetModuleHandle(_T("kernel32.dll")),
 		"GetNativeSystemInfo");
 	if(NULL != pGNSI)
 	pGNSI(&si);
 	switch (ver.ver)
 	{
 		case 0 : break;
-		case WND_SERVER2008R2 : str = ("Microsoft Windows Server 2008 Revision 2 family "); break;
-		case WND_SERVER2008 : str = ("Microsoft Windows Server 2008 family "); break;
-		case WND_SEVEN : str = ("Microsoft Windows Seven "); break;
+		case WND_SERVER2008R2 : str = _T("Microsoft Windows Server 2008 Revision 2 family "); break;
+		case WND_SERVER2008 : str = _T("Microsoft Windows Server 2008 family "); break;
+		case WND_SEVEN : str = _T("Microsoft Windows Seven "); break;
 
-		case WND_VISTA: str = ("Microsoft Windows Vista "); break;
-		case WND_SERVER2003: str = ("Microsoft Windows Server 2003 family "); break;
-		case WND_XP: str = ("Microsoft Windows XP ");break;
-		case WND_2K: str = ("Microsoft Windows 2000 ");break;
-		case WND_NT: str = "Microsoft Windows NT ";break;
-		case WND_95: str = ("Microsoft Windows 95 ");break;
-		case WND_98: str = ("Microsoft Windows 98 ");break;
-		case WND_ME: str =("Microsoft Windows Millennium Edition\n");break;
-		case WND_32S: str =("Microsoft Win32s\n");break;
+		case WND_VISTA: str = _T("Microsoft Windows Vista "); break;
+		case WND_SERVER2003: str = _T("Microsoft Windows Server 2003 family "); break;
+		case WND_XP: str = _T("Microsoft Windows XP ");break;
+		case WND_2K: str = _T("Microsoft Windows 2000 ");break;
+		case WND_NT: str = _T("Microsoft Windows NT ");break;
+		case WND_95: str = _T("Microsoft Windows 95 ");break;
+		case WND_98: str = _T("Microsoft Windows 98 ");break;
+		case WND_ME: str = _T("Microsoft Windows Millennium Edition\n");break;
+		case WND_32S: str = _T("Microsoft Win32s\n");break;
 	}
 	if ( si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_IA64 )
-		str += "Itanium-based Systems "; 
+		str += _T("Itanium-based Systems ");
 	else if ( si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_AMD64 )
-		str += "x64 "; 
+		str += _T("x64 ");
 	switch (ver.type)
 	{
-		case WND_WKS4: str += ( "Workstation 4.0 " ); break;
-		case WND_HE:  str += ( "Home Edition " );break;
-		case WND_PE: str += ( "Professional Edition " );break;
-		case WND_DE: str += ( "Datacenter Edition " );break;
-		case WND_EE: str += ( "Enterprise Edition " );break;
-		case WND_WE: str += ( "Web Edition " );break;
-		case WND_SE: str += ( "Standard Edition " );break;
-		case WND_DS: str += ( "Datacenter Server " );break;
-		case WND_AS: str += ( "Advanced Server" );break;
-		case WND_S:  str += ( "Server " );break;
-		case WND_4EE: str += ( "Server 4.0, Enterprise Edition " );break;
-		case WND_4S: str += ( "Server 4.0 " );break;
-		case WND_OSR2: str += ("OSR2 " );break;
-		case WND_OSR1: str += ("SE " );break;
-		case WND_WKS3: str += ( "Workstation " ); break;		
+		case WND_WKS4: str += _T("Workstation 4.0 "); break;
+		case WND_HE:  str += _T("Home Edition ");break;
+		case WND_PE: str += _T("Professional Edition ");break;
+		case WND_DE: str += _T("Datacenter Edition ");break;
+		case WND_EE: str += _T("Enterprise Edition ");break;
+		case WND_WE: str += _T("Web Edition ");break;
+		case WND_SE: str += _T("Standard Edition ");break;
+		case WND_DS: str += _T("Datacenter Server ");break;
+		case WND_AS: str += _T("Advanced Server");break;
+		case WND_S:  str += _T("Server ");break;
+		case WND_4EE: str += _T("Server 4.0, Enterprise Edition ");break;
+		case WND_4S: str += _T("Server 4.0 ");break;
+		case WND_OSR2: str += _T("OSR2 ");break;
+		case WND_OSR1: str += _T("SE ");break;
+		case WND_WKS3: str += _T("Workstation "); break;
 
 	}
 CString strtp;
 	if ( ver.ver == WND_NT)
 	{
 		if (ver.sp == 7)
-			strtp.Format( "Service Pack 6a (Build %d)\n", ver.build );
-		else strtp.Format( "Service Pack %d (Build %d)\n", ver.sp, ver.build );
+			strtp.Format( _T("Service Pack 6a (Build %d)\n"), ver.build );
+		else strtp.Format( _T("Service Pack %d (Build %d)\n"), ver.sp, ver.build );
 	}
 	else {
 		if (ver.sp > 0)
-			strtp.Format( "Version %d.%d (build %d) Service pack %d \n", ver.major, ver.minor, ver.build, ver.sp);	   
-		else 
-			strtp.Format( "Version %d.%d (build %d)", ver.major, ver.minor, ver.build);	   
+			strtp.Format( _T("Version %d.%d (build %d) Service pack %d \n"), ver.major, ver.minor, ver.build, ver.sp);
+		else
+			strtp.Format( _T("Version %d.%d (build %d)"), ver.major, ver.minor, ver.build);
 
 	}
 	str += strtp;

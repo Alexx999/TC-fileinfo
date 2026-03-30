@@ -153,13 +153,13 @@ BOOL CPageTree::PreTranslateMessage(MSG* pMsg)
 			sei.fMask = SEE_MASK_DOENVSUBST;
 			sei.nShow = SW_SHOWNORMAL;
 	//		sei.lpVerb = argv[1];
-			sei.lpFile = "%commander_exe%";
-			CString com = "/S=L \" " + m_tree.GetItemText(m_tree.GetSelectedItem()) + "\"";
+			sei.lpFile = _T("%commander_exe%");
+			CString com = _T("/S=L \" ") + m_tree.GetItemText(m_tree.GetSelectedItem()) + _T("\"");
 			sei.lpParameters = com;
 			if(ShellExecuteEx(&sei) == FALSE)
 			{
 				CString mess;
-				mess.Format("ShellExecuteEx Error \narg : %s",(const char *)com);
+				mess.Format(_T("ShellExecuteEx Error \narg : %s"),(LPCTSTR)com);
 				AfxMessageBox(mess,MB_ICONEXCLAMATION);
 			}
 

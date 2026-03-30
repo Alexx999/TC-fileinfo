@@ -37,7 +37,7 @@ CListExport::CListExport() : CResizePage(CListExport::IDD)
 	m_bsort = FALSE;
 }
 
-extern char inifilename[MAX_PATH];
+extern TCHAR inifilename[MAX_PATH];
 CListExport::~CListExport()
 {
 	CleanUp();
@@ -67,8 +67,8 @@ void CListExport::CleanUp()
 	if (IsWindow(m_hWnd))   
 	{
 		UpdateData(TRUE);	
-		char temp[50]; 
-		WritePrivateProfileString( "Options", "Sort", _itoa(m_bsort, temp, 10), inifilename);
+		TCHAR temp[50];
+		WritePrivateProfileString( _T("Options"), _T("Sort"), _itot(m_bsort, temp, 10), inifilename);
 	}
 }
 
@@ -118,10 +118,10 @@ void CListExport::Load()
 {
 		CString str;
 		CWait wait(this);
-		wait.SetStatus("Listing Modules...");
-		
+		wait.SetStatus(_T("Listing Modules..."));
+
 		m_pe->IsCoded();		//Test compressed and decompress
-		str.Format("%s  ( Exported functions )", m_pe->GetBaseName() );
+		str.Format(_T("%s  ( Exported functions )"), m_pe->GetBaseName() );
 		m_listmodule.AddString( str );
 		MODULE_DEPENDENCY_LIST *pDep = m_pe->GetDepends();
 		if (pDep)
@@ -137,11 +137,11 @@ void CListExport::Load()
 			if (pModInfo )
 				while ( pModInfo = pDep->GetNextDelayedModule( pModInfo ) )
 				{
-					str.Format("%s  ( Delayed Import )", pModInfo->GetBaseName() );
+					str.Format(_T("%s  ( Delayed Import )"), pModInfo->GetBaseName() );
 					m_listmodule.AddString( str );
 				}
 		}
-		wait.SetStatus("Listing Functions...");
+		wait.SetStatus(_T("Listing Functions..."));
 		AddFunction(0);
 		m_listmodule.SetCurSel( 0 );
 }
@@ -156,7 +156,7 @@ BOOL CListExport::OnInitDialog()
 	}
 	m_list.SetHorizontalExtent( m_Hsize * 10 );
 	font = new(CFont);
-	font->CreateFont( -FontSize, 0, 0, 0, FW_THIN, 0, 0, 0, ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY, FF_MODERN, "Tahoma" ); // modern Courrier New
+	font->CreateFont( -FontSize, 0, 0, 0, FW_THIN, 0, 0, 0, ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY, FF_MODERN, _T("Tahoma") ); // modern Courrier New
 	m_list.SetFont( font );
 	
     return TRUE;  // return TRUE unless you set the focus to a control
@@ -182,7 +182,7 @@ extern PSTR Undecorate(PSTR Textin, PSTR Textout, int len);
 void CListExport::AddFunction(int sel)
 {
 	m_list.ResetContent( );
-	CString strTemp="";
+	CString strTemp=_T("");
 	int i;
 	m_Hsize =0;
 	if (sel)
@@ -206,31 +206,31 @@ void CListExport::AddFunction(int sel)
 				CStringList *pFlist = pModInfo->GetFList();
 				POSITION pos = pFlist->GetHeadPosition();
 				if (!pos) return;
-				CString func; 
+				CString func;
 				do {
 					func = pFlist->GetNext(pos);
-					if (strncmp("ordinal ", func, 8)==0)
+					if (_tcsncmp(_T("ordinal "), func, 8)==0)
 						strTemp = func;
-					else 
+					else
 					{
 						if ( m_undecorate ) // Undecorate Name
 						{
 				 			char Textout[SIZEBUFFER];
-							strTemp.Format("%s", Undecorate((char *) (LPCSTR) func, Textout, SIZEBUFFER));
+							strTemp = CA2T(Undecorate(CT2A(func), Textout, SIZEBUFFER));
 						}
-						else strTemp.Format("%s", func);
+						else strTemp.Format(_T("%s"), (LPCTSTR)func);
 					}
 					if (m_Hsize < strTemp.GetLength()) m_Hsize = strTemp.GetLength();
 					m_list.AddString( strTemp );
 					m_nbfunc ++;
 				} while( pos );
 			}
-			else 
+			else
 			{
 				pModInfo = pDep->GetNextDelayedModule( (PMODULE_FILE_INFO) 0 );
 				if (!pModInfo) return;
 				int nb = strTemp.GetLength();
-				while(strncmp(strTemp, pModInfo->GetBaseName(), nb-20))
+				while(_tcsncmp(strTemp, pModInfo->GetBaseName(), nb-20))
 				{
 					pModInfo = pDep->GetNextDelayedModule( pModInfo );
 					if (!pModInfo) return;
@@ -242,16 +242,16 @@ void CListExport::AddFunction(int sel)
 				CString func;
 				do {
 					func = pFlist->GetNext(pos);
-					if (strncmp("ordinal ", func, 8)==0)
+					if (_tcsncmp(_T("ordinal "), func, 8)==0)
 						strTemp = func;
-					else 
+					else
 					{
 						if ( m_undecorate ) // Undecorate Name
 						{
 				 			char Textout[SIZEBUFFER];
-							strTemp.Format("%s", Undecorate((char *) (LPCSTR) func, Textout, SIZEBUFFER));
+							strTemp = CA2T(Undecorate(CT2A(func), Textout, SIZEBUFFER));
 						}
-						else strTemp.Format("%s", func);
+						else strTemp.Format(_T("%s"), (LPCTSTR)func);
 					}
 					if (m_Hsize < strTemp.GetLength()) m_Hsize = strTemp.GetLength();
 					m_list.AddString( strTemp );
@@ -287,15 +287,15 @@ void CListExport::AddFunction(int sel)
 							if ( m_undecorate ) 	// Undecorate Name
 							{
 								char Textout[SIZEBUFFER];
-								m_list.AddString( Undecorate(Name, Textout, SIZEBUFFER));								
+								m_list.AddString( CString(Undecorate(Name, Textout, SIZEBUFFER)) );
 							}
-							else m_list.AddString( Name );
-							int size = strlen(Name);
+							else m_list.AddString( CString(Name) );
+							int size = (int)strlen(Name);
 							if (m_Hsize < size) m_Hsize = size;
 						}
-					if (!found) 
+					if (!found)
 					{
-						strTemp.Format( "ordinal %d", i );
+						strTemp.Format( _T("ordinal %d"), i );
 						m_list.AddString( strTemp );
 					}
 
@@ -309,7 +309,7 @@ void CListExport::AddFunction(int sel)
 void CListExport::OnSelchangeModules() 
 {
 	CWait wait(this);
-	wait.SetStatus("Listing Functions...");
+	wait.SetStatus(_T("Listing Functions..."));
 	int sel = m_listmodule.GetCurSel( );
 	if (sel == -1) return;
 	AddFunction(sel);
@@ -349,55 +349,55 @@ void CListExport::OnTestImport()
 			}
 
 			if (!pModInfo) return;
-			while(strncmp(Module, pModInfo->GetBaseName(), Module.GetLength()-decal))
+			while(_tcsncmp(Module, pModInfo->GetBaseName(), Module.GetLength()-decal))
 			{
 				if (decal) pModInfo = pDep->GetNextDelayedModule( pModInfo );
 				else pModInfo = pDep->GetNextModule( pModInfo );
 				if (!pModInfo) return;
 			}
-			if (decal) Module.SetAt( Module.GetLength()-decal, '\0');
+			if (decal) Module.SetAt( Module.GetLength()-decal, _T('\0'));
 			CStringList *pFlist = pModInfo->GetFList();
 			POSITION pos = pFlist->GetHeadPosition();
 
 			int error=0;
-			char szPath[MAX_PATH];
-			char szOriginalPath[MAX_PATH];
+			TCHAR szPath[MAX_PATH];
+			TCHAR szOriginalPath[MAX_PATH];
 			GetCurrentDirectory(MAX_PATH, szOriginalPath);  // Save original dir
 			SetCurrentDirectory( m_pe->GetPath() );				 // Switch to app's dir
 
-			PSTR pszDontCare;
+			LPTSTR pszDontCare;
 			if ((pos) && SearchPath(0, Module, 0, MAX_PATH, szPath, &pszDontCare))
 			{
 				HINSTANCE h;
 				if (b_W95Protect)
 					h = LoadLibraryEx(szPath, NULL, LOAD_LIBRARY_AS_DATAFILE);
-				else 
-					h = LoadLibraryEx(szPath, NULL, DONT_RESOLVE_DLL_REFERENCES);  				
+				else
+					h = LoadLibraryEx(szPath, NULL, DONT_RESOLVE_DLL_REFERENCES);
 				if (h)
 				{
 					CStringList StrL;
 					CString func;
 					do {
 						func = pFlist->GetNext(pos);
-						if (strncmp("ordinal ", func, 8)==0)
+						if (_tcsncmp(_T("ordinal "), func, 8)==0)
 						{
-							if (!GetProcAddress( h, MAKEINTRESOURCEA(atoi((LPCTSTR) func + 8))))
+							if (!GetProcAddress( h, MAKEINTRESOURCEA(_ttoi((LPCTSTR) func + 8))))
 								error ++;
 						}
-						else if (!GetProcAddress( h, func ))
+						else if (!GetProcAddress( h, CT2A(func) ))
 						{
 							error ++;
 							StrL.AddTail(func);
 						}
 					} while( pos );
-					if (!error) AfxMessageBox("Module and all imported functions loaded");
+					if (!error) AfxMessageBox(_T("Module and all imported functions loaded"));
 					else {
 						ListDlg ldlg(&StrL);
 						ldlg.DoModal();
 					}
-					FreeLibrary( h );		
-				} else AfxMessageBox("Cannot load Module ");
-			} else AfxMessageBox("Cannot find Module ");
+					FreeLibrary( h );
+				} else AfxMessageBox(_T("Cannot load Module "));
+			} else AfxMessageBox(_T("Cannot find Module "));
 			SetCurrentDirectory( szOriginalPath );
 		}/**/
 	}
@@ -469,7 +469,7 @@ BOOL CListExport::PreTranslateMessage(MSG* pMsg)
 					}
 
 					if (!pModInfo) return 0;
-					while(strncmp(Module, pModInfo->GetBaseName(), Module.GetLength()-decal))
+					while(_tcsncmp(Module, pModInfo->GetBaseName(), Module.GetLength()-decal))
 					{
 						if (decal) pModInfo = pDep->GetNextDelayedModule( pModInfo );
 						else pModInfo = pDep->GetNextModule( pModInfo );
@@ -481,13 +481,13 @@ BOOL CListExport::PreTranslateMessage(MSG* pMsg)
 						sei.fMask = SEE_MASK_DOENVSUBST;
 						sei.nShow = SW_SHOWNORMAL;
 				//		sei.lpVerb = argv[1];
-						sei.lpFile = "%commander_exe%";
-						CString com = "/S=L \" " + (CString) pModInfo->GetFullName() + "\"";
+						sei.lpFile = _T("%commander_exe%");
+						CString com = _T("/S=L \" ") + (CString) pModInfo->GetFullName() + _T("\"");
 						sei.lpParameters = com;
 						if(ShellExecuteEx(&sei) == FALSE)
 						{
 							CString mess;
-							mess.Format("ShellExecuteEx Error \narg : %s",(const char *)com);
+							mess.Format(_T("ShellExecuteEx Error \narg : %s"),(LPCTSTR)com);
 							AfxMessageBox(mess,MB_ICONEXCLAMATION);
 						}
 					}

@@ -11,14 +11,14 @@
 #include "..\..\..\common\ffile.h"
 extern BOOL b_W95Protect;
 
-MODULE_FILE_INFO::MODULE_FILE_INFO( const PSTR pszFileName, long address, BOOL found)
+MODULE_FILE_INFO::MODULE_FILE_INFO( LPCTSTR pszFileName, long address, BOOL found)
 {
     m_pNext = NULL;
 	m_bFound = found;
 	m_Address = address;
     // Initialize the new MODULE_FILE_INFO, and stick it at the head of the list.
-    lstrcpyn( m_szFullName, pszFileName, sizeof(m_szFullName) );
-	if (found) m_szBaseName = (char *) ::GetBaseName(m_szFullName);
+    lstrcpyn( m_szFullName, pszFileName, _countof(m_szFullName) );
+	if (found) m_szBaseName = (TCHAR *) ::GetBaseName(m_szFullName);
 	else m_szBaseName = m_szFullName;
 }
 
@@ -31,13 +31,13 @@ BOOL MODULE_FILE_INFO::TestFunction( )
 		POSITION pos = m_Flist.GetHeadPosition();
 		if (pos)
 		{
-			PSTR pszDontCare;
-			char szPath[MAX_PATH];
-			char szOriginalPath[MAX_PATH];
+			LPTSTR pszDontCare;
+			TCHAR szPath[MAX_PATH];
+			TCHAR szOriginalPath[MAX_PATH];
 
 			BOOL fHasPath = FALSE;
-			PSTR pszJustPath = strdup( m_szFullName );
-			PSTR pszEnd = strrchr( pszJustPath, '\\' );
+			LPTSTR pszJustPath = _tcsdup( m_szFullName );
+			LPTSTR pszEnd = _tcsrchr( pszJustPath, _T('\\') );
 			if ( pszEnd )
 			{
 				*pszEnd = 0;	 /// Strip off the filename
@@ -63,13 +63,13 @@ BOOL MODULE_FILE_INFO::TestFunction( )
 					CString func;
 					do {
 						func = m_Flist.GetNext(pos);
-						if (strncmp(func, "<invalid name>", 14) == 0) continue;
-						if (strncmp("ordinal ", func, 8)==0)
+						if (_tcsncmp(func, _T("<invalid name>"), 14) == 0) continue;
+						if (_tcsncmp(_T("ordinal "), func, 8)==0)
 						{
-							if (!GetProcAddress( h, MAKEINTRESOURCEA(atoi((LPCTSTR) func + 8))))
+							if (!GetProcAddress( h, MAKEINTRESOURCEA(_ttoi((LPCTSTR) func + 8))))
 							{ pos = NULL; ret = FALSE; }
 						}
-						else if (!GetProcAddress( h, func))
+						else if (!GetProcAddress( h, CT2A(func)))
 						{ ret = FALSE; pos = NULL; }
 					} while( pos );
 					FreeLibrary( h );		// FG 

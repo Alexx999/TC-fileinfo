@@ -34,7 +34,7 @@ private:
     LONG        m_secondaryHeaderOffset;
     EXE_TYPE    m_exeType;
 public:
-   EXE_FILE( PSTR pszFileName );
+   EXE_FILE( LPCTSTR pszFileName );
    ~EXE_FILE( ){ }
     
     BOOL    IsValid( void ){ return (errMMF_NoError == m_errorType || errPE_EXE_FILE_INVALID_FORMAT == m_errorType); }

@@ -10,7 +10,7 @@
 #pragma hdrstop
 #include "peexe.h"
 
-PE_EXE::PE_EXE( PSTR pszFileName ) : EXE_FILE( pszFileName )
+PE_EXE::PE_EXE( LPCTSTR pszFileName ) : EXE_FILE( pszFileName )
 {
     m_pNtHdr = 0;
 	m_pNtHdr64 = (PIMAGE_NT_HEADERS64) m_pNtHdr;

@@ -15,10 +15,10 @@
 
 #include "..\common\memorymappedfile.h"
 
-#define ModuleName "fileinfo.wlx"
+#define ModuleName _T("fileinfo.wlx")
 
 //CString CreateText0(PVOID ptr);
-CString CreateText0(char const *);
+CString CreateText0(LPCTSTR);
 CString CreateText1(PVOID ptr, CWait &wait);
 CString CreateManifest(PVOID ptr, CWait &wait);
 

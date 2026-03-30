@@ -62,31 +62,31 @@ int MaxDepth;
 
 // const char tlexc[] = "cvs,csv,xls";
 
-#define ModuleName "fileinfo.wlx"
-char inifilename[MAX_PATH]="fileinfo.ini";
-//char inifilename[MAX_PATH]="lsplugin.ini"; 
-char iniPath[MAX_PATH]="";
+// ModuleName defined in fileinfotext.h
+TCHAR inifilename[MAX_PATH]=_T("fileinfo.ini");
+//TCHAR inifilename[MAX_PATH]=_T("lsplugin.ini");
+TCHAR iniPath[MAX_PATH]=_T("");
 
-CListplugApp theApp("FILEINFO_WLX");
+CListplugApp theApp(_T("FILEINFO_WLX"));
 OPTIONS op={0,0};						// SET Option by default (Voir TCoptions.h)
-FontOptions fo={"",0,FALSE,FALSE};		// SET Values by default
+FontOptions fo={_T(""),0,FALSE,FALSE};		// SET Values by default
 bool calledbyQV;
 
 void LoadPlugin(CString inifilename)
 {
 	int i=0; // Chargement des plugins
-	char buff[512], nbstr[3]="0"; 
+	TCHAR buff[512], nbstr[3]=_T("0");
 	(DecPlugin::pluglist).RemoveAll();
-	while ( GetPrivateProfileString( "plugins", nbstr, NULL, buff, 511, inifilename))
+	while ( GetPrivateProfileString( _T("plugins"), nbstr, NULL, buff, 511, inifilename))
 	{
-		char str[512]; // 
+		TCHAR str[512]; //
 		ExpandEnvironmentStrings( buff, str, 510);
 #ifdef _WIN64
-		strcat(str, "64"); 
+		_tcscat(str, _T("64"));
 #endif
 		(DecPlugin::pluglist).AddTail(str);
 		if (++i > 9) break;
-		nbstr[0] = '0' + i; // incrémenter compteur
+		nbstr[0] = _T('0') + i; // incrémenter compteur
 	}
 }
 
@@ -107,20 +107,20 @@ int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* File,int ShowFlags)
 //	OPTIONS op = sheet->m_option.GetOptionDefault();
 /**********  Test de l'extension ************/
 	{   // Test si Fichier !!
-		if (strlen(FileToLoad)==0) return LISTPLUGIN_ERROR;
-		//  Test si path == ".."	
-		PSTR pszEnd = (PSTR) strrchr( FileToLoad, '\\' );
-		if ( !strnicmp( ++pszEnd, "..", 2) )
+		if (FileToLoad.IsEmpty()) return LISTPLUGIN_ERROR;
+		//  Test si path == ".."
+		int iSlash = FileToLoad.ReverseFind(_T('\\'));
+		if (iSlash >= 0 && _tcsncmp((LPCTSTR)FileToLoad + iSlash + 1, _T(".."), 2) == 0)
 			return LISTPLUGIN_ERROR;
 	}
-	PE_EXE *pPE = new PE_EXE( File );
+	PE_EXE *pPE = new PE_EXE( FileToLoad );
 // different access on Mapped file
 	MEMORY_MAPPED_FILE *pMapFile = (MEMORY_MAPPED_FILE *) pPE;
 	OBJ_FILE_TYPE FileType = OBJ_UNKNOWN;
 	EXE_FILE *pEXE = (EXE_FILE *) pPE;  // acces à tous les EXEs
 
 	LPTYPELIB lpTypeLib = NULL;
-	if (GetPrivateProfileInt( "Options", "ComInt", 1, inifilename))
+	if (GetPrivateProfileInt( _T("Options"), _T("ComInt"), 1, inifilename))
 	{
 		FileType = DisplayObjectFile( pMapFile );
 		if (pEXE->IsValid())
@@ -178,12 +178,12 @@ int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* File,int ShowFlags)
 				CString strTp;
 				CTypeLib::GetTypeLibAsString(lpTypeLib, strTp);
 				lpTypeLib->Release();
-				sheet->SetPageTitle (1, "Typelib Info");
+				sheet->SetPageTitle (1, _T("Typelib Info"));
 				sheet->m_fi2.SetText(strTp);
 			}
 			else
 			{
-				sheet->SetPageTitle (1, "Library Header");
+				sheet->SetPageTitle (1, _T("Library Header"));
 				sheet->m_fi2.SetFillEdit(CreateText2);			// Dynamic Fill RichEdit
 			}
 		}
@@ -193,7 +193,7 @@ int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* File,int ShowFlags)
 		if (b_manifest) {
 			sheet->m_manifest.Renew(pPE);
 			sheet->AddPage( &(sheet->m_manifest));
-			sheet->SetPageTitle (4 + b_TLib, "Manifest");
+			sheet->SetPageTitle (4 + b_TLib, _T("Manifest"));
 			sheet->m_manifest.SetFontPpty( fo );
 
 			int tab0[]={(fo.fontsize<200)?400:fo.fontsize*3, (fo.fontsize<200)?3200:fo.fontsize*25, (fo.fontsize<200)?5500:fo.fontsize*43, (fo.fontsize<200)?6000:fo.fontsize*45};
@@ -203,10 +203,10 @@ int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* File,int ShowFlags)
 // disassembler window
 		if ((b_disass) && (pPE->IsValid()))
 		{
-			FontOptions fo={"courier",160,FALSE,FALSE};
+			FontOptions fo={_T("courier"),160,FALSE,FALSE};
 
 			sheet->AddPage( &(sheet->m_disass));
-			sheet->SetPageTitle (4 + b_TLib + b_manifest, "Disassembly");
+			sheet->SetPageTitle (4 + b_TLib + b_manifest, _T("Disassembly"));
 			sheet->m_disass.SetFontPpty( fo );
 
 			sheet->m_disass.SetPtr( pPE );
@@ -242,14 +242,14 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 
 /**********  Test de l'extension ************/
 	{   // Test si Fichier !!
-		if (strlen(FileToLoad)==0) return NULL;
-		//  Test si path == ".."	
-		PSTR pszEnd = (PSTR) strrchr( FileToLoad, '\\' );
-		if ( !strnicmp( ++pszEnd, "..", 2) )
+		if (FileToLoad.IsEmpty()) return NULL;
+		//  Test si path == ".."
+		int iSlash = FileToLoad.ReverseFind(_T('\\'));
+		if (iSlash >= 0 && _tcsncmp((LPCTSTR)FileToLoad + iSlash + 1, _T(".."), 2) == 0)
 			return NULL;
 	}
 //  Test file validity
-    PE_EXE *pPE = new PE_EXE( File );			// pointer sur PE
+    PE_EXE *pPE = new PE_EXE( FileToLoad );			// pointer sur PE
 // different access on Mapped file
 	MEMORY_MAPPED_FILE *pMapFile = (MEMORY_MAPPED_FILE *) pPE;
 	OBJ_FILE_TYPE FileType = OBJ_UNKNOWN;
@@ -259,7 +259,7 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 	GetIniFilePath(hInst, inifilename);
 
 	LPTYPELIB lpTypeLib = NULL;
-	if (GetPrivateProfileInt( "Options", "ComInt", 1, inifilename))
+	if (GetPrivateProfileInt( _T("Options"), _T("ComInt"), 1, inifilename))
 	{
 		FileType = DisplayObjectFile( pMapFile );
 		if (pEXE->IsValid())
@@ -273,25 +273,25 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 	if ( pEXE->IsValid() || (FileType != OBJ_UNKNOWN) || lpTypeLib) 
 	{
 //************     Charge Config        ***************/
-		op.rememberAP = GetPrivateProfileInt( "Options", "RememberAP", 1, inifilename);
+		op.rememberAP = GetPrivateProfileInt( _T("Options"), _T("RememberAP"), 1, inifilename);
 		if (op.rememberAP)
-			page = GetPrivateProfileInt( "Options", "ActivePage", 0, inifilename);
+			page = GetPrivateProfileInt( _T("Options"), _T("ActivePage"), 0, inifilename);
 //		op.autosave = GetPrivateProfileInt( "Options", "Autosave", 1, inifilename);
-		fShowUndecorated = op.undec = GetPrivateProfileInt( "Options", "Undecorate", 1, inifilename);
-		fShowSymbolTable = op.debug = GetPrivateProfileInt( "Options", "ShowDebug", 0, inifilename);
-		fShowResources  = op.res = GetPrivateProfileInt( "Options", "Dump_res", 0, inifilename);
-		fShowPDATA  = op.pdata = GetPrivateProfileInt( "Options", "Dump_Pdata", 0, inifilename);
-		fShowRelocations = op.reloc = GetPrivateProfileInt( "Options", "Dump_Reloc", 0, inifilename);
-		MaxDepth = op.MaxDepth = GetPrivateProfileInt( "Options", "MaxDepth", 2, inifilename);
-		op.sort = GetPrivateProfileInt( "Options", "Sort", 1, inifilename);
+		fShowUndecorated = op.undec = GetPrivateProfileInt( _T("Options"), _T("Undecorate"), 1, inifilename);
+		fShowSymbolTable = op.debug = GetPrivateProfileInt( _T("Options"), _T("ShowDebug"), 0, inifilename);
+		fShowResources  = op.res = GetPrivateProfileInt( _T("Options"), _T("Dump_res"), 0, inifilename);
+		fShowPDATA  = op.pdata = GetPrivateProfileInt( _T("Options"), _T("Dump_Pdata"), 0, inifilename);
+		fShowRelocations = op.reloc = GetPrivateProfileInt( _T("Options"), _T("Dump_Reloc"), 0, inifilename);
+		MaxDepth = op.MaxDepth = GetPrivateProfileInt( _T("Options"), _T("MaxDepth"), 2, inifilename);
+		op.sort = GetPrivateProfileInt( _T("Options"), _T("Sort"), 1, inifilename);
 		op.p_ini=inifilename;
 		
-		b_W95Protect = (GetSystemVersion().ver < WND_NT )?GetPrivateProfileInt( "Options", "W95Protect", 1, inifilename):FALSE;
-		b_disass = (GetPrivateProfileInt( "Options", "Disassemble", 0, inifilename) != 0);
+		b_W95Protect = (GetSystemVersion().ver < WND_NT )?GetPrivateProfileInt( _T("Options"), _T("W95Protect"), 1, inifilename):FALSE;
+		b_disass = (GetPrivateProfileInt( _T("Options"), _T("Disassemble"), 0, inifilename) != 0);
 
 		if ( FileType == OBJ_UNKNOWN ) LoadPlugin(inifilename);
 //************     Fin Charge Config      ***************/
-		if (GetPrivateProfileInt( "Options", "UserFont", 1, inifilename)==1)
+		if (GetPrivateProfileInt( _T("Options"), _T("UserFont"), 1, inifilename)==1)
 			fo = GetFontOptions(ParentWnd, iniPath);
 
 		AFX_MANAGE_STATE(AfxGetStaticModuleState());
@@ -299,10 +299,10 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 		bool calledbyQV = IsCalledForQV( ParentWnd );
 		if ( calledbyQV )
 			pFocusedWnd = ParentWnd->GetFocus( );
-		else if (op.autosave = GetPrivateProfileInt( "Options", "autosave", 1, inifilename))
+		else if (op.autosave = GetPrivateProfileInt( _T("Options"), _T("autosave"), 1, inifilename))
 		{
 			RECT r1;
-			if (GetPrivateProfileStruct("Options", "Rect", &r1, sizeof(r1), inifilename))
+			if (GetPrivateProfileStruct(_T("Options"), _T("Rect"), &r1, sizeof(r1), inifilename))
 				ParentWnd->MoveWindow(&r1);
 		}
 		prec = new CFileinfoListWnd( pPE );
@@ -318,7 +318,7 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 			if (pEXE->IsValid())
 			{ 
 // is PE file ?
-				sheet->SetPageTitle (1, "Image File Header");
+				sheet->SetPageTitle (1, _T("Image File Header"));
 
 				if (pPE->IsValid())
 				{
@@ -366,12 +366,12 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 					CString strTp;
 					CTypeLib::GetTypeLibAsString(lpTypeLib, strTp);
 					lpTypeLib->Release();
-					sheet->SetPageTitle (1, "Typelib Info");
+					sheet->SetPageTitle (1, _T("Typelib Info"));
 					sheet->m_fi2.SetText(strTp);
 				}
 				else
 				{
-					sheet->SetPageTitle (1, "Library Header");
+					sheet->SetPageTitle (1, _T("Library Header"));
 					sheet->m_fi2.SetFillEdit(CreateText2);			// Dynamic Fill RichEdit
 				}
 			}
@@ -383,7 +383,7 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 			if (b_manifest) {
 				sheet->AddPage( &(sheet->m_manifest));
 				sheet->m_manifest.SetPtr( pPE );
-				sheet->SetPageTitle (4 + b_TLib, "Manifest");
+				sheet->SetPageTitle (4 + b_TLib, _T("Manifest"));
 				sheet->m_manifest.SetFontPpty( fo );
 	//			int tab0[]={(fo.fontsize<200)?400:fo.fontsize*3, (fo.fontsize<200)?3200:fo.fontsize*25, (fo.fontsize<200)?5500:fo.fontsize*43, (fo.fontsize<200)?6000:fo.fontsize*45};
 	//			sheet->m_fi.SetTab(4, tab0);
@@ -392,9 +392,9 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 // disassembler window
 			if ((b_disass) && (pPE->IsValid()))
 			{
-				FontOptions fo={"courier",160,FALSE,FALSE};
+				FontOptions fo={_T("courier"),160,FALSE,FALSE};
 				sheet->AddPage( &(sheet->m_disass));
-				sheet->SetPageTitle (4 + b_TLib + b_manifest, "Disassembly");
+				sheet->SetPageTitle (4 + b_TLib + b_manifest, _T("Disassembly"));
 				sheet->m_disass.SetFontPpty( fo );
 
 				sheet->m_disass.SetPtr( pPE );
@@ -436,14 +436,14 @@ void __stdcall ListSetDefaultParams(ListDefaultParamStruct* dps)
 //   dps->size;
 //   dps->PluginInterfaceVersionLow;
 //   dps->PluginInterfaceVersionHi;
-	strncpy(iniPath,dps->DefaultIniName,MAX_PATH-1);
+	_tcsncpy(iniPath, CString(dps->DefaultIniName), MAX_PATH-1);
 	GetPath(iniPath);
-	
-	strcat(iniPath, inifilename);
-	strncpy(inifilename,iniPath,MAX_PATH-1);
-	
+
+	_tcscat(iniPath, inifilename);
+	_tcsncpy(inifilename, iniPath, MAX_PATH-1);
+
 	GetPath(iniPath);
-	strcat(iniPath, "wincmd.ini");
+	_tcscat(iniPath, _T("wincmd.ini"));
 }
 
 int __stdcall ListSendCommand(HWND ListWin,int Command,int Parameter)
@@ -471,25 +471,25 @@ int __stdcall ListSendCommand(HWND ListWin,int Command,int Parameter)
 void __stdcall ListCloseWindow(HWND ListWin)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	char temp[50]; //OPTIONS op;
+	TCHAR temp[50]; //OPTIONS op;
 	CFileinfoListWnd *pWin = ( CFileinfoListWnd *) CFileinfoListWnd::FromHandlePermanent(ListWin);
 //	op = ((CListSheet *) pWin->GetpSheet())->m_option.GetOptionDefault();
 	if(((CListSheet *)pWin->GetpSheet())->m_option.Update()) {
-		WritePrivateProfileString( "Options", "RememberAP", _itoa(op.rememberAP, temp, 10), inifilename);
-		WritePrivateProfileString( "Options", "Autosave", _itoa(op.autosave, temp, 10), inifilename);
-		WritePrivateProfileString( "Options", "Undecorate", _itoa(op.undec, temp, 10), inifilename);
-		WritePrivateProfileString( "Options", "ShowDebug", _itoa(op.debug, temp, 10), inifilename);
-		WritePrivateProfileString( "Options", "Dump_res", _itoa(op.res, temp, 10), inifilename);
-		WritePrivateProfileString( "Options", "MaxDepth", _itoa(op.MaxDepth, temp, 10), inifilename);
-		WritePrivateProfileString( "Options", "Dump_Pdata", _itoa(op.pdata, temp, 10), inifilename);
-		WritePrivateProfileString( "Options", "Dump_reloc", _itoa(op.reloc, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("RememberAP"), _itot(op.rememberAP, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("Autosave"), _itot(op.autosave, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("Undecorate"), _itot(op.undec, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("ShowDebug"), _itot(op.debug, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("Dump_res"), _itot(op.res, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("MaxDepth"), _itot(op.MaxDepth, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("Dump_Pdata"), _itot(op.pdata, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("Dump_reloc"), _itot(op.reloc, temp, 10), inifilename);
 	}
-//	WritePrivateProfileString( "Options", "Sort", _itoa(op.sort, temp, 10), inifilename);
-	
+//	WritePrivateProfileString( _T("Options"), _T("Sort"), _itot(op.sort, temp, 10), inifilename);
+
 	if ( op.rememberAP )
 	{
 		UINT i = pWin->GetpSheet()->GetActiveIndex( );
-		WritePrivateProfileString( "Options", "ActivePage", _itoa(i, temp, 10), inifilename);
+		WritePrivateProfileString( _T("Options"), _T("ActivePage"), _itot(i, temp, 10), inifilename);
 	}
 	if (op.autosave)   
 	{
@@ -500,7 +500,7 @@ void __stdcall ListCloseWindow(HWND ListWin)
 			{
 				RECT r; 
 				ParentWnd->GetWindowRect( &r );
-				WritePrivateProfileStruct("Options", "Rect", &r, sizeof(r), inifilename);
+				WritePrivateProfileStruct(_T("Options"), _T("Rect"), &r, sizeof(r), inifilename);
 			}
 		}
 	}
@@ -581,9 +581,7 @@ BOOL CListplugApp::InitInstance()
    hInst = m_hInstance;
    TRACE1("fileinfo : InitInstance : %d\n", m_hInstance);
 
-#ifdef _AFXDLL
-//	Enable3dControls();			// Call this when using MFC in a shared DLL
-#else
+#if !defined(_AFXDLL) && (_MFC_VER < 0x0700)
 	Enable3dControlsStatic();	// Call this when linking to MFC statically
 #endif
 
@@ -591,7 +589,7 @@ BOOL CListplugApp::InitInstance()
    {
       if (!AfxInitRichEdit( ))
       {   // IDS_RICHED_LOAD_FAIL
-         AfxMessageBox("Fail to Load RICHEDIT library", MB_OK|MB_ICONEXCLAMATION);
+         AfxMessageBox(_T("Fail to Load RICHEDIT library"), MB_OK|MB_ICONEXCLAMATION);
          return FALSE;
       } /**/
 //      AfxEnableControlContainer();  // enable for Activex

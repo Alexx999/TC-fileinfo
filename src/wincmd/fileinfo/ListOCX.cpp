@@ -107,7 +107,7 @@ char *DllList[]={"DllRegisterServer", "DllUnregisterServer", "DllGetClassObject"
 void CListOcx::Load() 
 {
 		CWait wait(this);
-		wait.SetStatus("Listing IDL...");
+		wait.SetStatus(_T("Listing IDL..."));
 
 		HINSTANCE hDLL;
 		if (b_W95Protect)
@@ -119,13 +119,13 @@ void CListOcx::Load()
 		for(int i=0; i< 3; i++)
 		{			
 			HCRET lpfnDllRegisterServer = (HCRET) GetProcAddress(hDLL, DllList[i]);
-			int  itemPos  =  m_listocx.InsertItem( i, DllList[i]);
+			int  itemPos  =  m_listocx.InsertItem( i, CString(DllList[i]));
 			if (lpfnDllRegisterServer )
 			{
-				str.Format("%IXh", (ULONG_PTR) lpfnDllRegisterServer);
+				str.Format(_T("%IXh"), (ULONG_PTR) lpfnDllRegisterServer);
 				m_listocx.SetItemText( itemPos, 1, str);
 				bproc = TRUE;
-			} else m_listocx.SetItemText( itemPos, 1, "Entry point not found");
+			} else m_listocx.SetItemText( itemPos, 1, _T("Entry point not found"));
 		}
 		FreeLibrary( hDLL );
 
@@ -149,17 +149,17 @@ void CListOcx::Load()
 			}
 			if (CTypeLib::GetTypeLibAsString(lpTypeLib, strTp) == S_OK)
 				m_REocx += strTp;
-			else m_REocx += "Error";
+			else m_REocx += _T("Error");
 			lpTypeLib->Release();
 		} else 
 		{ // recuperer le message d'erreur
-			strTp.Format("LoadTypeLib( %s ) failed or TypeLib information absent", m_pPE->GetName());
+			strTp.Format(_T("LoadTypeLib( %s ) failed or TypeLib information absent"), m_pPE->GetName());
 			m_REocx += strTp;
 			if (bproc) 
 			{
 				m_breg.EnableWindow(TRUE);
 				m_bunreg.EnableWindow(TRUE);
-				m_REocx += "\r\nRegister state is unknown, but you can force to Register or Unregister Server";
+				m_REocx += _T("\r\nRegister state is unknown, but you can force to Register or Unregister Server");
 			}
 
 		}
@@ -180,8 +180,8 @@ BOOL CListOcx::OnInitDialog()
 {
 	CResizePage::OnInitDialog();
 	UpdateFont();   
-	m_listocx.InsertColumn(0,"Name");
-	m_listocx.InsertColumn(1,"Address");
+	m_listocx.InsertColumn(0,_T("Name"));
+	m_listocx.InsertColumn(1,_T("Address"));
 	m_listocx.SetColumnWidth( 0, 250 );
 	m_listocx.SetColumnWidth( 1, 150);
 
@@ -257,7 +257,7 @@ void CListOcx::UpdateFont( void )
    if (*m_fo.fontname)
    {
       cf.dwMask = cf.dwMask | CFM_FACE;
-      strcpy(cf.szFaceName,  m_fo.fontname);
+      _tcscpy(cf.szFaceName,  m_fo.fontname);
       modif = TRUE;
    }
 

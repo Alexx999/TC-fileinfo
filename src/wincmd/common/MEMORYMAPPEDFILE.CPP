@@ -8,7 +8,7 @@
 #pragma hdrstop
 #include "memorymappedfile.h"
 
-MEMORY_MAPPED_FILE::MEMORY_MAPPED_FILE( PSTR pszFileName )
+MEMORY_MAPPED_FILE::MEMORY_MAPPED_FILE( LPCTSTR pszFileName )
 {
     // Given a filename, the constructor opens a file handle, creates a file
     // mapping, and maps the entire file into memory.
@@ -19,9 +19,9 @@ MEMORY_MAPPED_FILE::MEMORY_MAPPED_FILE( PSTR pszFileName )
     m_errCode = errMMF_FileOpen;    // Initial error code: not found	 
 	m_bAttach = FALSE;
 
-	m_fileName = strdup(pszFileName);
-	m_path = strdup(pszFileName);
-	::GetPath(m_fileName, m_path, strlen( m_path ));
+	m_fileName = _tcsdup(pszFileName);
+	m_path = _tcsdup(pszFileName);
+	::GetPath(m_fileName, m_path, (int)_tcslen( m_path ));
 
     // First get a file handle      
     m_hFile = CreateFile(pszFileName, GENERIC_READ, FILE_SHARE_READ, NULL,

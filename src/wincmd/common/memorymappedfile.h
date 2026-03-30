@@ -21,12 +21,12 @@ private:
     PVOID       m_pMemoryMappedFileBase, m_pSavedMMFB;
     DWORD		m_szFile;
 	errMMF      m_errCode;  
-	char		*m_fileName;
-	char		*m_path;
+	TCHAR		*m_fileName;
+	TCHAR		*m_path;
 	BOOL		m_bAttach;
 
 public:
-    MEMORY_MAPPED_FILE( PSTR pszFileName );
+    MEMORY_MAPPED_FILE( LPCTSTR pszFileName );
     ~MEMORY_MAPPED_FILE(void);
     
 //    PVOID   GetBase( void ){ return m_pMemoryMappedFileBase; }
@@ -34,9 +34,9 @@ public:
     DWORD   GetFileSize( void ){ return m_szFile; }
     BOOL    IsValid( void ) { return errMMF_NoError == m_errCode; }
     errMMF	GetErrorType(){ return m_errCode; }
-	const char	*GetBaseName() { return ::GetBaseName(m_fileName); }
-	const char	*GetName() { return m_fileName; }
-	const char	*GetPath() { return m_path; }
+	LPCTSTR	GetBaseName() { return ::GetBaseName(m_fileName); }
+	LPCTSTR	GetName() { return m_fileName; }
+	LPCTSTR	GetPath() { return m_path; }
 	BOOL		IsValidPtr( ULONG_PTR ptr ) { return (ptr - GetBase() < GetFileSize()); }
 	ULONG_PTR	GetTranslatedPtr( DWORD ptr ) { return GetBase() + ptr; }
 	

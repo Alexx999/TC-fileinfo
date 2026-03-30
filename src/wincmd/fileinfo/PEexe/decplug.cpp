@@ -17,7 +17,7 @@ void * __stdcall fnMemoryAllocator(DWORD len)
 void __stdcall fnPGICallBack(DWORD src, DWORD id, LPCTSTR s)
 {
    CString str;
-   str.Format("Plugin %d  :\t%s \n", src, s);
+   str.Format(_T("Plugin %d  :\t%s \n"), src, s);
    if (pDecStr) *pDecStr += str;
 }
 
@@ -79,7 +79,7 @@ BOOL DecPlugin::PluginDec(int id, PE_EXE *pPE)
          PGIPB.dwInterface = id;
          if (PLI(&PGIPB))
          {
-            fnPGICallBack(PGIPB.dwInterface, 0, "End of Work");
+            fnPGICallBack(PGIPB.dwInterface, 0, _T("End of Work"));
             if (PGIPB.pOutBuff)
             {
                m_pNewHeader = PGIPB.pOutBuff;

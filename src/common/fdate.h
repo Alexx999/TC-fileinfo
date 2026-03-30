@@ -14,7 +14,7 @@
 #include <time.h>
 
 CString FormatShortDate(SYSTEMTIME st);
-char *ctime2(const time_t &t);
+char *ctime2(const time_t *t);
 SYSTEMTIME CreateSystemeTime(time_t t);
 
 #endif

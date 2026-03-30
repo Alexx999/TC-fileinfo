@@ -29,7 +29,9 @@ CTypeLib::~CTypeLib()
 
 #define MAX_NAMES	64 // Max parameters to a function
 
+#ifndef _countof
 #define _countof(array) (sizeof(array)/sizeof(array[0]))
+#endif
 LPCTSTR AFXAPI _GetScodeString(SCODE sc)
 {
 	struct SCODE_ENTRY

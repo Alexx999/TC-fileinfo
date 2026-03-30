@@ -11,16 +11,15 @@
 #endif // _MSC_VER > 1000
 
 
+#define WINVER       0x0601	// Windows 7
+#define _WIN32_WINNT 0x0601
+
 // Insert your headers here
 #define WIN32_LEAN_AND_MEAN      // Exclude rarely-used stuff from Windows headers
 
 #include <afx.h>
 
 #define VC_EXTRALEAN      // Exclude rarely-used stuff from Windows headers
-
-#ifndef WINVER
-#define WINVER 0x0501	
-#endif     
 
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions

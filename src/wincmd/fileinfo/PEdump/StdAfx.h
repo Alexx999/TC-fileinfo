@@ -10,11 +10,10 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
+#define WINVER       0x0601	// Windows 7
+#define _WIN32_WINNT 0x0601
 
-#ifndef WINVER
-#define WINVER 0x0501	
-#endif
+#define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 
 #include <afx.h>
 #include <afxwin.h>

@@ -8,7 +8,10 @@
 
 #include "stdafx.h"
 
+extern "C" {
 #include "..\common\listplug.h"
+}
+#include "listplugapp.h"
 #include "FileinfoListWnd.h"
 #include "tcoptions.h"
 

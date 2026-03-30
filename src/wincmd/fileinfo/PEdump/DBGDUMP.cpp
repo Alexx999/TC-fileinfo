@@ -59,7 +59,7 @@ CString DumpDbgFile( PIMAGE_SEPARATE_DEBUG_HEADER pImageSepDbgHeader, PIMAGE_OPT
         (pImageSepDbgHeader->NumberOfSections * sizeof(IMAGE_SECTION_HEADER))
         + pImageSepDbgHeader->ExportedNamesSize),
         pImageSepDbgHeader->DebugDirectorySize,
-        (DWORD)pImageSepDbgHeader);
+        (ULONG_PTR)pImageSepDbgHeader);
     
     str += ("\r\n");
     

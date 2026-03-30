@@ -125,7 +125,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 	PIMAGE_IMPORT_DESCRIPTOR pImportDir = m_pPE->GetImportsDesc();
 	DWORD Importsz = m_pPE->GetImportsSz();
 	if ( !pImportDir ) return errMDL_NO_ERROR;
-	if ( !m_pPE->IsValidPtr( (DWORD) pImportDir))
+	if ( !m_pPE->IsValidPtr( (ULONG_PTR) pImportDir))
 	{
 		pNew->m_pNext = new MODULE_FILE_INFO( "Error in IMPORT TABLE", 0, FALSE);
 		return errMDL_NO_ERROR;
@@ -193,7 +193,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 					thunkIAT64++;         // advance to next thunk
 				} /**/
 			} else {
-				if (! m_pPE->IsValidPtr( (DWORD) thunk ))
+				if (! m_pPE->IsValidPtr( (ULONG_PTR) thunk ))
 					return errMDL_NO_ERROR; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
 				while ( 1 ) // Loop forever (or until we break out)
 				{
@@ -203,11 +203,11 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 						strTemp.Format( "ordinal %d", IMAGE_ORDINAL(thunk->u1.Ordinal) );
 						pTemp->AddFunc( strTemp );
 					}
-					else				
+					else
 					{
 						PIMAGE_IMPORT_BY_NAME pOrdinalName = ( PIMAGE_IMPORT_BY_NAME ) thunk->u1.AddressOfData;
 						pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)pOrdinalName);
-						if ((DWORD) pOrdinalName <= Importsz)
+						if ((ULONG_PTR) pOrdinalName <= Importsz)
 						{	
 #ifdef _DEBUG 
 	AfxMessageBox("Ptr out of bound", MB_OK|MB_ICONEXCLAMATION);
@@ -252,7 +252,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 	ImgDelayDescr *pDImportDesc = m_pPE->GetDelayImportsDesc();
 	if ( !pDImportDesc ) 
 		return errMDL_NO_ERROR;
-	if ( !m_pPE->IsValidPtr( (DWORD) pDImportDesc))
+	if ( !m_pPE->IsValidPtr( (ULONG_PTR) pDImportDesc))
 	{
 		pNew->m_pNext = new MODULE_FILE_INFO( "Error in DELAYED IMPORT TABLE", 0, FALSE);
 		return errMDL_NO_ERROR;
@@ -313,9 +313,9 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 					thunk64++;
 				}
 			} else {
-				if (! m_pPE->IsValidPtr( (DWORD) thunk ))
+				if (! m_pPE->IsValidPtr( (ULONG_PTR) thunk ))
 					return errMDL_NO_ERROR; // !!!!!!!!!!!!!!!!!!!!!!!!!!!
-				while ( 1 ) 
+				while ( 1 )
 				{
 					if ( thunk->u1.AddressOfData == 0 )	break;
 					if ( thunk->u1.Ordinal & IMAGE_ORDINAL_FLAG32 )
@@ -326,9 +326,9 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 					else
 					{
 						PIMAGE_IMPORT_BY_NAME pOrdinalName = ( PIMAGE_IMPORT_BY_NAME ) thunk->u1.AddressOfData;
-						if ( bUsingRVA ) 
+						if ( bUsingRVA )
 							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)pOrdinalName);
-						else 
+						else
 							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)pOrdinalName);
 						if (pOrdinalName) 
 							pNew->m_pNext->AddFunc( (PCHAR) pOrdinalName->Name );

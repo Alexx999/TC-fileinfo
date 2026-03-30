@@ -48,12 +48,9 @@ public:
 	DWORD   GetAddressOfEntryPoint( void )    { return m_pNtHdr->OptionalHeader.AddressOfEntryPoint; }
 	DWORD   GetBaseOfCode( void ){ return m_pNtHdr->OptionalHeader.BaseOfCode; }
 	DWORD   GetBaseOfData( void )
-			{ 
-#ifndef _WIN64
-	return m_pNtHdr->OptionalHeader.BaseOfData; 
-#else
-	return m_pNtHdr64->OptionalHeader.ImageBase >> 32; 
-#endif
+			{
+	if (Is64bits()) return 0; // PE32+ has no BaseOfData field
+	return m_pNtHdr->OptionalHeader.BaseOfData;
 	}
 /**/
 #ifdef _WIN64
@@ -111,16 +108,16 @@ public:
 	DWORD GetEntryPoint( void );
 	PIMAGE_SECTION_HEADER GetSectionHeaderbyName(PSTR name);
 	PIMAGE_SECTION_HEADER GetEnclosingSectionHeader( DWORD rva );
-	PIMAGE_IMPORT_DESCRIPTOR GetImportsDesc() // OK testé
+	PIMAGE_IMPORT_DESCRIPTOR GetImportsDesc() // OK testï¿½
 	{ 
 		return (PIMAGE_IMPORT_DESCRIPTOR) GetDataDirectoryEntryPointer(IMAGE_DIRECTORY_ENTRY_IMPORT);
 	}
-	DWORD GetImportsSz() // OK testé
+	DWORD GetImportsSz() // OK testï¿½
 	{ 
 		return GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_IMPORT);
 	}
 
-	PIMAGE_EXPORT_DIRECTORY GetExportsDesc() // OK testé
+	PIMAGE_EXPORT_DIRECTORY GetExportsDesc() // OK testï¿½
 	{ 
 		return (PIMAGE_EXPORT_DIRECTORY) GetDataDirectoryEntryPointer(IMAGE_DIRECTORY_ENTRY_EXPORT);
 	}

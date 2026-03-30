@@ -2,7 +2,7 @@
 // PEDUMP - Matt Pietrek 1997
 // FILE: EXEDUMP.C
 //==================================
-//  Modifié par FG le 23/03/2003
+//  Modifiï¿½ par FG le 23/03/2003
 //
 #include "stdafx.h"
 #include <stdio.h>
@@ -75,7 +75,7 @@ CString DumpImportsSection(PE_EXE &pe)
 	DWORD Importsz = pe.GetImportsSz();
 
 	if ( !importDesc )   return str;		
-	if (!pe.IsValidPtr(( DWORD) importDesc))
+	if (!pe.IsValidPtr(( ULONG_PTR) importDesc))
 	{
 		str = ("IMPORTS TABLE:\r\n");
 #ifdef _DEBUG 
@@ -212,7 +212,7 @@ CString DumpImportsSection(PE_EXE &pe)
 				{
 					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) thunk->u1.AddressOfData;
 					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromRVA((DWORD)pOrdinalName);
-					if ((DWORD) pOrdinalName <= Importsz)
+					if ((ULONG_PTR) pOrdinalName <= Importsz)
 					{	
 #ifdef _DEBUG 
 						AfxMessageBox("Ptr out of bound", MB_OK|MB_ICONEXCLAMATION);
@@ -274,7 +274,7 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 	pDImportDesc = pe.GetDelayImportsDesc();
 	if ( !pDImportDesc ) return str;
 	str = ("DELAYED IMPORT TABLE:\r\n");
-	if (!pe.IsValidPtr(( DWORD) pDImportDesc ))
+	if (!pe.IsValidPtr(( ULONG_PTR) pDImportDesc ))
 	{
 #ifdef _DEBUG 
 		AfxMessageBox("Error in DELAYED IMPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
@@ -338,8 +338,8 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 //			? (PIMAGE_THUNK_DATA) pe.GetReadablePointerFromRVA((DWORD)pDImportDesc->pIAT)
 //			: (PIMAGE_THUNK_DATA) pe.GetReadablePointerFromVA((PBYTE)0+(DWORD)pDImportDesc->pIAT);
 		if (!thunk ) return str;
-#ifdef _DEBUG 
-		if (! pe.IsValidPtr( (DWORD) thunk ))
+#ifdef _DEBUG
+		if (! pe.IsValidPtr( (ULONG_PTR) thunk ))
 			AfxMessageBox("Ptr out of bound", MB_OK|MB_ICONEXCLAMATION);
 #endif
 		str += ("\tOrdn  \tName\r\n");
@@ -411,7 +411,7 @@ CString DumpExportsSection(PE_EXE &pe)
 	if ( !exportDir )   return str;
 
 	str = ("EXPORTS TABLE:\r\n");
-	if (!pe.IsValidPtr(( DWORD) exportDir ))
+	if (!pe.IsValidPtr(( ULONG_PTR) exportDir ))
 	{
 #ifdef _DEBUG 
 		AfxMessageBox("Error in EXPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
@@ -422,7 +422,7 @@ CString DumpExportsSection(PE_EXE &pe)
 
 	filename = (PSTR)pe.GetReadablePointerFromRVA( exportDir->Name );
 	// A changer FG
-	if ( ((DWORD) filename > (DWORD) exportDir + pe.GetFileSize()) || ((DWORD) filename < (DWORD) exportDir))
+	if ( ((ULONG_PTR) filename > (ULONG_PTR) exportDir + pe.GetFileSize()) || ((ULONG_PTR) filename < (ULONG_PTR) exportDir))
 	{
 #ifdef _DEBUG 
 		AfxMessageBox("Error in EXPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
@@ -619,7 +619,7 @@ CString DumpBoundImportDescriptors( PE_EXE &pe )
 	if ( !bidsz ) return str;
 	
 	PIMAGE_BOUND_IMPORT_DESCRIPTOR pibid = (PIMAGE_BOUND_IMPORT_DESCRIPTOR) pe.GetTranslatedPtr(bidRVA);
-	if (!pe.IsValidPtr(( DWORD) pibid ))
+	if (!pe.IsValidPtr(( ULONG_PTR) pibid ))
 	{
 #ifdef _DEBUG	
 		AfxMessageBox("Error in IMPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
@@ -727,7 +727,7 @@ CString DumpExeFile( PE_EXE &pe, CWait &wait )
 
 	if ( !pe.IsValid() )
 		return "Not a Portable Executable (PE) EXE\r\n";
-    DWORD base = (DWORD) pe.GetdosHeader();
+    ULONG_PTR base = (ULONG_PTR) pe.GetdosHeader();
 	PIMAGE_NT_HEADERS32 pNTHeader = pe.GetIMAGE_NT_HEADERS32();
 	wait.SetStatus("Start dumping...");
 
@@ -821,7 +821,7 @@ CString DumpExeFile( PE_EXE &pe, CWait &wait )
       str += DumpRuntimeFunctions( pe );
    }
 
-    if ( fShowRelocations ) // pas d'utilité    //todo64 a faire
+    if ( fShowRelocations ) // pas d'utilitï¿½    //todo64 a faire
     {
 		wait.SetStatus("Dumping Base relocation...");
         str += DumpBaseRelocationsSection(pe);
@@ -837,7 +837,7 @@ CString DumpExeFile( PE_EXE &pe, CWait &wait )
 
    if ( fShowSymbolTable && g_pCVHeader ) //todo64 a faire
    {
-		if (!pe.IsValidPtr((DWORD) g_pCVHeader))
+		if (!pe.IsValidPtr((ULONG_PTR) g_pCVHeader))
 		{
 #ifdef _DEBUG 
 			AfxMessageBox("Error in CodeView TABLE", MB_OK|MB_ICONEXCLAMATION);

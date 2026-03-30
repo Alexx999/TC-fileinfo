@@ -24,7 +24,7 @@ CString  DumpObjFile( PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADE
 // #include "libdump.h"
 #include "extrnvar.h"
 
-#define MakePtr( cast, ptr, addValue ) (cast)( (DWORD)(ptr) + (DWORD)(addValue))
+#define MakePtr( cast, ptr, addValue ) (cast)( (ULONG_PTR)(ptr) + (ULONG_PTR)(addValue))
 
 PSTR PszLongnames = 0;
 
@@ -75,7 +75,7 @@ CString DisplayArchiveMemberHeader(
 	return str;
 }
 
-CString DumpFirstLinkerMember(PVOID p, DWORD MaxAddr)
+CString DumpFirstLinkerMember(PVOID p, ULONG_PTR MaxAddr)
 {
 	CString str, strTp;
 //strTp.Format
@@ -98,7 +98,7 @@ CString DumpFirstLinkerMember(PVOID p, DWORD MaxAddr)
     {
         DWORD offset = ConvertBigEndian( *pMemberOffsets );
 		{	// Undecorate Name   
-			if ((DWORD) pSymbolName < MaxAddr) { 	// test si l'adresse est correct
+			if ((ULONG_PTR) pSymbolName < MaxAddr) { 	// test si l'adresse est correct
 				PCHAR Textin = (PCHAR) pSymbolName;
 				char Textout[1024];
 				if ( fShowUndecorated )
@@ -121,7 +121,7 @@ CString DumpFirstLinkerMember(PVOID p, DWORD MaxAddr)
 	return str;
 }
 
-CString DumpSecondLinkerMember(PVOID p, DWORD MaxAddr)
+CString DumpSecondLinkerMember(PVOID p, ULONG_PTR MaxAddr)
 {
 	CString str, strTp;
 //strTp.Format
@@ -155,7 +155,7 @@ CString DumpSecondLinkerMember(PVOID p, DWORD MaxAddr)
     {
 		{	// Undecorate Name   
 			
-			if ((DWORD) pSymbolName < MaxAddr) {	// test si l'adresse est correct
+			if ((ULONG_PTR) pSymbolName < MaxAddr) {	// test si l'adresse est correct
 				PCHAR Textin = (PCHAR) pSymbolName;
 				char Textout[1024];
 				if ( fShowUndecorated )
@@ -225,7 +225,7 @@ CString DumpLibFile( LPVOID ptr )
     }
     
     pArchHeader = MakePtr(PIMAGE_ARCHIVE_MEMBER_HEADER, lpFileBase, IMAGE_ARCHIVE_START_SIZE);
-	if (libFile->IsValidPtr((DWORD) pArchHeader)) {
+	if (libFile->IsValidPtr((ULONG_PTR) pArchHeader)) {
 		while ( pArchHeader )
 		{
 			DWORD thisMemberSize;
@@ -266,7 +266,7 @@ CString DumpLibFile( LPVOID ptr )
 			pArchHeader = MakePtr(PIMAGE_ARCHIVE_MEMBER_HEADER, pArchHeader, thisMemberSize);
 
 			// test si le pointer exist!!
-			if (libFile->IsValidPtr((DWORD) pArchHeader))
+			if (libFile->IsValidPtr((ULONG_PTR) pArchHeader))
 				break;
 	//			return (str + "\nSize of archive member exceed file size !\n");
 

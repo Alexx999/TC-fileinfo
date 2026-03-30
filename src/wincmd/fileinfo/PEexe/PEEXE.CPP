@@ -102,8 +102,8 @@ DWORD PE_EXE::GetDataDirectoryEntrySize( DWORD id )
 PVOID PE_EXE::GetReadablePointerFromVA( PVOID va )
 {
 	if (va == 0) return NULL;
-	DWORD ImageBase = GetImageBase();	
-	DWORD rva = PtrToLong( (PBYTE) va - ImageBase );
+	P_IB ImageBase = GetImageBase();
+	DWORD rva = (DWORD)( (ULONG_PTR) va - ImageBase );
 	return GetReadablePointerFromRVA( rva );
 }
 /***********  FG  ***************/
@@ -216,9 +216,9 @@ bool PE_EXE::IsGoodExport()
 {
 	PIMAGE_EXPORT_DIRECTORY exportDir = GetExportsDesc();
 	if ( !exportDir )   return FALSE;
-	if (!IsValidPtr(( DWORD) exportDir )) return FALSE;
+	if (!IsValidPtr(( ULONG_PTR) exportDir )) return FALSE;
 	PSTR	filename = (PSTR) GetReadablePointerFromRVA( exportDir->Name );
-	if ( ((DWORD) filename > (DWORD) exportDir + GetFileSize()) || ((DWORD) filename < (DWORD) exportDir))
+	if ( ((ULONG_PTR) filename > (ULONG_PTR) exportDir + GetFileSize()) || ((ULONG_PTR) filename < (ULONG_PTR) exportDir))
 		return FALSE;
 	return TRUE;
 }

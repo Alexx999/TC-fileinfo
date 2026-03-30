@@ -26,7 +26,7 @@ VOID Disasm(PVOID Addr)
         InstrDasm(&Instr, &Command, FALSE);
         MakeMnemonic(dBuff, &Command, &Options);
 		printf("%s \n", dBuff);
-        cPtr = (PVOID)((ULONG)cPtr + Len);
+        cPtr = (PVOID)((ULONG_PTR)cPtr + Len);
 	} while (Command.CmdOrdinal != 0x4C);
 
 	return;

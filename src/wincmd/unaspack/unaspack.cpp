@@ -4,7 +4,7 @@
 #define PINAME "Aspack Unpacker PlugIn"
 #define PIABV "<APK>"
 
-#define MakePtr( cast, ptr, addValue ) (cast)( (DWORD)(ptr) + (DWORD)(addValue))
+#define MakePtr( cast, ptr, addValue ) (cast)( (ULONG_PTR)(ptr) + (ULONG_PTR)(addValue))
 
 // return string using by the main program
 // __declspec(dllexport)
@@ -20,7 +20,7 @@ void __stdcall PexAboutPlugIn(void)
 	MessageBox(NULL, "Aspack Unpacker PlugIn\nVersion 0.1\n\nGANNIER F.", "UnAspack About", MB_ICONINFORMATION | MB_OK);
 }
 
-LPVOID GetSectionPtr(PIMAGE_NT_HEADERS pNTHeader, DWORD imageBase)
+LPVOID GetSectionPtr(PIMAGE_NT_HEADERS pNTHeader, ULONG_PTR imageBase)
 {
     PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(pNTHeader);
     for ( int i=0; i < pNTHeader->FileHeader.NumberOfSections-2; i++, section++ ) {}
@@ -41,8 +41,8 @@ BOOL __stdcall PexPreloadImage(PPGIParamsBlock pPGI)
 	
 	PIMAGE_DOS_HEADER pDosHdr = (PIMAGE_DOS_HEADER) base;
     PIMAGE_NT_HEADERS pSecondHdr = MakePtr( PIMAGE_NT_HEADERS, base, pDosHdr->e_lfanew );
-	PBYTE NTbase = (PBYTE) GetSectionPtr( pSecondHdr, (DWORD) base);
-	DWORD max = (DWORD) pPGI->pInBuff + (DWORD) pPGI->dwInSize -(DWORD) NTbase;
+	PBYTE NTbase = (PBYTE) GetSectionPtr( pSecondHdr, (ULONG_PTR) base);
+	DWORD max = (DWORD)((ULONG_PTR) pPGI->pInBuff + (ULONG_PTR) pPGI->dwInSize -(ULONG_PTR) NTbase);
 	if ( NTbase > ((PBYTE) base + pPGI->dwInSize)) 
 	{
 //		str.Format("%s: Error in EXE file", PIABV);

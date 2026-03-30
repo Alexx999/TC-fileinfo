@@ -526,7 +526,7 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 	if (pLXHeader->e32_impmodcnt)
 	{
 		PBYTE PEXPTBL = MakePtr( PBYTE, pLXHeader, pLXHeader->e32_impmod);
-		if (pEXE->IsValidPtr((DWORD) PEXPTBL)) {
+		if (pEXE->IsValidPtr((ULONG_PTR) PEXPTBL)) {
 			BYTE size = *PEXPTBL;
 			while (size)
 			{
@@ -539,8 +539,8 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 				str += strTemp + rtfReturn;
 				delete [] name;
 				PEXPTBL += size + 1;
-				size = *PEXPTBL;			
-			} 
+				size = *PEXPTBL;
+			}
 		} else str += (CString) "error in import table"+ rtfReturn;
 	}	else str += (CString) "none"+ rtfReturn;
 
@@ -549,7 +549,7 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 	if (pLXHeader->e32_impmodcnt)
 	{
 		PBYTE PEXPTBL = MakePtr( PBYTE, pLXHeader, pLXHeader->e32_impproc);
-		if (pEXE->IsValidPtr((DWORD)PEXPTBL)) {
+		if (pEXE->IsValidPtr((ULONG_PTR)PEXPTBL)) {
 			BYTE size = *PEXPTBL;
 			while (size)
 			{
@@ -577,7 +577,7 @@ CString DumpLEHeader( EXE_FILE *pEXE )
            +-----+-----+-----+-----+     +-----+-----+-----+
 */
 		PBYTE PEXPTBL = MakePtr( PBYTE, pLXHeader, pLXHeader->e32_restab);
-		if (pEXE->IsValidPtr((DWORD)PEXPTBL)) {
+		if (pEXE->IsValidPtr((ULONG_PTR)PEXPTBL)) {
 			BYTE size = *PEXPTBL;
 //			size &= 0x01111111; // A voir
 			if (size)
@@ -599,7 +599,7 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 	if (pLXHeader->e32_nrestab)
 	{
 		PBYTE PEXPTBL = MakePtr( PBYTE, pdosHeader, pLXHeader->e32_nrestab);
-		if (pEXE->IsValidPtr((DWORD)PEXPTBL)) {
+		if (pEXE->IsValidPtr((ULONG_PTR)PEXPTBL)) {
 			BYTE size = *PEXPTBL; str += rtfReturn;
 //			size &= 0x01111111;
 			while (size)
@@ -632,7 +632,7 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 			strTemp.Format("OBJECT TABLE : \t%d objects", pLXHeader->e32_objcnt);
 			str += strTemp; 
 			PLE_Object_Table PObjTbl = MakePtr( PLE_Object_Table, pLXHeader, pLXHeader->e32_objtab);
-			if (pEXE->IsValidPtr((DWORD)PObjTbl)) {
+			if (pEXE->IsValidPtr((ULONG_PTR)PObjTbl)) {
 				for (UINT i=0; i < pLXHeader->e32_objcnt; i++)
 				{
 					str += rtfReturn;
@@ -715,7 +715,7 @@ CString DumpLEHeader( EXE_FILE *pEXE )
            +-----+-----+-----+-----+-----+-----+
 */	
 		PLE_ResourceTable_Entrie PResTblEnt = MakePtr( PLE_ResourceTable_Entrie, pLXHeader, pLXHeader->e32_rsrctab);
-		if (pEXE->IsValidPtr((DWORD) PResTblEnt)) {
+		if (pEXE->IsValidPtr((ULONG_PTR) PResTblEnt)) {
 			for (UINT i=0; i < pLXHeader->e32_rsrccnt; i++)
 			{
 				strTemp.Format("%d objects", pLXHeader->e32_rsrccnt);
@@ -736,7 +736,7 @@ CString DumpLEHeader( EXE_FILE *pEXE )
 	} else str += (CString) "none"+ rtfReturn;
 
 	PEntry_Point ep = MakePtr( PEntry_Point, pLXHeader, pLXHeader->e32_enttab );
-	if (pEXE->IsValidPtr((DWORD)ep))
+	if (pEXE->IsValidPtr((ULONG_PTR)ep))
 	{
 		str += rtfReturn;
 		str += "ENTRY TABLE : ";

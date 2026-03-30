@@ -623,7 +623,7 @@ CString DumpSectionTable(PIMAGE_SECTION_HEADER section,
 // Given a section name, look it up in the section table and return a
 // pointer to the start of its raw data area.
 //
-LPVOID GetSectionPtr(PSTR name, PIMAGE_NT_HEADERS32 pNTHeader, DWORD imageBase)
+LPVOID GetSectionPtr(PSTR name, PIMAGE_NT_HEADERS32 pNTHeader, ULONG_PTR imageBase)
 {
     PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(pNTHeader);
     unsigned i;
@@ -637,7 +637,7 @@ LPVOID GetSectionPtr(PSTR name, PIMAGE_NT_HEADERS32 pNTHeader, DWORD imageBase)
     return 0;
 }
 
-LPVOID GetPtrFromRVA( DWORD rva, PIMAGE_NT_HEADERS32 pNTHeader, DWORD imageBase )
+LPVOID GetPtrFromRVA( DWORD rva, PIMAGE_NT_HEADERS32 pNTHeader, ULONG_PTR imageBase )
 {
 	PIMAGE_SECTION_HEADER pSectionHdr;
 	INT delta;
@@ -694,7 +694,7 @@ char *SzDebugFormats[] = {
 //
 // Dump the debug directory array
 //
-CString DumpDebugDirectory(PIMAGE_DEBUG_DIRECTORY debugDir, DWORD size, DWORD base)
+CString DumpDebugDirectory(PIMAGE_DEBUG_DIRECTORY debugDir, DWORD size, ULONG_PTR base)
 {
 	PIMAGE_COFF_SYMBOLS_HEADER PCOFFDebugInfo = 0;
     CString str="", Temp="";

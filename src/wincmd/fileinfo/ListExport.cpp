@@ -265,10 +265,10 @@ void CListExport::AddFunction(int sel)
 // Export Section
 		PIMAGE_EXPORT_DIRECTORY exportDir = m_pe->GetExportsDesc();
 		m_nbfunc = 0;
-		if ( exportDir  && m_pe->IsValidPtr(( DWORD) exportDir )) 
+		if ( exportDir  && m_pe->IsValidPtr(( ULONG_PTR) exportDir ))
 		{
 			PSTR	filename = (PSTR)m_pe->GetReadablePointerFromRVA( exportDir->Name );
-			if (!(((DWORD) filename > (DWORD) exportDir + m_pe->GetFileSize()) || ((DWORD) filename < (DWORD) exportDir)))
+			if (!(((ULONG_PTR) filename > (ULONG_PTR) exportDir + m_pe->GetFileSize()) || ((ULONG_PTR) filename < (ULONG_PTR) exportDir)))
 			{
 				PDWORD functions = ( PDWORD ) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfFunctions );
 				PWORD ordinals = (PWORD) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfNameOrdinals );

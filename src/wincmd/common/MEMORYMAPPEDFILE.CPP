@@ -67,18 +67,6 @@ MEMORY_MAPPED_FILE::MEMORY_MAPPED_FILE( PSTR pszFileName )
         return;
     }
 
-	if (((DWORD64)m_pMemoryMappedFileBase) >> 32)
-	{
-        UnmapViewOfFile( m_pMemoryMappedFileBase );
-		m_pMemoryMappedFileBase = 0;
-        CloseHandle(m_hFileMapping);
-        m_hFileMapping = 0;
-        CloseHandle(m_hFile);
-        m_hFile = INVALID_HANDLE_VALUE;
-        m_errCode = errMMF_MapView;
-		AfxMessageBox("Address of MappedFile > 4GB", MB_OK|MB_ICONERROR);
-        return;	
-	}
     m_errCode = errMMF_NoError;
 }
 

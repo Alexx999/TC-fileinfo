@@ -30,15 +30,15 @@ public:
     ~MEMORY_MAPPED_FILE(void);
     
 //    PVOID   GetBase( void ){ return m_pMemoryMappedFileBase; }
-	DWORD   GetBase( void ){ return (DWORD) m_pMemoryMappedFileBase; }
+	ULONG_PTR GetBase( void ){ return (ULONG_PTR) m_pMemoryMappedFileBase; }
     DWORD   GetFileSize( void ){ return m_szFile; }
-    BOOL    IsValid( void ) { return errMMF_NoError == m_errCode; } 
+    BOOL    IsValid( void ) { return errMMF_NoError == m_errCode; }
     errMMF	GetErrorType(){ return m_errCode; }
 	const char	*GetBaseName() { return ::GetBaseName(m_fileName); }
 	const char	*GetName() { return m_fileName; }
 	const char	*GetPath() { return m_path; }
-	BOOL		IsValidPtr( DWORD ptr ) { return (ptr - GetBase() < GetFileSize()); }
-	DWORD 		GetTranslatedPtr( DWORD ptr ) { return GetBase() + ptr; }
+	BOOL		IsValidPtr( ULONG_PTR ptr ) { return (ptr - GetBase() < GetFileSize()); }
+	ULONG_PTR	GetTranslatedPtr( DWORD ptr ) { return GetBase() + ptr; }
 	
 	BOOL IsAttached() { return m_bAttach; }	
 	BOOL Attach(PVOID base, DWORD size);

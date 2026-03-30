@@ -12,22 +12,22 @@
 // pointers) together without dealing with C's pointer arithmetic.  It
 // essentially treats the last two parameters as DWORDs.  The first
 // parameter is used to typecast the result to the appropriate pointer type.
-#define MakePtr( cast, ptr, addValue ) (cast)( (DWORD)(ptr) + (DWORD)(addValue))
+#define MakePtr( cast, ptr, addValue ) (cast)( (ULONG_PTR)(ptr) + (ULONG_PTR)(addValue))
 
 CString DumpHeader(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader);
 CString DumpOptionalHeader(PIMAGE_OPTIONAL_HEADER32 pImageOptionalHeader);
 CString DumpSectionTable(PIMAGE_SECTION_HEADER section,
                       unsigned cSections,
                       BOOL IsEXE);
-LPVOID GetSectionPtr(PSTR name, PIMAGE_NT_HEADERS32 pNTHeader, DWORD imageBase);
-LPVOID GetPtrFromRVA( DWORD rva, PIMAGE_NT_HEADERS32 pNTHeader, DWORD imageBase );
+LPVOID GetSectionPtr(PSTR name, PIMAGE_NT_HEADERS32 pNTHeader, ULONG_PTR imageBase);
+LPVOID GetPtrFromRVA( DWORD rva, PIMAGE_NT_HEADERS32 pNTHeader, ULONG_PTR imageBase );
 PIMAGE_SECTION_HEADER GetSectionHeader(PSTR name, PIMAGE_NT_HEADERS32 pNTHeader);
 PIMAGE_SECTION_HEADER GetEnclosingSectionHeader(DWORD rva,
                                                 PIMAGE_NT_HEADERS32 pNTHeader);
 CString DumpRawSectionData(PIMAGE_SECTION_HEADER section,
                         PVOID base,
                         unsigned cSections);
-CString DumpDebugDirectory(PIMAGE_DEBUG_DIRECTORY debugDir, DWORD size, DWORD base);
+CString DumpDebugDirectory(PIMAGE_DEBUG_DIRECTORY debugDir, DWORD size, ULONG_PTR base);
 CString DumpCOFFHeader(PIMAGE_COFF_SYMBOLS_HEADER pDbgInfo);
 void HexDump(PBYTE ptr, DWORD length);
 

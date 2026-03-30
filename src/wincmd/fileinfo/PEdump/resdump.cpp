@@ -15,7 +15,7 @@
 // Function prototype (necessary because two functions recurse)
 CString DumpResourceDirectory
 (
-    PIMAGE_RESOURCE_DIRECTORY resDir, DWORD resourceBase,
+    PIMAGE_RESOURCE_DIRECTORY resDir, ULONG_PTR resourceBase,
     DWORD level, DWORD resourceType
 );
 
@@ -52,7 +52,7 @@ DWORD cStrResEntries = 0;
 DWORD cDlgResEntries = 0;
 DWORD cMFTResEntries = 0;
 
-PIMAGE_RESOURCE_DATA_ENTRY GetDataEntryFromResEntry( DWORD base, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry )
+PIMAGE_RESOURCE_DATA_ENTRY GetDataEntryFromResEntry( ULONG_PTR base, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry )
 {
 	// The IMAGE_RESOURCE_DIRECTORY_ENTRY is gonna point to a single
 	// IMAGE_RESOURCE_DIRECTORY, which in turn will point to the
@@ -67,13 +67,13 @@ PIMAGE_RESOURCE_DATA_ENTRY GetDataEntryFromResEntry( DWORD base, DWORD resourceB
 	return (PIMAGE_RESOURCE_DATA_ENTRY)(resourceBase +
 										 pResDirEntry->OffsetToData);
 }
-DWORD GetOffsetToDataFromResEntry( DWORD base, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry )
+DWORD GetOffsetToDataFromResEntry( ULONG_PTR base, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry )
 {
 	PIMAGE_RESOURCE_DATA_ENTRY pResDataEntry = GetDataEntryFromResEntry( base, resourceBase, pResEntry );
 	return pResDataEntry->OffsetToData;
 }
 
-CString DumpStringTable( PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pStrResEntry, DWORD cStrResEntries )
+CString DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pStrResEntry, DWORD cStrResEntries )
 {
    CString str="", strTemp="";
 	for ( unsigned i = 0; i < cStrResEntries; i++, pStrResEntry++ )
@@ -85,7 +85,7 @@ CString DumpStringTable( PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTO
 
 		for ( unsigned j = 0; j < 16; j++ )
 		{
-			if (((DWORD) pStrEntry - pe.GetBase() ) > pe.GetFileSize())
+			if (((ULONG_PTR) pStrEntry - pe.GetBase() ) > pe.GetFileSize())
 			{
 #ifdef _DEBUG 
 				AfxMessageBox("Error in Strings Resource", MB_OK|MB_ICONEXCLAMATION);
@@ -106,11 +106,11 @@ CString DumpStringTable( PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTO
 					char c = (char)pStrEntry[k];
 					switch( c )
 					{
-						case '¦' : s = "¦"; break;
+						case 'ï¿½' : s = "ï¿½"; break;
 						case '\t': s = "\\t"; break;
 						case '\r': s = "\\r"; break;
 						case '\n': s = "\\n"; break;
-						case 'ç': s = "ç"; break;
+						case 'ï¿½': s = "ï¿½"; break;
 						default:
 							wsprintf( szBuff, "%c", isprint(c) ? c : '.' );
 							s=szBuff;
@@ -129,7 +129,7 @@ CString DumpStringTable( PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTO
 	return str;
 }
 
-CString DumpDialogs(PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pDlgResEntry, DWORD cDlgResEntries )
+CString DumpDialogs(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pDlgResEntry, DWORD cDlgResEntries )
 {
    CString str="", strTemp="";
 	for ( unsigned i = 0; i < cDlgResEntries; i++, pDlgResEntry++ )
@@ -137,7 +137,7 @@ CString DumpDialogs(PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_EN
 		DWORD offsetToData = GetOffsetToDataFromResEntry( pe.GetBase(), resourceBase, pDlgResEntry );
 		PDWORD pDlgStyle = (PDWORD)GetPtrFromRVA(	offsetToData, pe.GetIMAGE_NT_HEADERS32(), pe.GetBase());
 		if ( !pDlgStyle )break;
-		if (((DWORD) pDlgStyle - pe.GetBase()) > pe.GetFileSize())
+		if (((ULONG_PTR) pDlgStyle - pe.GetBase()) > pe.GetFileSize())
 		{
 #ifdef _DEBUG 
 			AfxMessageBox("Error in Dialogs Resource", MB_OK|MB_ICONEXCLAMATION);
@@ -277,7 +277,7 @@ CString DumpDialogs(PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_EN
 			{
 				// Control item header....
 				pDlgItemTemplate = (DLGITEMTEMPLATE *)
-									(((DWORD)pDlgItemTemplate+3) & ~3);
+									(((ULONG_PTR)pDlgItemTemplate+3) & ~(ULONG_PTR)3);
 				
 				strTemp.Format( "\t\tstyle: %08Xh\r\n", pDlgItemTemplate->style );			
 				str += strTemp;
@@ -350,7 +350,7 @@ CString DumpDialogs(PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_EN
 
 				str += ( "\r\n" );
 				
-				PBYTE pCreationData = (PBYTE)(((DWORD)pTitle + 1) & 0xFFFFFFFE);
+				PBYTE pCreationData = (PBYTE)(((ULONG_PTR)pTitle + 1) & ~(ULONG_PTR)1);
 				
 				if ( *pCreationData )
 					pCreationData += *pCreationData;
@@ -374,7 +374,7 @@ CString DumpDialogs(PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_EN
 	return str;
 }
 
-CString DumpManifest(PE_EXE &pe, DWORD resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry, DWORD cResEntries )
+CString DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry, DWORD cResEntries )
 {
 	CString str="", strTemp="";
 	for ( unsigned i = 0; i < cResEntries; i++, pResEntry++ )
@@ -453,7 +453,7 @@ void GetResourceTypeName(DWORD type, PSTR buffer, UINT cBytes)
 // If a resource entry has a string name (rather than an ID), go find
 // the string and convert it from unicode to ascii.
 //
-void GetResourceNameFromId( DWORD id, DWORD resourceBase, PSTR buffer, UINT cBytes)
+void GetResourceNameFromId( DWORD id, ULONG_PTR resourceBase, PSTR buffer, UINT cBytes)
 {
     PIMAGE_RESOURCE_DIR_STRING_U prdsu;
 
@@ -478,7 +478,7 @@ void GetResourceNameFromId( DWORD id, DWORD resourceBase, PSTR buffer, UINT cByt
 // entry is for a subdirectory, call the directory dumping routine
 // instead of printing information in this routine.
 //
-CString DumpResourceEntry ( PIMAGE_RESOURCE_DIRECTORY_ENTRY resDirEntry, DWORD resourceBase, DWORD level )
+CString DumpResourceEntry ( PIMAGE_RESOURCE_DIRECTORY_ENTRY resDirEntry, ULONG_PTR resourceBase, DWORD level )
 {
     CString str="", strTemp="";
     UINT i;
@@ -527,7 +527,7 @@ PIMAGE_RESOURCE_DIRECTORY_ENTRY pMFTResEntries = 0;
 //
 // Dump the information about one resource directory.
 //
-CString DumpResourceDirectory ( PIMAGE_RESOURCE_DIRECTORY resDir, DWORD resourceBase, DWORD level, DWORD resourceType)
+CString DumpResourceDirectory ( PIMAGE_RESOURCE_DIRECTORY resDir, ULONG_PTR resourceBase, DWORD level, DWORD resourceType)
 {
     CString str="", strTemp="";
     PIMAGE_RESOURCE_DIRECTORY_ENTRY resDirEntry;
@@ -624,7 +624,7 @@ CString DumpResourceSection(PE_EXE &pe)
     resDir = (PIMAGE_RESOURCE_DIRECTORY) GetPtrFromRVA( resourcesRVA, pe.GetIMAGE_NT_HEADERS32(), pe.GetBase () );
 
 	if ( !resDir ) return str;
-	if ( !pe.IsValidPtr(( DWORD ) resDir))
+	if ( !pe.IsValidPtr(( ULONG_PTR ) resDir))
 	{
 #ifdef _DEBUG 
 		AfxMessageBox("Error in Resources Section", MB_OK|MB_ICONEXCLAMATION);
@@ -634,20 +634,20 @@ CString DumpResourceSection(PE_EXE &pe)
 	}
 	strTemp.Format("RESOURCES  ( RVA: %X )\r\n", resourcesRVA );
 	str+=strTemp;
-	str += DumpResourceDirectory(resDir, (DWORD)resDir, 0, 0);
+	str += DumpResourceDirectory(resDir, (ULONG_PTR)resDir, 0, 0);
 	str += ( "\r\n" );
 	if ( cStrResEntries )
 	{
 		str+=( "String Table (first 67 chars)\r\n" );
 //		DWORD offsetToData = GetOffsetToDataFromResEntry( pe.GetBase (), (DWORD)resDir, pStrResEntries );
-		str += DumpStringTable( pe, (DWORD)resDir, pStrResEntries, cStrResEntries );
+		str += DumpStringTable( pe, (ULONG_PTR)resDir, pStrResEntries, cStrResEntries );
 		str+=( "\r\n" );
 	} 
 
 	if ( cDlgResEntries )	
 	{
 		str+=( "Dialogs\r\n" );
-		str+=DumpDialogs( pe, (DWORD)resDir, pDlgResEntries, cDlgResEntries );
+		str+=DumpDialogs( pe, (ULONG_PTR)resDir, pDlgResEntries, cDlgResEntries );
 		str+=( "\r\n" );
 	}/**/
 
@@ -655,7 +655,7 @@ CString DumpResourceSection(PE_EXE &pe)
 	{
 		str+=( "     MANIFEST\r\n" );
 		str += "====================\r\n";
-		str += DumpManifest( pe, (DWORD)resDir, pMFTResEntries, cMFTResEntries );
+		str += DumpManifest( pe, (ULONG_PTR)resDir, pMFTResEntries, cMFTResEntries );
 		str += "\r\n====================\r\n\r\n";
 	} 
 
@@ -674,7 +674,7 @@ bool IsMFTres(PE_EXE &pe)
 	{
 		if ((resDirEntry->Id == (WORD)RT_MANIFEST))
 		{
-			DumpResourceEntry(resDirEntry, (DWORD) resDir, 1); // initialize values
+			DumpResourceEntry(resDirEntry, (ULONG_PTR) resDir, 1); // initialize values
 			return true;
 		}
 	}

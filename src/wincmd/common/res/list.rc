@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Anglais (États-Unis) resources
+// Anglais (Ã‰tats-Unis) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -42,12 +42,12 @@ BEGIN
     LTEXT           "",IDC_status,7,29,82,8
 END
 
-#endif    // Anglais (États-Unis) resources
+#endif    // Anglais (Ã‰tats-Unis) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Français (France) resources
+// FranÃ§ais (France) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
 #ifdef _WIN32
@@ -93,7 +93,7 @@ BEGIN
     MENUITEM "S. all & Copy",               ID_EDIT_SELECTALLCOPY
 END
 
-#endif    // Français (France) resources
+#endif    // FranÃ§ais (France) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

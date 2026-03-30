@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Anglais (États-Unis) resources
+// Anglais (Ã‰tats-Unis) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -214,11 +214,11 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "Comments", "Display File and Version Information in Total Commander 5.50+"
-            VALUE "CompanyName", "François GANNIER"
+            VALUE "CompanyName", "FranÃ§ois GANNIER"
             VALUE "FileDescription", "File Version Information for Total Commander 5.50"
             VALUE "FileVersion", "2, 2, 4, 0"
             VALUE "InternalName", "fileinfo"
-            VALUE "LegalCopyright", "François GANNIER, Copyright (C) 2002-2024"
+            VALUE "LegalCopyright", "FranÃ§ois GANNIER, Copyright (C) 2002-2024"
             VALUE "LegalTrademarks", "Some code from Christian Ghisler, Thomas Weller (Special Thank for it's CFileVersionInfo  Class), Matt Pietrek"
             VALUE "OriginalFilename", "fileinfo.wlx"
             VALUE "ProductName", "Version info Application"
@@ -227,11 +227,11 @@ BEGIN
         BLOCK "040c04b0"
         BEGIN
             VALUE "Comments", "Affiche les informations de Version des executables dans Total Commander 5.50+"
-            VALUE "CompanyName", "François GANNIER"
+            VALUE "CompanyName", "FranÃ§ois GANNIER"
             VALUE "FileDescription", "Versions Information pour Total Commander 5.50"
             VALUE "FileVersion", "2, 2, 4, 0"
             VALUE "InternalName", "fileinfo"
-            VALUE "LegalCopyright", "François GANNIER, Copyright (C) 2002-2024"
+            VALUE "LegalCopyright", "FranÃ§ois GANNIER, Copyright (C) 2002-2024"
             VALUE "LegalTrademarks", "Christian Ghisler, Thomas Weller (un grand merci pour CFileVersionInfo  Class), Matt Pietrek"
             VALUE "OriginalFilename", "fileinfo.wlx"
             VALUE "ProductName", "Version info Application"
@@ -314,10 +314,10 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_STRING1             "Version Information viewer plugin for Total Commander\nby François GANNIER\n"
+    IDS_STRING1             "Version Information viewer plugin for Total Commander\nby FranÃ§ois GANNIER\n"
     IDS_STRING2             "\nSpecial thanks to :\n--------------------------\nEnrico Frumento to provide me sources to extract typelib information\nThomas Weller , for his file : file_ver.cpp ; Implementation of class CFileVersionInfo.  (Last modified:  02/02/2002)\nGiancarlo Iovino  : HyperLink static control\nMatt Pietrek for his helpfull articles on PE files format.\nChristian Ghisler author of Total Commander: for developing this great utilitie and for the lister plugin interface \n"
-    IDS_STRING3             "\nCopyright (c) 2002 - 2024 François GANNIER\nAll rigths reserved"
-    IDS_STRING4             "\nSend comments to the author :\nFrançois GANNIER  ( fgannier@physio-a.univ-tours.fr )\nhttp://physio-a.univ-tours.fr/tcplugins/"
+    IDS_STRING3             "\nCopyright (c) 2002 - 2024 FranÃ§ois GANNIER\nAll rigths reserved"
+    IDS_STRING4             "\nSend comments to the author :\nFranÃ§ois GANNIER  ( fgannier@physio-a.univ-tours.fr )\nhttp://physio-a.univ-tours.fr/tcplugins/"
     IDS_STRING5             "\nHistory :\n--------------"
     IDS_STRING6             "\n2.22 -"
 END
@@ -349,12 +349,12 @@ BEGIN
     IDS_STRING35            "\n2.24 - 13.11.2024 (GizMoCuz)\n   - Added   : Support for ARM64, ARM64EC\n"
 END
 
-#endif    // Anglais (États-Unis) resources
+#endif    // Anglais (Ã‰tats-Unis) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Français (France) resources
+// FranÃ§ais (France) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
 #ifdef _WIN32
@@ -399,7 +399,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // Français (France) resources
+#endif    // FranÃ§ais (France) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

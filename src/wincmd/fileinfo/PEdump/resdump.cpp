@@ -106,11 +106,11 @@ CString DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIR
 					char c = (char)pStrEntry[k];
 					switch( c )
 					{
-						case '�' : s = "�"; break;
+						case '¦' : s = "¦"; break;
 						case '\t': s = "\\t"; break;
 						case '\r': s = "\\r"; break;
 						case '\n': s = "\\n"; break;
-						case '�': s = "�"; break;
+						case 'ç': s = "ç"; break;
 						default:
 							wsprintf( szBuff, "%c", isprint(c) ? c : '.' );
 							s=szBuff;

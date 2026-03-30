@@ -17,7 +17,7 @@ class CPropertySheetRz : public CPropertySheet
 {
    DECLARE_DYNAMIC(CPropertySheetRz)
 
-// Var privées
+// Var privÃ©es
    int m_nHeaderHeight;        //The height of the header control
    int m_oldhh;
    bool m_EditMode;

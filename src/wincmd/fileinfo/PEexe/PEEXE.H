@@ -108,16 +108,16 @@ public:
 	DWORD GetEntryPoint( void );
 	PIMAGE_SECTION_HEADER GetSectionHeaderbyName(PSTR name);
 	PIMAGE_SECTION_HEADER GetEnclosingSectionHeader( DWORD rva );
-	PIMAGE_IMPORT_DESCRIPTOR GetImportsDesc() // OK test�
+	PIMAGE_IMPORT_DESCRIPTOR GetImportsDesc() // OK testé
 	{ 
 		return (PIMAGE_IMPORT_DESCRIPTOR) GetDataDirectoryEntryPointer(IMAGE_DIRECTORY_ENTRY_IMPORT);
 	}
-	DWORD GetImportsSz() // OK test�
+	DWORD GetImportsSz() // OK testé
 	{ 
 		return GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_IMPORT);
 	}
 
-	PIMAGE_EXPORT_DIRECTORY GetExportsDesc() // OK test�
+	PIMAGE_EXPORT_DIRECTORY GetExportsDesc() // OK testé
 	{ 
 		return (PIMAGE_EXPORT_DIRECTORY) GetDataDirectoryEntryPointer(IMAGE_DIRECTORY_ENTRY_EXPORT);
 	}

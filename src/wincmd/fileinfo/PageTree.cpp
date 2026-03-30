@@ -82,7 +82,7 @@ void CPageTree::Renew(PVOID pPE)
 			CWait wait(this);
 			((pfunc) FillTree) (m_ptr, m_tree, wait);
 
-	// Expand the first branch on W95/WNT/W2k  ( à TESTER )
+	// Expand the first branch on W95/WNT/W2k  ( Ã  TESTER )
 			VERSION ver = GetSystemVersion();
 			if (ver.ver >= WND_XP)
 				m_tree.Expand(m_tree.GetRootItem(), TVE_EXPAND);
@@ -128,7 +128,7 @@ BOOL CPageTree::OnInitDialog()
 		CWait wait(this);
 		((pfunc) FillTree) (m_ptr, m_tree, wait);
 
-// Expand the first branch on W95/WNT/W2k  ( à TESTER )
+// Expand the first branch on W95/WNT/W2k  ( Ã  TESTER )
 		VERSION ver = GetSystemVersion();
 		if (ver.ver >= WND_XP)
 			m_tree.Expand(m_tree.GetRootItem(), TVE_EXPAND);

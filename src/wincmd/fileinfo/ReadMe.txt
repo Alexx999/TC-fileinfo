@@ -370,5 +370,5 @@ This program can be freely copied/distributed without breaking distributive pack
 
 -----------------------------
 Send comments to the author :
-François GANNIER  ( fg.tcplugins@free.fr )
+FranÃ§ois GANNIER  ( fg.tcplugins@free.fr )
 http://fg.tcplugins.free.fr/

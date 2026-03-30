@@ -86,7 +86,7 @@ void LoadPlugin(CString inifilename)
 #endif
 		(DecPlugin::pluglist).AddTail(str);
 		if (++i > 9) break;
-		nbstr[0] = '0' + i; // incrémenter compteur
+		nbstr[0] = '0' + i; // incrÃ©menter compteur
 	}
 }
 
@@ -117,7 +117,7 @@ int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* File,int ShowFlags)
 // different access on Mapped file
 	MEMORY_MAPPED_FILE *pMapFile = (MEMORY_MAPPED_FILE *) pPE;
 	OBJ_FILE_TYPE FileType = OBJ_UNKNOWN;
-	EXE_FILE *pEXE = (EXE_FILE *) pPE;  // acces à tous les EXEs
+	EXE_FILE *pEXE = (EXE_FILE *) pPE;  // acces Ã  tous les EXEs
 
 	LPTYPELIB lpTypeLib = NULL;
 	if (GetPrivateProfileInt( "Options", "ComInt", 1, inifilename))
@@ -253,7 +253,7 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 // different access on Mapped file
 	MEMORY_MAPPED_FILE *pMapFile = (MEMORY_MAPPED_FILE *) pPE;
 	OBJ_FILE_TYPE FileType = OBJ_UNKNOWN;
-	EXE_FILE *pEXE = (EXE_FILE *) pPE;  // acces à tous les EXEs
+	EXE_FILE *pEXE = (EXE_FILE *) pPE;  // acces Ã  tous les EXEs
 	
 //************     Pre-Config        ***************/
 	GetIniFilePath(hInst, inifilename);

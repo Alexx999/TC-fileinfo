@@ -2,7 +2,7 @@
 // PEDUMP - Matt Pietrek 1997
 // FILE: EXEDUMP.C
 //==================================
-//  Modifi� par FG le 23/03/2003
+//  Modifié par FG le 23/03/2003
 //
 #include "stdafx.h"
 #include <stdio.h>
@@ -821,7 +821,7 @@ CString DumpExeFile( PE_EXE &pe, CWait &wait )
       str += DumpRuntimeFunctions( pe );
    }
 
-    if ( fShowRelocations ) // pas d'utilit�    //todo64 a faire
+    if ( fShowRelocations ) // pas d'utilité    //todo64 a faire
     {
 		wait.SetStatus("Dumping Base relocation...");
         str += DumpBaseRelocationsSection(pe);

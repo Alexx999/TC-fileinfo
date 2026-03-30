@@ -22,7 +22,7 @@
 class CListSheet : public CPropertySheetRz
 {
 	DECLARE_DYNAMIC(CListSheet)
-// Var privées
+// Var privÃ©es
 // Construction
 public:
 	CListSheet(LPCTSTR pszCaption, CWnd* pParentWnd = NULL, UINT iSelectPage = 0);

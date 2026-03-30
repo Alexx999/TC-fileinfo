@@ -1,4 +1,4 @@
-    fileinfo, Copyright 2011-2024 François GANNIER
+    fileinfo, Copyright 2011-2024 FranÃ§ois GANNIER
 	
 	This is part of fileinfo plugin for Total Commander.
     This program is free software: you can redistribute it and/or modify

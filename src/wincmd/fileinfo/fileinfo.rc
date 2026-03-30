@@ -197,8 +197,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,2,4,0
- PRODUCTVERSION 2,2,4,0
+ FILEVERSION 2,2,5,0
+ PRODUCTVERSION 2,2,5,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -216,26 +216,26 @@ BEGIN
             VALUE "Comments", "Display File and Version Information in Total Commander 5.50+"
             VALUE "CompanyName", "François GANNIER"
             VALUE "FileDescription", "File Version Information for Total Commander 5.50"
-            VALUE "FileVersion", "2, 2, 4, 0"
+            VALUE "FileVersion", "2, 2, 5, 0"
             VALUE "InternalName", "fileinfo"
             VALUE "LegalCopyright", "François GANNIER, Copyright (C) 2002-2024"
             VALUE "LegalTrademarks", "Some code from Christian Ghisler, Thomas Weller (Special Thank for it's CFileVersionInfo  Class), Matt Pietrek"
             VALUE "OriginalFilename", "fileinfo.wlx"
             VALUE "ProductName", "Version info Application"
-            VALUE "ProductVersion", "2, 2, 4, 0"
+            VALUE "ProductVersion", "2, 2, 5, 0"
         END
         BLOCK "040c04b0"
         BEGIN
             VALUE "Comments", "Affiche les informations de Version des executables dans Total Commander 5.50+"
             VALUE "CompanyName", "François GANNIER"
             VALUE "FileDescription", "Versions Information pour Total Commander 5.50"
-            VALUE "FileVersion", "2, 2, 4, 0"
+            VALUE "FileVersion", "2, 2, 5, 0"
             VALUE "InternalName", "fileinfo"
             VALUE "LegalCopyright", "François GANNIER, Copyright (C) 2002-2024"
             VALUE "LegalTrademarks", "Christian Ghisler, Thomas Weller (un grand merci pour CFileVersionInfo  Class), Matt Pietrek"
             VALUE "OriginalFilename", "fileinfo.wlx"
             VALUE "ProductName", "Version info Application"
-            VALUE "ProductVersion", "2, 2, 4, 0"
+            VALUE "ProductVersion", "2, 2, 5, 0"
         END
     END
     BLOCK "VarFileInfo"
@@ -347,6 +347,7 @@ BEGIN
     IDS_STRING33            "\n2.22 - 01.07.2015\n   - Added : Implementation of ListLoadNext\n   - Added : links to support and donation\n   - Added : Context Menu for ""File properties""/""Image File Header""/""Manifest"" tabs\n   - Updated : links to HTML homepage and e-mail\n   - Fixed : DoS vulnerability (10 corrected)\n   - Fixed : crash with some EXE/DLL without resource\n   - Fixed : incorrect list of import functions in delayed DLL of x64 Applications\n   - Fixed : crash in ""Resource Dump"" with some chars in String Table\n   - Fixed : resources not shown if Manifest resource exist\n   - Fixed : some memory leaks\n"
     IDS_STRING34            "\n2.23 - 18.05.2017\n   - Fixed : ListLoadNext not really working (content not changed)\n   - Fixed : Pointer moved to arbitrary location\n   - Fixed : Missing values in ""Manifest""\n   - Fixed : Crash in ""Image File Header"" on some DLL\n   - Fixed : Crash in ""Image File Header"" with option ""Relocations"" (Dump_Pdata)\n   - Fixed : Memory leak\n"
     IDS_STRING35            "\n2.24 - 13.11.2024 (GizMoCuz)\n   - Added   : Support for ARM64, ARM64EC\n"
+    IDS_STRING36            "\n2.25 - 30.03.2026\n   - Fixed   : 64-bit pointer truncation throughout codebase (addresses above 4GB)\n   - Fixed   : GetBaseOfData() using compiler target instead of PE file type\n   - Fixed   : Source files converted from Windows-1252 to UTF-8\n   - Changed : Minimum Windows version set to Windows 7\n"
 END
 
 #endif    // Anglais (États-Unis) resources

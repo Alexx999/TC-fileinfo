@@ -37,6 +37,7 @@
 #define IDS_STRING7                     34
 #define IDS_STRING34                    34
 #define IDS_STRING35                    35
+#define IDS_STRING36                    36
 #define IDD_fi                          106
 #define IDD_About                       129
 #define IDD_PageDll                     131

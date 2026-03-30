@@ -7,4 +7,4 @@
 #include "..\peexe\peexe.h"
 
 // CStringA DumpExeFile( PIMAGE_DOS_HEADER dosHeader );
-CStringA DumpExeFile( PE_EXE &pe, CWait &wait );
+CString DumpExeFile( PE_EXE &pe, CWait &wait );

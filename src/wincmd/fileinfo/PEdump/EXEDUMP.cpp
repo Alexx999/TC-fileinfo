@@ -716,60 +716,60 @@ extern	PIMAGE_RESOURCE_DIRECTORY_ENTRY pDlgResEntries;
 extern	DWORD cStrResEntries;
 extern	DWORD cDlgResEntries;
 
-CStringA DumpExeFile( PE_EXE &pe, CWait &wait )
+CString DumpExeFile( PE_EXE &pe, CWait &wait )
 {
-    CStringA str="", strTp;
+    CString str=_T(""), strTp;
 
     UINT compress = 0;
 
 	if ( !pe.IsValid() )
-		return "Not a Portable Executable (PE) EXE\r\n";
+		return _T("Not a Portable Executable (PE) EXE\r\n");
     ULONG_PTR base = (ULONG_PTR) pe.GetdosHeader();
 	PIMAGE_NT_HEADERS32 pNTHeader = pe.GetIMAGE_NT_HEADERS32();
-	wait.SetStatus("Start dumping...");
+	wait.SetStatus(_T("Start dumping..."));
 
-	
-	strTp.Format("Entry Point RVA: \t%08Xh\r\n", pe.GetOrEntryPointRVA());
+
+	strTp.Format(_T("Entry Point RVA: \t%08Xh\r\n"), pe.GetOrEntryPointRVA());
 	str += strTp;
-	str += "Entry Point RAW: \t";
+	str += _T("Entry Point RAW: \t");
 	if (pe.GetOrEntryPoint())
-		strTp.Format("%08Xh\r\n\r\n", pe.GetOrEntryPoint());
-	else strTp.Format("%s\r\n\r\n", "Invalid or not in CODE section (possible Encrypted or Packed Executable)");
+		strTp.Format(_T("%08Xh\r\n\r\n"), pe.GetOrEntryPoint());
+	else strTp.Format(_T("%s\r\n\r\n"), _T("Invalid or not in CODE section (possible Encrypted or Packed Executable)"));
 	str += strTp;
 
 // Search compressed EXE
 	if (pe.IsCoded())		//Test compressed and decompress
 	{
-		wait.SetStatus("Unpacking...");
+		wait.SetStatus(_T("Unpacking..."));
 		DecPlugin *pDec = pe.GetDecPtr();
 		str += pDec->GetDecStr();
 		if (pe.IsAttached()) //pDec->GetNewHeader() )
 		{
-			str += "Using Decompressed Image\r\n";
-			strTp.Format("Size of New Image : %d bytes \r\n", pe.GetFileSize());
+			str += _T("Using Decompressed Image\r\n");
+			strTp.Format(_T("Size of New Image : %d bytes \r\n"), pe.GetFileSize());
 			str += strTp;
-			strTp.Format("New Entry Point RVA: \t%08Xh\r\n", pe.GetAddressOfEntryPoint());
+			strTp.Format(_T("New Entry Point RVA: \t%08Xh\r\n"), pe.GetAddressOfEntryPoint());
 			str += strTp;
-			strTp.Format("New Entry Point RAW: \t%08Xh\r\n", pe.GetEntryPoint());
+			strTp.Format(_T("New Entry Point RAW: \t%08Xh\r\n"), pe.GetEntryPoint());
 			str += strTp;
 
 		}
-		str += "\r\n";
-	} 
+		str += _T("\r\n");
+	}
 	else if (compress = SearchCompressedEXE(pNTHeader))
 	{
-		str = str + "Possible Packer/Encryptor :\t" + SzPacker[compress-1];
-		str += "\r\n";
-	}	
+		str = str + _T("Possible Packer/Encryptor :\t") + CString(SzPacker[compress-1]);
+		str += _T("\r\n");
+	}
 	str += DumpHeader((PIMAGE_FILE_HEADER)&pNTHeader->FileHeader, (PIMAGE_OPTIONAL_HEADER32)&pNTHeader->OptionalHeader);
-    str += "\r\n";
+    str += _T("\r\n");
 
     str += DumpOptionalHeader((PIMAGE_OPTIONAL_HEADER32)&pNTHeader->OptionalHeader);
-    str += "\r\n";
+    str += _T("\r\n");
 
-	wait.SetStatus("Dumping Header...");
+	wait.SetStatus(_T("Dumping Header..."));
     str += DumpSectionTable( IMAGE_FIRST_SECTION(pNTHeader), pNTHeader->FileHeader.NumberOfSections, TRUE);
-	
+
 	if (fShowSymbolTable) //todo64
 	{
 		str += DumpExeDebugDirectory(pe);
@@ -779,23 +779,23 @@ CStringA DumpExeFile( PE_EXE &pe, CWait &wait )
 
 	if ( fShowResources ) //64ok
     {
-		wait.SetStatus("Dumping Resources...");
+		wait.SetStatus(_T("Dumping Resources..."));
 		str += DumpResourceSection(pe);
 	}
 
-	wait.SetStatus("Dumping Import..."); //64ok en partie
+	wait.SetStatus(_T("Dumping Import...")); //64ok en partie
     str += DumpImportsSection(pe);
-    
-	wait.SetStatus("Dumping Delayed Import...");
+
+	wait.SetStatus(_T("Dumping Delayed Import..."));
     str += DumpImportsDelayedSection(pe); //todo64 a faire
 
     if ( pe.GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT) ) //todo64 a faire
     {
-		wait.SetStatus("Dumping BoundImport...");
+		wait.SetStatus(_T("Dumping BoundImport..."));
 		str += DumpBoundImportDescriptors(pe);
     }
-    
-	wait.SetStatus("Dumping Export..."); 
+
+	wait.SetStatus(_T("Dumping Export..."));
 	str += DumpExportsSection( pe ); //todo64 a faire
 
    //=========================================================================
@@ -814,21 +814,21 @@ CStringA DumpExeFile( PE_EXE &pe, CWait &wait )
 
 	if ( fShowPDATA && !(pe.Is64bits()))  //todo64 a faire
    {
-	  wait.SetStatus("Dumping Runtime...");
+	  wait.SetStatus(_T("Dumping Runtime..."));
       str += DumpRuntimeFunctions( pe );
    }
 
     if ( fShowRelocations ) // pas d'utilité    //todo64 a faire
     {
-		wait.SetStatus("Dumping Base relocation...");
+		wait.SetStatus(_T("Dumping Base relocation..."));
         str += DumpBaseRelocationsSection(pe);
     }
 
-//if (!pe.Is64bits()) 
+//if (!pe.Is64bits())
 {
    if ( fShowSymbolTable && g_pMiscDebugInfo ) //todo64 a faire
    {
-	   	wait.SetStatus("Dumping DebugInfo...");
+	   	wait.SetStatus(_T("Dumping DebugInfo..."));
 		str += DumpMiscDebugInfo( g_pMiscDebugInfo );
    }
 
@@ -836,24 +836,24 @@ CStringA DumpExeFile( PE_EXE &pe, CWait &wait )
    {
 		if (!pe.IsValidPtr((ULONG_PTR) g_pCVHeader))
 		{
-#ifdef _DEBUG 
+#ifdef _DEBUG
 			AfxMessageBox(_T("Error in CodeView TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
-			str += "CodeView TABLE not found, due to a possible compressed executable \r\n\r\n";
+			str += _T("CodeView TABLE not found, due to a possible compressed executable \r\n\r\n");
 		}
 		else /**/
 		{
-			wait.SetStatus("Dumping Debug Header...");
+			wait.SetStatus(_T("Dumping Debug Header..."));
 			str += DumpCVDebugInfo( g_pCVHeader );
 		}
    }
 
     if ( fShowSymbolTable && g_pCOFFHeader ) //todo64 a faire
     {
-		wait.SetStatus("Dumping COFF Header...");
+		wait.SetStatus(_T("Dumping COFF Header..."));
         str += DumpCOFFHeader( g_pCOFFHeader );
     }
-    
+
     if ( fShowLineNumbers && g_pCOFFHeader )  //todo64 a faire
     {
         str += DumpLineNumbers( MakePtr(PIMAGE_LINENUMBER, g_pCOFFHeader,
@@ -863,15 +863,15 @@ CStringA DumpExeFile( PE_EXE &pe, CWait &wait )
 
     if ( fShowSymbolTable ) //todo64 a faire
     {
-        if ( pNTHeader->FileHeader.NumberOfSymbols 
+        if ( pNTHeader->FileHeader.NumberOfSymbols
             && pNTHeader->FileHeader.PointerToSymbolTable
          && g_pCOFFSymbolTable )
         {
-			wait.SetStatus("Dumping SymbolTable...");
+			wait.SetStatus(_T("Dumping SymbolTable..."));
             str += DumpSymbolTable( g_pCOFFSymbolTable );
         }
     }
-    
+
     if ( fShowRawSectionData )  //todo64 a faire
     {
         str += DumpRawSectionData( (PIMAGE_SECTION_HEADER)(pNTHeader+1),

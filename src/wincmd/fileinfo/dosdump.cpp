@@ -780,4 +780,4 @@ CString DumpLEHeader( EXE_FILE *pEXE )
    return str;
 }
 
-#pragma pack
+#pragma pack()

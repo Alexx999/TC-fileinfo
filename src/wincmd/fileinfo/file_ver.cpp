@@ -226,7 +226,6 @@ BOOL CFileVersionInfo::ReadVersionInfo(const CString& strFile)
 VS_Dflt_NT *CFileVersionInfo::ReadStringFI_NT(VS_Dflt_NT *vi_st)
 {
 	WCHAR   *vi_string;
-	char	sTemp[BufferLen];
 	BYTE    *decal = (BYTE *) vi_st;
 	BYTE    *start = (BYTE *) vi_st;
 	UINT	szKeySize;
@@ -242,8 +241,10 @@ VS_Dflt_NT *CFileVersionInfo::ReadStringFI_NT(VS_Dflt_NT *vi_st)
 	{
 		if (vi_st->wValueLength == 0 && vi_st->szKey[0] == 48)
 		{
-			WideCharToMultiByte( CP_ACP, 0, vi_st->szKey, -1, sTemp, BufferLen, NULL, NULL );
-			UINT id = getval(0)*4096+getval(1)*256+getval(2)*16+getval(3);
+			WCHAR szLang[5];
+			wcsncpy(szLang, vi_st->szKey, 4);
+			szLang[4] = 0;
+			UINT id = (UINT)wcstoul(szLang, NULL, 16);
 			temp.Format(_T("\nVersion language : %s\n"), (LPCTSTR)GetLanguageName(id));
 			all += temp;
 
@@ -254,8 +255,7 @@ VS_Dflt_NT *CFileVersionInfo::ReadStringFI_NT(VS_Dflt_NT *vi_st)
 		}
 //		if (vi_st->wType == 1)
 		{
-			WideCharToMultiByte( CP_ACP, 0, vi_st->szKey, -1, sTemp, BufferLen, NULL, NULL );
-			temp.Format(_T("      %hs"),sTemp);
+			temp.Format(_T("      %ls"), vi_st->szKey);
 			all += temp;
 			szKeySize = ((wcslen(vi_st->szKey) + 1) << 1) + sizeof(VS_Dflt_NT);
 			while (szKeySize%4)	szKeySize++;
@@ -265,12 +265,11 @@ VS_Dflt_NT *CFileVersionInfo::ReadStringFI_NT(VS_Dflt_NT *vi_st)
 			vi_string = (WCHAR *) ( decal );
 			if (vi_st->wValueLength)
 			{
-				WideCharToMultiByte( CP_ACP, 0, vi_string, vi_st->wValueLength, sTemp, BufferLen, NULL, NULL );
-				sTemp[vi_st->wValueLength]='\0';
-				temp.Format(_T("\t: %hs\n"),sTemp);
+				CString strVal(vi_string, vi_st->wValueLength);
+				temp.Format(_T("\t: %s\n"), (LPCTSTR)strVal);
 				all += temp;
 				szKeySize = vi_st->wLength - szKeySize;
-			} else 
+			} else
 			{
 				all += _T("\t:\n");
 				szKeySize = 0;
@@ -317,30 +316,23 @@ VS_Dflt_NT *CFileVersionInfo::ReadVarFI_NT(VS_Dflt_NT *vi_st)
 
 UINT CFileVersionInfo::TestBlockFI(WCHAR *szKey) /// NT ver
 {
-	WCHAR    uTemp[BufferLen];
-	MultiByteToWideChar(CP_ACP, 0, "StringFileInfo", -1, uTemp, BufferLen);
-
-	if (wcscmp(szKey, uTemp)) 
-	{
-		MultiByteToWideChar(CP_ACP, 0, "VarFileInfo", -1, uTemp, BufferLen);
-		if (wcscmp(szKey, uTemp)) 
-			return 0;
+	if (!wcscmp(szKey, L"StringFileInfo"))
+		return 1;
+	if (!wcscmp(szKey, L"VarFileInfo"))
 		return 2;
-	} return 1;
+	return 0;
 }
 
 BOOL CFileVersionInfo::ReadBlockNT()
 {
-   WCHAR    uTemp[BufferLen];
    VS_Dflt_NT *vi_st ;
    UINT      szSize=0;
    CString temp;
 	BOOL ret = FALSE;
 
-   if (!m_pVersionInfo) return FALSE; 
+   if (!m_pVersionInfo) return FALSE;
    VS_VERSIONINFO_NT  *vi = (VS_VERSIONINFO_NT *) m_pVersionInfo;
-   MultiByteToWideChar(CP_ACP, 0, "VS_VERSION_INFO", -1, uTemp, BufferLen);
-   if (wcscmp(vi->szKey, uTemp)) return FALSE;
+   if (wcscmp(vi->szKey, L"VS_VERSION_INFO")) return FALSE;
 
    vi_st = (VS_Dflt_NT *) ( m_pVersionInfo + sizeof(VS_VERSIONINFO_NT) );
    do {

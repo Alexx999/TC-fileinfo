@@ -232,6 +232,8 @@ FARPROC WINAPI hookDLLLoad(unsigned dliNotify,PDelayLoadInfo  pdli)
 	return (FARPROC)NULL;
 }
 
+ExternC const PfnDliHook __pfnDliFailureHook2 = hookDLLLoad;
+
 CString CreateText3(PVOID ptr, CWait &wait)
 {
 	CString Temp, str;
@@ -264,7 +266,6 @@ CString CreateText3(PVOID ptr, CWait &wait)
 	}
 
 	wait.SetStatus("Disassembling...");
-	__pfnDliFailureHook2 = hookDLLLoad;
 	try
 	{
 		char dBuff[1024];

@@ -73,9 +73,9 @@ DWORD GetOffsetToDataFromResEntry( ULONG_PTR base, ULONG_PTR resourceBase, PIMAG
 	return pResDataEntry->OffsetToData;
 }
 
-CStringA DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pStrResEntry, DWORD cStrResEntries )
+CString DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pStrResEntry, DWORD cStrResEntries )
 {
-   CStringA str="", strTemp="";
+   CString str=_T(""), strTemp=_T("");
 	for ( unsigned i = 0; i < cStrResEntries; i++, pStrResEntry++ )
 	{
 		DWORD offsetToData = GetOffsetToDataFromResEntry( pe.GetBase(), resourceBase, pStrResEntry );
@@ -87,40 +87,38 @@ CStringA DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DI
 		{
 			if (((ULONG_PTR) pStrEntry - pe.GetBase() ) > pe.GetFileSize())
 			{
-#ifdef _DEBUG 
+#ifdef _DEBUG
 				AfxMessageBox(_T("Error in Strings Resource"), MB_OK|MB_ICONEXCLAMATION);
 #endif
-				str = "Possible compressed String resource\r\n";
+				str = _T("Possible compressed String resource\r\n");
 				return str;
 			}
 			WORD len = *pStrEntry++;
 			if ( len )
 			{
-				strTemp.Format( "     %-5u: ", id + j );
+				strTemp.Format( _T("     %-5u: "), id + j );
 				str += strTemp;
 
-				for ( unsigned k = 0; k < min(len, (WORD)64); k++ )
+				WORD cch = min(len, (WORD)64);
+				CString wstr(reinterpret_cast<LPCWSTR>(pStrEntry), cch);
+				for ( int k = 0; k < wstr.GetLength(); k++ )
 				{
-					char * s;
-					char szBuff[20];
-					char c = (char)pStrEntry[k];
-					switch( c )
+					WCHAR wc = wstr[k];
+					switch( wc )
 					{
-						case '¦' : s = "¦"; break;
-						case '\t': s = "\\t"; break;
-						case '\r': s = "\\r"; break;
-						case '\n': s = "\\n"; break;
-						case 'ç': s = "ç"; break;
+						case L'\t': str += _T("\\t"); break;
+						case L'\r': str += _T("\\r"); break;
+						case L'\n': str += _T("\\n"); break;
 						default:
-							sprintf( szBuff, "%c", isprint(c) ? c : '.' );
-							s=szBuff;
+							if ( wc >= 0x20 )
+								str += wc;
+							else
+								str += _T('.');
 							break;
 					}
-
-					str += s;
 				}
 
-				str += ( "\r\n" );
+				str += _T("\r\n");
 			}
 
 			pStrEntry += len;
@@ -604,9 +602,9 @@ CStringA DumpResourceDirectory ( PIMAGE_RESOURCE_DIRECTORY resDir, ULONG_PTR res
 // Top level routine called to dump out the entire resource hierarchy
 //
 //CStringA DumpResourceSection(DWORD base, PIMAGE_NT_HEADERS pNTHeader)
-CStringA DumpResourceSection(PE_EXE &pe)
+CString DumpResourceSection(PE_EXE &pe)
 {
-    CStringA str="", strTemp="";
+    CString str=_T(""), strTemp=_T("");
 	cStrResEntries = 0;
 	cDlgResEntries = 0;
 	cMFTResEntries = 0;
@@ -629,35 +627,34 @@ CStringA DumpResourceSection(PE_EXE &pe)
 #ifdef _DEBUG 
 		AfxMessageBox(_T("Error in Resources Section"), MB_OK|MB_ICONEXCLAMATION);
 #endif
-		str += "RESOURCES not found, due to a possible compressed executable\r\n\r\n";
+		str += _T("RESOURCES not found, due to a possible compressed executable\r\n\r\n");
 		return str;
 	}
-	strTemp.Format("RESOURCES  ( RVA: %X )\r\n", resourcesRVA );
+	strTemp.Format(_T("RESOURCES  ( RVA: %X )\r\n"), resourcesRVA );
 	str+=strTemp;
-	str += DumpResourceDirectory(resDir, (ULONG_PTR)resDir, 0, 0);
-	str += ( "\r\n" );
+	str += CString(DumpResourceDirectory(resDir, (ULONG_PTR)resDir, 0, 0));
+	str += _T("\r\n");
 	if ( cStrResEntries )
 	{
-		str+=( "String Table (first 67 chars)\r\n" );
-//		DWORD offsetToData = GetOffsetToDataFromResEntry( pe.GetBase (), (DWORD)resDir, pStrResEntries );
+		str += _T("String Table (first 67 chars)\r\n");
 		str += DumpStringTable( pe, (ULONG_PTR)resDir, pStrResEntries, cStrResEntries );
-		str+=( "\r\n" );
-	} 
+		str += _T("\r\n");
+	}
 
-	if ( cDlgResEntries )	
+	if ( cDlgResEntries )
 	{
-		str+=( "Dialogs\r\n" );
-		str+=DumpDialogs( pe, (ULONG_PTR)resDir, pDlgResEntries, cDlgResEntries );
-		str+=( "\r\n" );
+		str += _T("Dialogs\r\n");
+		str += CString(DumpDialogs( pe, (ULONG_PTR)resDir, pDlgResEntries, cDlgResEntries ));
+		str += _T("\r\n");
 	}/**/
 
 	if ( cMFTResEntries )
 	{
-		str+=( "     MANIFEST\r\n" );
-		str += "====================\r\n";
-		str += DumpManifest( pe, (ULONG_PTR)resDir, pMFTResEntries, cMFTResEntries );
-		str += "\r\n====================\r\n\r\n";
-	} 
+		str += _T("     MANIFEST\r\n");
+		str += _T("====================\r\n");
+		str += CString(DumpManifest( pe, (ULONG_PTR)resDir, pMFTResEntries, cMFTResEntries ));
+		str += _T("\r\n====================\r\n\r\n");
+	}
 
 	return str;
 }

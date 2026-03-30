@@ -1,1 +1,1 @@
-CStringA DumpResourceSection(PE_EXE &pe);
+CString DumpResourceSection(PE_EXE &pe);

@@ -29,7 +29,7 @@ BOOL test_Name( PCHAR str)
 	return TRUE;
 }
 
-CString DumpExeDebugDirectory(PE_EXE &pe)
+CStringA DumpExeDebugDirectory(PE_EXE &pe)
 {
     PIMAGE_DEBUG_DIRECTORY debugDir;
     PIMAGE_SECTION_HEADER header;
@@ -59,9 +59,9 @@ CString DumpExeDebugDirectory(PE_EXE &pe)
 //
 // Dump the imports table (the .idata section) of a PE file
 //
-CString DumpImportsSection(PE_EXE &pe)
+CStringA DumpImportsSection(PE_EXE &pe)
 {
-	CString str, strTemp;
+	CStringA str, strTemp;
 	PIMAGE_IMPORT_DESCRIPTOR importDesc;
 	PIMAGE_THUNK_DATA32 thunk, thunkIAT=0;
 	PIMAGE_THUNK_DATA64 thunk64, thunkIAT64=0;
@@ -79,7 +79,7 @@ CString DumpImportsSection(PE_EXE &pe)
 	{
 		str = ("IMPORTS TABLE:\r\n");
 #ifdef _DEBUG 
-		AfxMessageBox("Error in IMPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Error in IMPORT TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		str += "IMPORT TABLE not found, due to a possible compressed executable \r\n\r\n";
 		return str;
@@ -178,7 +178,7 @@ CString DumpImportsSection(PE_EXE &pe)
 						{
 							strTemp.Format("\tNA \t<invalid name>");
 #ifdef _DEBUG 
-		AfxMessageBox("Invalid name", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Invalid name"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 						}
 						str += strTemp;
@@ -213,7 +213,7 @@ CString DumpImportsSection(PE_EXE &pe)
 					if ((ULONG_PTR) pOrdinalName <= Importsz)
 					{	
 #ifdef _DEBUG 
-						AfxMessageBox("Ptr out of bound", MB_OK|MB_ICONEXCLAMATION);
+						AfxMessageBox(_T("Ptr out of bound"), MB_OK|MB_ICONEXCLAMATION);
 #endif /**/
 						break;
 					}
@@ -231,7 +231,7 @@ CString DumpImportsSection(PE_EXE &pe)
 					{
 						strTemp.Format("\tNA \t<invalid name>");
 #ifdef _DEBUG 
-		AfxMessageBox("Invalid name", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Invalid name"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 					}
 					str += strTemp;
@@ -258,13 +258,13 @@ CString DumpImportsSection(PE_EXE &pe)
 //
 // Dump the delayed imports table (the .idata section) of a PE file ( FG )
 //
-CString DumpImportsDelayedSection(PE_EXE &pe)
+CStringA DumpImportsDelayedSection(PE_EXE &pe)
 {
 //	PIMAGE_NT_HEADERS pNTHeader = pe.GetIMAGE_NT_HEADERS();
 	PIMAGE_THUNK_DATA32 thunk;
 	PIMAGE_IMPORT_BY_NAME pOrdinalName;
 	
-	CString str, strTemp;
+	CStringA str, strTemp;
 	PImgDelayDescr pDImportDesc;
 	
 	DWORD DDESize = pe.GetDataDirectoryEntrySize( IMAGE_DIRECTORY_ENTRY_DELAY_IMPORT );
@@ -275,7 +275,7 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 	if (!pe.IsValidPtr(( ULONG_PTR) pDImportDesc ))
 	{
 #ifdef _DEBUG 
-		AfxMessageBox("Error in DELAYED IMPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Error in DELAYED IMPORT TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		str += "DELAYED IMPORT TABLE not found, due to a possible compressed executable \r\n\r\n";
 		return str;
@@ -294,7 +294,7 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 		{
 			str += "DELAYED IMPORT TABLE not found, due to a possible compressed executable \r\n\r\n";
 #ifdef _DEBUG 
-	AfxMessageBox("Error in DELAYED IMPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
+	AfxMessageBox(_T("Error in DELAYED IMPORT TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 			break;
 		}
@@ -338,7 +338,7 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 		if (!thunk ) return str;
 #ifdef _DEBUG
 		if (! pe.IsValidPtr( (ULONG_PTR) thunk ))
-			AfxMessageBox("Ptr out of bound", MB_OK|MB_ICONEXCLAMATION);
+			AfxMessageBox(_T("Ptr out of bound"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		str += ("\tOrdn  \tName\r\n");
 		str += ("\t-----\t-----\r\n");
@@ -372,7 +372,7 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 				{
 					strTemp.Format("\tNA \t<invalid name>");
 #ifdef _DEBUG 
-		AfxMessageBox("Invalid name", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Invalid name"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 				}
 				str += strTemp;
@@ -389,9 +389,9 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 //
 // Dump the exports table (usually the .edata section) of a PE file
 //
-CString DumpExportsSection(PE_EXE &pe)
+CStringA DumpExportsSection(PE_EXE &pe)
 {
-	CString str, strTemp;
+	CStringA str, strTemp;
 
 	PIMAGE_EXPORT_DIRECTORY exportDir;
 	PSTR	filename;
@@ -411,7 +411,7 @@ CString DumpExportsSection(PE_EXE &pe)
 	if (!pe.IsValidPtr(( ULONG_PTR) exportDir ))
 	{
 #ifdef _DEBUG 
-		AfxMessageBox("Error in EXPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Error in EXPORT TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		str += "EXPORT SECTION not found, due to a possible compressed executable  \r\n\r\n";
 		return str;
@@ -422,7 +422,7 @@ CString DumpExportsSection(PE_EXE &pe)
 	if ( ((ULONG_PTR) filename > (ULONG_PTR) exportDir + pe.GetFileSize()) || ((ULONG_PTR) filename < (ULONG_PTR) exportDir))
 	{
 #ifdef _DEBUG 
-		AfxMessageBox("Error in EXPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Error in EXPORT TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		str += "EXPORT TABLE not found, due to a possible compressed executable \r\n\r\n";
 		return str;
@@ -458,7 +458,7 @@ CString DumpExportsSection(PE_EXE &pe)
 	DWORD entryPointRVA;
 	DWORD nbfunc = exportDir->NumberOfFunctions;
 	if ( exportDir->NumberOfFunctions > 3000)
-		if (AfxMessageBox("More than 3000 exported functions\n May take a long time \n Dump All (OK) or None (Cancel)", MB_OKCANCEL|MB_ICONQUESTION ) == IDCANCEL)
+		if (AfxMessageBox(_T("More than 3000 exported functions\n May take a long time \n Dump All (OK) or None (Cancel)"), MB_OKCANCEL|MB_ICONQUESTION ) == IDCANCEL)
 			nbfunc = 0;
 	for ( i=0; i < nbfunc; i++ )
 	{
@@ -499,9 +499,9 @@ CString DumpExportsSection(PE_EXE &pe)
 }
 
 
-CString DumpRuntimeFunctions( PE_EXE &pe )
+CStringA DumpRuntimeFunctions( PE_EXE &pe )
 {
-	CString str, strTemp;
+	CStringA str, strTemp;
 
 //	PIMAGE_RUNTIME_FUNCTION_ENTRY pRTFn = (PIMAGE_RUNTIME_FUNCTION_ENTRY) pe.GetDataDirectoryEntryPointer(IMAGE_DIRECTORY_ENTRY_EXCEPTION);
 	PIMAGE_ALPHA64_RUNTIME_FUNCTION_ENTRY pRTFn = (PIMAGE_ALPHA64_RUNTIME_FUNCTION_ENTRY) pe.GetDataDirectoryEntryPointer(IMAGE_DIRECTORY_ENTRY_EXCEPTION);
@@ -545,10 +545,10 @@ char *SzRelocTypes[] = {"ABSOLUTE","HIGH","LOW","HIGHLOW","HIGHADJ","MIPS_JMPADD
 #define NBRELOCTYPE 12
 //
 // Dump the base relocation table of a PE file
-//CString DumpBaseRelocationsSection(DWORD base, PIMAGE_NT_HEADERS pNTHeader)
-CString DumpBaseRelocationsSection(PE_EXE &pe)
+//CStringA DumpBaseRelocationsSection(DWORD base, PIMAGE_NT_HEADERS pNTHeader)
+CStringA DumpBaseRelocationsSection(PE_EXE &pe)
 {
-	CString str, strTemp;
+	CStringA str, strTemp;
 	PIMAGE_BASE_RELOCATION baseReloc;
 
 	baseReloc = (PIMAGE_BASE_RELOCATION) pe.GetDataDirectoryEntryPointer( IMAGE_DIRECTORY_ENTRY_BASERELOC );
@@ -604,9 +604,9 @@ CString DumpBaseRelocationsSection(PE_EXE &pe)
 //
 // Dump out the new IMAGE_BOUND_IMPORT_DESCRIPTOR that NT 3.51 added
 //
-CString DumpBoundImportDescriptors( PE_EXE &pe )
+CStringA DumpBoundImportDescriptors( PE_EXE &pe )
 {
-	CString str, strTemp;
+	CStringA str, strTemp;
 	// Bound import descriptors RVA
 	DWORD bidRVA = pe.GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT);
 	if ( !bidRVA ) return str;
@@ -619,7 +619,7 @@ CString DumpBoundImportDescriptors( PE_EXE &pe )
 	if (!pe.IsValidPtr(( ULONG_PTR) pibid ))
 	{
 #ifdef _DEBUG	
-		AfxMessageBox("Error in IMPORT TABLE", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Error in IMPORT TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		str = "IMPORT SECTION not found, due to a possible compressed executable  \r\n\r\n";
 		return str;
@@ -716,9 +716,9 @@ extern	PIMAGE_RESOURCE_DIRECTORY_ENTRY pDlgResEntries;
 extern	DWORD cStrResEntries;
 extern	DWORD cDlgResEntries;
 
-CString DumpExeFile( PE_EXE &pe, CWait &wait )
+CStringA DumpExeFile( PE_EXE &pe, CWait &wait )
 {
-    CString str="", strTp;
+    CStringA str="", strTp;
 
     UINT compress = 0;
 
@@ -804,7 +804,7 @@ CString DumpExeFile( PE_EXE &pe, CWait &wait )
 	if ( g_pCOFFHeader )   // Did we see a COFF symbols header while looking
 	{                  // through the debug directory?
 #ifdef _DEBUG 
-		if (g_pCOFFSymbolTable) AfxMessageBox("COFF Symbol Table not empty", MB_OK|MB_ICONEXCLAMATION);
+		if (g_pCOFFSymbolTable) AfxMessageBox(_T("COFF Symbol Table not empty"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		g_pCOFFSymbolTable = new COFFSymbolTable(
             (PVOID)(base+ pNTHeader->FileHeader.PointerToSymbolTable),
@@ -837,7 +837,7 @@ CString DumpExeFile( PE_EXE &pe, CWait &wait )
 		if (!pe.IsValidPtr((ULONG_PTR) g_pCVHeader))
 		{
 #ifdef _DEBUG 
-			AfxMessageBox("Error in CodeView TABLE", MB_OK|MB_ICONEXCLAMATION);
+			AfxMessageBox(_T("Error in CodeView TABLE"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 			str += "CodeView TABLE not found, due to a possible compressed executable \r\n\r\n";
 		}

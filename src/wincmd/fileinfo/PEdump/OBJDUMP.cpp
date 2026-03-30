@@ -54,9 +54,9 @@ void GetObjRelocationName(WORD type, PSTR buffer, DWORD cBytes)
 //
 // Dump the relocation table for one COFF section
 //
-CString DumpObjRelocations(PIMAGE_RELOCATION pRelocs, DWORD count)
+CStringA DumpObjRelocations(PIMAGE_RELOCATION pRelocs, DWORD count)
 {
-	CString str, strTp;
+	CStringA str, strTp;
     DWORD i;
     char szTypeName[32];
     
@@ -76,9 +76,9 @@ CString DumpObjRelocations(PIMAGE_RELOCATION pRelocs, DWORD count)
 // top level routine called from PEDUMP.C to dump the components of a
 // COFF OBJ file.
 //
-CString  DumpObjFile( PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader)
+CStringA  DumpObjFile( PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader)
 {
-	CString str, strTp;
+	CStringA str, strTp;
 //strTp.Format
 //str += strTp;
     unsigned i;
@@ -112,7 +112,7 @@ CString  DumpObjFile( PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADE
     if ( fShowSymbolTable && pImageFileHeader->PointerToSymbolTable )
     {
 #ifdef _DEBUG 
-		if (g_pCOFFSymbolTable) AfxMessageBox("COFF Symbol Table not empty", MB_OK|MB_ICONEXCLAMATION);
+		if (g_pCOFFSymbolTable) AfxMessageBox(_T("COFF Symbol Table not empty"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		g_pCOFFSymbolTable = new COFFSymbolTable(
 					MakePtr(PVOID, pImageFileHeader, 

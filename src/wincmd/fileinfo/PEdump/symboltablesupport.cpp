@@ -13,9 +13,9 @@
 //
 // Dump the COFF debug information header
 //
-CString DumpCOFFHeader(PIMAGE_COFF_SYMBOLS_HEADER pDbgInfo)
+CStringA DumpCOFFHeader(PIMAGE_COFF_SYMBOLS_HEADER pDbgInfo)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     str += ("COFF Debug Info Header\r\n");
     strTemp.Format("\tNumberOfSymbols: \t%08Xh\r\n", pDbgInfo->NumberOfSymbols);
 	str += strTemp;
@@ -49,7 +49,7 @@ BOOL LookupSymbolName(DWORD index, PSTR buffer, UINT length)
 	if ( !g_pCOFFSymbolTable ) return FALSE;
 	PCOFFSymbol pSymbol = g_pCOFFSymbolTable->GetSymbolFromIndex( index );
 	if ( !pSymbol ) return FALSE;
-	lstrcpyn( buffer, pSymbol->GetName(), length );
+	lstrcpynA( buffer, pSymbol->GetName(), length );
 
 	delete pSymbol;
     return TRUE;
@@ -58,9 +58,9 @@ BOOL LookupSymbolName(DWORD index, PSTR buffer, UINT length)
 //
 // Dump a range of line numbers from the COFF debug information
 //
-CString DumpLineNumbers(PIMAGE_LINENUMBER pln, DWORD count)
+CStringA DumpLineNumbers(PIMAGE_LINENUMBER pln, DWORD count)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     char buffer[64];
     DWORD i;
     
@@ -108,9 +108,9 @@ void GetSectionName(WORD section, PSTR buffer, unsigned cbBuffer)
 //
 // Dumps a COFF symbol table from an EXE or OBJ
 //
-CString DumpSymbolTable( PCOFFSymbolTable pSymTab )
+CStringA DumpSymbolTable( PCOFFSymbolTable pSymTab )
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
 
     strTemp.Format( "SYMBOL TABLE - %X entries  (* = auxillary symbol)\r\n", pSymTab->GetNumberOfSymbols() );
 	str += strTemp;
@@ -154,9 +154,9 @@ CString DumpSymbolTable( PCOFFSymbolTable pSymTab )
 	return str;
 }
 
-CString DumpMiscDebugInfo( PIMAGE_DEBUG_MISC pMiscDebugInfo )
+CStringA DumpMiscDebugInfo( PIMAGE_DEBUG_MISC pMiscDebugInfo )
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
 	if ( IMAGE_DEBUG_MISC_EXENAME != pMiscDebugInfo->DataType )
 	{
 		strTemp.Format( "Unknown Miscellaneous Debug Information type: %u\r\n",  pMiscDebugInfo->DataType );
@@ -171,9 +171,9 @@ CString DumpMiscDebugInfo( PIMAGE_DEBUG_MISC pMiscDebugInfo )
 	return str;	
 }
 
-CString DumpCVDebugInfo( PDWORD pCVHeader )
+CStringA DumpCVDebugInfo( PDWORD pCVHeader )
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
 
 	strTemp.Format( "CODEVIEW Signature:\t%08Xh (\"%.4s\")\r\n", *pCVHeader, pCVHeader );
 	str += strTemp;

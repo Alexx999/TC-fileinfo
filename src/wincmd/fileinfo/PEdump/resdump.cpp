@@ -13,7 +13,7 @@
 
 
 // Function prototype (necessary because two functions recurse)
-CString DumpResourceDirectory
+CStringA DumpResourceDirectory
 (
     PIMAGE_RESOURCE_DIRECTORY resDir, ULONG_PTR resourceBase,
     DWORD level, DWORD resourceType
@@ -73,9 +73,9 @@ DWORD GetOffsetToDataFromResEntry( ULONG_PTR base, ULONG_PTR resourceBase, PIMAG
 	return pResDataEntry->OffsetToData;
 }
 
-CString DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pStrResEntry, DWORD cStrResEntries )
+CStringA DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pStrResEntry, DWORD cStrResEntries )
 {
-   CString str="", strTemp="";
+   CStringA str="", strTemp="";
 	for ( unsigned i = 0; i < cStrResEntries; i++, pStrResEntry++ )
 	{
 		DWORD offsetToData = GetOffsetToDataFromResEntry( pe.GetBase(), resourceBase, pStrResEntry );
@@ -88,7 +88,7 @@ CString DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIR
 			if (((ULONG_PTR) pStrEntry - pe.GetBase() ) > pe.GetFileSize())
 			{
 #ifdef _DEBUG 
-				AfxMessageBox("Error in Strings Resource", MB_OK|MB_ICONEXCLAMATION);
+				AfxMessageBox(_T("Error in Strings Resource"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 				str = "Possible compressed String resource\r\n";
 				return str;
@@ -112,7 +112,7 @@ CString DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIR
 						case '\n': s = "\\n"; break;
 						case 'ç': s = "ç"; break;
 						default:
-							wsprintf( szBuff, "%c", isprint(c) ? c : '.' );
+							sprintf( szBuff, "%c", isprint(c) ? c : '.' );
 							s=szBuff;
 							break;
 					}
@@ -129,9 +129,9 @@ CString DumpStringTable( PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIR
 	return str;
 }
 
-CString DumpDialogs(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pDlgResEntry, DWORD cDlgResEntries )
+CStringA DumpDialogs(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pDlgResEntry, DWORD cDlgResEntries )
 {
-   CString str="", strTemp="";
+   CStringA str="", strTemp="";
 	for ( unsigned i = 0; i < cDlgResEntries; i++, pDlgResEntry++ )
 	{
 		DWORD offsetToData = GetOffsetToDataFromResEntry( pe.GetBase(), resourceBase, pDlgResEntry );
@@ -140,7 +140,7 @@ CString DumpDialogs(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTOR
 		if (((ULONG_PTR) pDlgStyle - pe.GetBase()) > pe.GetFileSize())
 		{
 #ifdef _DEBUG 
-			AfxMessageBox("Error in Dialogs Resource", MB_OK|MB_ICONEXCLAMATION);
+			AfxMessageBox(_T("Error in Dialogs Resource"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 			str = "Possible compressed Dialog resource\r\n";
 			return str;
@@ -157,7 +157,7 @@ CString DumpDialogs(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTOR
 					|| pDlgTemplate->cdit > 255 )
 			{
 	#ifdef _DEBUG 
-				AfxMessageBox("Error in Dialogs Resource", MB_OK|MB_ICONEXCLAMATION);
+				AfxMessageBox(_T("Error in Dialogs Resource"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 				str += "Possible compressed Dialog resource\r\n";
 				return str;
@@ -374,9 +374,9 @@ CString DumpDialogs(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTOR
 	return str;
 }
 
-CString DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry, DWORD cResEntries )
+CStringA DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry, DWORD cResEntries )
 {
-	CString str="", strTemp="";
+	CStringA str="", strTemp="";
 	for ( unsigned i = 0; i < cResEntries; i++, pResEntry++ )
 	{
 		PIMAGE_RESOURCE_DATA_ENTRY pMFTDataEntry = GetDataEntryFromResEntry( pe.GetBase (), resourceBase, pResEntry );
@@ -387,7 +387,7 @@ CString DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTO
 		PCHAR pChar = pStart;
 		if ( !pChar) {
 #ifdef _DEBUG 
-			AfxMessageBox("Error in Manifest Resource", MB_OK|MB_ICONEXCLAMATION);
+			AfxMessageBox(_T("Error in Manifest Resource"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 			str = "Possible compressed resource\r\n";
 			return str;
@@ -478,9 +478,9 @@ void GetResourceNameFromId( DWORD id, ULONG_PTR resourceBase, PSTR buffer, UINT 
 // entry is for a subdirectory, call the directory dumping routine
 // instead of printing information in this routine.
 //
-CString DumpResourceEntry ( PIMAGE_RESOURCE_DIRECTORY_ENTRY resDirEntry, ULONG_PTR resourceBase, DWORD level )
+CStringA DumpResourceEntry ( PIMAGE_RESOURCE_DIRECTORY_ENTRY resDirEntry, ULONG_PTR resourceBase, DWORD level )
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     UINT i;
     char nameBuffer[128];
     PIMAGE_RESOURCE_DATA_ENTRY pResDataEntry;
@@ -527,9 +527,9 @@ PIMAGE_RESOURCE_DIRECTORY_ENTRY pMFTResEntries = 0;
 //
 // Dump the information about one resource directory.
 //
-CString DumpResourceDirectory ( PIMAGE_RESOURCE_DIRECTORY resDir, ULONG_PTR resourceBase, DWORD level, DWORD resourceType)
+CStringA DumpResourceDirectory ( PIMAGE_RESOURCE_DIRECTORY resDir, ULONG_PTR resourceBase, DWORD level, DWORD resourceType)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     PIMAGE_RESOURCE_DIRECTORY_ENTRY resDirEntry;
     char szType[64];
     UINT i;
@@ -603,10 +603,10 @@ CString DumpResourceDirectory ( PIMAGE_RESOURCE_DIRECTORY resDir, ULONG_PTR reso
 //
 // Top level routine called to dump out the entire resource hierarchy
 //
-//CString DumpResourceSection(DWORD base, PIMAGE_NT_HEADERS pNTHeader)
-CString DumpResourceSection(PE_EXE &pe)
+//CStringA DumpResourceSection(DWORD base, PIMAGE_NT_HEADERS pNTHeader)
+CStringA DumpResourceSection(PE_EXE &pe)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
 	cStrResEntries = 0;
 	cDlgResEntries = 0;
 	cMFTResEntries = 0;
@@ -627,7 +627,7 @@ CString DumpResourceSection(PE_EXE &pe)
 	if ( !pe.IsValidPtr(( ULONG_PTR ) resDir))
 	{
 #ifdef _DEBUG 
-		AfxMessageBox("Error in Resources Section", MB_OK|MB_ICONEXCLAMATION);
+		AfxMessageBox(_T("Error in Resources Section"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		str += "RESOURCES not found, due to a possible compressed executable\r\n\r\n";
 		return str;

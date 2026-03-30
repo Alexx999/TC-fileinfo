@@ -6,5 +6,5 @@
 #include "..\..\common\wait.h"
 #include "..\peexe\peexe.h"
 
-// CString DumpExeFile( PIMAGE_DOS_HEADER dosHeader );
-CString DumpExeFile( PE_EXE &pe, CWait &wait );
+// CStringA DumpExeFile( PIMAGE_DOS_HEADER dosHeader );
+CStringA DumpExeFile( PE_EXE &pe, CWait &wait );

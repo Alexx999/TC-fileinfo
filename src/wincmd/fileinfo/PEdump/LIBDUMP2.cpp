@@ -20,7 +20,7 @@ int fShowUndecorated=1;
 
 // #include "common.h"
 //#include "objdump.h"
-CString  DumpObjFile( PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader);
+CStringA  DumpObjFile( PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader);
 // #include "libdump.h"
 #include "extrnvar.h"
 
@@ -31,11 +31,11 @@ PSTR PszLongnames = 0;
 DWORD ConvertBigEndian(DWORD bigEndian);
 
 
-CString DisplayArchiveMemberHeader(
+CStringA DisplayArchiveMemberHeader(
     PIMAGE_ARCHIVE_MEMBER_HEADER pArchHeader,
     DWORD fileOffset )
 {
-	CString str, strTp;
+	CStringA str, strTp;
 //strTp.Format
 //str += strTp
     strTp.Format("ARCHIVE MEMBER HEADER (%08X):\n", fileOffset);
@@ -75,9 +75,9 @@ CString DisplayArchiveMemberHeader(
 	return str;
 }
 
-CString DumpFirstLinkerMember(PVOID p, ULONG_PTR MaxAddr)
+CStringA DumpFirstLinkerMember(PVOID p, ULONG_PTR MaxAddr)
 {
-	CString str, strTp;
+	CStringA str, strTp;
 //strTp.Format
 //str += strTp;
 
@@ -121,9 +121,9 @@ CString DumpFirstLinkerMember(PVOID p, ULONG_PTR MaxAddr)
 	return str;
 }
 
-CString DumpSecondLinkerMember(PVOID p, ULONG_PTR MaxAddr)
+CStringA DumpSecondLinkerMember(PVOID p, ULONG_PTR MaxAddr)
 {
-	CString str, strTp;
+	CStringA str, strTp;
 //strTp.Format
 //str += strTp;
 
@@ -176,9 +176,9 @@ CString DumpSecondLinkerMember(PVOID p, ULONG_PTR MaxAddr)
 	return str;
 }
 
-CString DumpLongnamesMember(PVOID p, DWORD len)
+CStringA DumpLongnamesMember(PVOID p, DWORD len)
 {
-	CString str, strTp;
+	CStringA str, strTp;
 //strTp.Format
 //str += strTp;
     PSTR pszName = (PSTR)p;
@@ -193,7 +193,7 @@ CString DumpLongnamesMember(PVOID p, DWORD len)
     // out the offset of each string (in decimal), followed by the string.
     while ( offset < len )
     {
-        unsigned cbString = lstrlen( pszName )+1;
+        unsigned cbString = lstrlenA( pszName )+1;
 
         strTp.Format("\t%05u\t: %s\n", offset, pszName);
 		str += strTp;
@@ -204,13 +204,13 @@ CString DumpLongnamesMember(PVOID p, DWORD len)
 	return str;
 }
 
-CString DumpLibFile( LPVOID ptr )
+CStringA DumpLibFile( LPVOID ptr )
 {
 	MEMORY_MAPPED_FILE *libFile = ( MEMORY_MAPPED_FILE *) ptr;
 	//PIMAGE_FILE_HEADER
 	LPVOID lpFileBase =	(LPVOID) libFile->GetBase();
 
-	CString str;
+	CStringA str;
 //strTp.Format
 //str +=
     PIMAGE_ARCHIVE_MEMBER_HEADER pArchHeader;

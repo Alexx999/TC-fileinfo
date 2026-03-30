@@ -73,9 +73,9 @@ WORD_FLAG_DESCRIPTIONS ImageFileHeaderCharacteristics[] =
 //
 // Dump the IMAGE_FILE_HEADER for a PE file or an OBJ
 // common to 32 and 64 bits PE
-CString DumpHeader(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader)
+CStringA DumpHeader(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     UINT headerFieldWidth = 30;
     UINT i;
 	str += ("FILE CHARACTERISTICS : \r\n");
@@ -182,9 +182,9 @@ char *ImageDirectoryNames[] = {
 //
 // Dump the IMAGE_OPTIONAL_HEADER from a PE file
 // 64 bits ready
-CString DumpOptionalHeader(PIMAGE_OPTIONAL_HEADER32 optionalHeader)
+CStringA DumpOptionalHeader(PIMAGE_OPTIONAL_HEADER32 optionalHeader)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     UINT width = 30;
     char *s;
     UINT i;
@@ -554,11 +554,11 @@ DWORD_FLAG_DESCRIPTIONS SectionCharacteristics[] =
 //
 // Dump the section table from a PE file or an OBJ
 //
-CString DumpSectionTable(PIMAGE_SECTION_HEADER section,
+CStringA DumpSectionTable(PIMAGE_SECTION_HEADER section,
                       unsigned cSections,
                       BOOL IsEXE)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     unsigned i, j;
 	PSTR pszAlign;
 
@@ -694,10 +694,10 @@ char *SzDebugFormats[] = {
 //
 // Dump the debug directory array
 //
-CString DumpDebugDirectory(PIMAGE_DEBUG_DIRECTORY debugDir, DWORD size, ULONG_PTR base)
+CStringA DumpDebugDirectory(PIMAGE_DEBUG_DIRECTORY debugDir, DWORD size, ULONG_PTR base)
 {
 	PIMAGE_COFF_SYMBOLS_HEADER PCOFFDebugInfo = 0;
-    CString str="", Temp="";
+    CStringA str="", Temp="";
     DWORD cDebugFormats = size / sizeof(IMAGE_DEBUG_DIRECTORY);
     PSTR szDebugFormat;
     unsigned i;
@@ -763,11 +763,11 @@ CString DumpDebugDirectory(PIMAGE_DEBUG_DIRECTORY debugDir, DWORD size, ULONG_PT
 // could just dump one section by adjusting the PIMAGE_SECTION_HEADER
 // and cSections parameters
 //
-CString DumpRawSectionData(PIMAGE_SECTION_HEADER section,
+CStringA DumpRawSectionData(PIMAGE_SECTION_HEADER section,
                         PVOID base,
                         unsigned cSections)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     unsigned i;
     char name[IMAGE_SIZEOF_SHORT_NAME + 1];
 

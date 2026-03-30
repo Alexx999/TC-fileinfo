@@ -14,9 +14,9 @@
 #include "extrnvar.h"
 #include "dbgdump.h"
 
-CString DumpImageDbgHeader(PIMAGE_SEPARATE_DEBUG_HEADER pImageSepDbgHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader)
+CStringA DumpImageDbgHeader(PIMAGE_SEPARATE_DEBUG_HEADER pImageSepDbgHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     UINT headerFieldWidth = 30;
 
     strTemp.Format("  %-*s%04Xh\r\n", headerFieldWidth, "Flags:", pImageSepDbgHeader->Flags);
@@ -44,9 +44,9 @@ CString DumpImageDbgHeader(PIMAGE_SEPARATE_DEBUG_HEADER pImageSepDbgHeader, PIMA
 	return str;
 }
 
-CString DumpDbgFile( PIMAGE_SEPARATE_DEBUG_HEADER pImageSepDbgHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader)
+CStringA DumpDbgFile( PIMAGE_SEPARATE_DEBUG_HEADER pImageSepDbgHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader)
 {
-    CString str="", strTemp="";
+    CStringA str="", strTemp="";
     str += DumpImageDbgHeader(pImageSepDbgHeader, optionalHeader);
     str += "\r\n";
     
@@ -69,7 +69,7 @@ CString DumpDbgFile( PIMAGE_SEPARATE_DEBUG_HEADER pImageSepDbgHeader, PIMAGE_OPT
     
 		str += ("\r\n");
 #ifdef _DEBUG 
-		if (g_pCOFFSymbolTable) AfxMessageBox("COFF Symbol Table not empty", MB_OK|MB_ICONEXCLAMATION);
+		if (g_pCOFFSymbolTable) AfxMessageBox(_T("COFF Symbol Table not empty"), MB_OK|MB_ICONEXCLAMATION);
 #endif
 		g_pCOFFSymbolTable = new COFFSymbolTable(
 			MakePtr( PVOID, g_pCOFFHeader, g_pCOFFHeader->LvaToFirstSymbol),

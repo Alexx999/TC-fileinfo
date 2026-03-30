@@ -65,13 +65,13 @@ BOOL COFFSymbol::GetAuxSymbolAsString( PSTR pszBuffer, unsigned cbBuffer )
     PIMAGE_AUX_SYMBOL auxSym = (PIMAGE_AUX_SYMBOL)(m_pSymbolData+1);
     if ( m_pSymbolData->StorageClass == IMAGE_SYM_CLASS_FILE )
 	{
-        lstrcpyn( pszBuffer, (char *)auxSym, cbBuffer );
+        lstrcpynA( pszBuffer, (char *)auxSym, cbBuffer );
 	}
     else if ( (m_pSymbolData->StorageClass == IMAGE_SYM_CLASS_EXTERNAL) )
     {
         if ( (m_pSymbolData->Type & 0xF0) == (IMAGE_SYM_DTYPE_FUNCTION << 4))
         {   
-        	wsprintf( pszBuffer,
+        	sprintf( pszBuffer,
 				"tag: %04Xh  size: %04Xh  Line #'s: %08Xh  next fn: %04Xh",
             	auxSym->Sym.TagIndex, auxSym->Sym.Misc.TotalSize,
 	            auxSym->Sym.FcnAry.Function.PointerToLinenumber,
@@ -80,7 +80,7 @@ BOOL COFFSymbol::GetAuxSymbolAsString( PSTR pszBuffer, unsigned cbBuffer )
     }
     else if ( (m_pSymbolData->StorageClass == IMAGE_SYM_CLASS_STATIC) )
     {
-        wsprintf( pszBuffer,
+        sprintf( pszBuffer,
             "Section: %04Xh  Len: %05Xh  Relocs: %04Xh  LineNums: %04Xh",
             auxSym->Section.Number, auxSym->Section.Length,
             auxSym->Section.NumberOfRelocations,

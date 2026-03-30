@@ -58,6 +58,10 @@ typedef struct {
 	char DefaultIniName[MAX_PATH];
 } ListDefaultParamStruct;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 HWND __stdcall ListLoad(HWND ParentWin,char* FileToLoad,int ShowFlags);
 HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* FileToLoad,int ShowFlags);
 int __stdcall ListLoadNext(HWND ParentWin,HWND PluginWin,char* FileToLoad,int ShowFlags);
@@ -75,6 +79,10 @@ int __stdcall ListNotificationReceived(HWND ListWin,int Message,WPARAM wParam,LP
 void __stdcall ListSetDefaultParams(ListDefaultParamStruct* dps);
 HBITMAP __stdcall ListGetPreviewBitmap(char* FileToLoad,int width,int height,char* contentbuf,int contentbuflen);
 HBITMAP __stdcall ListGetPreviewBitmapW(WCHAR* FileToLoad,int width,int height, char* contentbuf,int contentbuflen);
+
+#ifdef __cplusplus
+}
+#endif
 /////////////////////////////////////////////////////////////////////////////
 // CListplugApp
 // See listplug.cpp for the implementation of this class

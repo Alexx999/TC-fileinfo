@@ -1,8 +1,11 @@
 ; listplug.def : Declares the module parameters for the DLL.
 EXPORTS
-  ListLoadNext
   ListLoad
+  ListLoadW
+  ListLoadNext
+  ListLoadNextW
 ;  ListPrint
+;  ListPrintW
   ListSendCommand
   ListCloseWindow
   ListSetDefaultParams

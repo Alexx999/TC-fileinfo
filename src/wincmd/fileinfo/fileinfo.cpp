@@ -94,7 +94,7 @@ void LoadPlugin(CString inifilename)
 //PIMAGE_RESOURCE_DIRECTORY GetResDir(PE_EXE &pe);
 bool IsMFTres(PE_EXE &pe);
 
-int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* File,int ShowFlags)
+int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlags)
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
@@ -233,7 +233,7 @@ int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* File,int ShowFlags)
 	return LISTPLUGIN_ERROR;
 }/**/
 
-HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
+HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 {
    CWnd *pFocusedWnd, *ParentWnd = CWnd::FromHandle(ParentWin);
    CFileinfoListWnd *prec;
@@ -513,9 +513,31 @@ void __stdcall ListCloseWindow(HWND ListWin)
 	return;
 }
 
-int __stdcall ListPrint(HWND ListWin, char* FileToPrint, char* DefPrinter, int PrintFlags, RECT* Margins)
+int __stdcall ListPrintW(HWND ListWin, WCHAR* FileToPrint, WCHAR* DefPrinter, int PrintFlags, RECT* Margins)
 {
    return 0;
+}
+
+//
+// ANSI wrappers — TC calls these on Win9x or when W functions are not found
+//
+int __stdcall ListLoadNext(HWND ParentWin,HWND ListWin,char* File,int ShowFlags)
+{
+	WCHAR FileW[MAX_PATH];
+	MultiByteToWideChar(CP_ACP, 0, File, -1, FileW, MAX_PATH);
+	return ListLoadNextW(ParentWin, ListWin, FileW, ShowFlags);
+}
+
+HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
+{
+	WCHAR FileW[MAX_PATH];
+	MultiByteToWideChar(CP_ACP, 0, File, -1, FileW, MAX_PATH);
+	return ListLoadW(ParentWin, FileW, ShowFlags);
+}
+
+int __stdcall ListPrint(HWND ListWin, char* FileToPrint, char* DefPrinter, int PrintFlags, RECT* Margins)
+{
+	return 0;
 }
 
 /*

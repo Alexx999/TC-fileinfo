@@ -144,7 +144,7 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 		if ( pszBaseName )
 		{
 			pTemp = LookupModule( pszBaseName, FALSE );	
-			findyet = BOOL (pTemp);
+			findyet = (pTemp != NULL);
 			if ( !findyet && !SearchPath(0, pszBaseName, 0, MAX_PATH, szPath, &pszDontCare))
 				pTemp = pNew->m_pNext = new MODULE_FILE_INFO( pszBaseName, pImportDir->Name, FALSE);
 			else
@@ -157,17 +157,17 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 //	Add function
 			PIMAGE_THUNK_DATA32 thunk, thunkIAT=0;
 			PIMAGE_THUNK_DATA64 thunk64, thunkIAT64=0;
-			thunk = (PIMAGE_THUNK_DATA32)pImportDir->Characteristics;
-			thunkIAT = (PIMAGE_THUNK_DATA32)pImportDir->FirstThunk;
+			DWORD thunkRVA = pImportDir->Characteristics;
+			DWORD thunkIATRVA = pImportDir->FirstThunk;
 
-			if ( thunk == 0 )   // No Characteristics field?
+			if ( thunkRVA == 0 )   // No Characteristics field?
 			{
-				thunk = thunkIAT;
-				if ( thunk == 0 ) return errMDL_GENERAL_FAILURE;
+				thunkRVA = thunkIATRVA;
+				if ( thunkRVA == 0 ) return errMDL_GENERAL_FAILURE;
 			}
-			thunk = (PIMAGE_THUNK_DATA32)m_pPE->GetReadablePointerFromRVA((DWORD) thunk);
+			thunk = (PIMAGE_THUNK_DATA32)m_pPE->GetReadablePointerFromRVA(thunkRVA);
 			if (!thunk ) return errMDL_GENERAL_FAILURE;
-			thunkIAT = (PIMAGE_THUNK_DATA32) m_pPE->GetReadablePointerFromRVA((DWORD)thunkIAT);
+			thunkIAT = (PIMAGE_THUNK_DATA32) m_pPE->GetReadablePointerFromRVA(thunkIATRVA);
 			if (m_pPE->Is64bits()) 
 			{
 				thunk64 = (PIMAGE_THUNK_DATA64) thunk;
@@ -183,8 +183,8 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 					}
 					else				
 					{
-						PIMAGE_IMPORT_BY_NAME pOrdinalName = ( PIMAGE_IMPORT_BY_NAME ) thunk64->u1.AddressOfData;
-						pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)pOrdinalName);
+						PIMAGE_IMPORT_BY_NAME pOrdinalName;
+						pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)thunk64->u1.AddressOfData);
 						if ((pOrdinalName) && test_Name((PCHAR) pOrdinalName->Name))
 							pTemp->AddFunc( (PCHAR) pOrdinalName->Name );
 						else pTemp->AddFunc( (PCHAR) "<invalid name>" );
@@ -205,8 +205,8 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 					}
 					else
 					{
-						PIMAGE_IMPORT_BY_NAME pOrdinalName = ( PIMAGE_IMPORT_BY_NAME ) thunk->u1.AddressOfData;
-						pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)pOrdinalName);
+						PIMAGE_IMPORT_BY_NAME pOrdinalName;
+						pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)thunk->u1.AddressOfData);
 						if ((ULONG_PTR) pOrdinalName <= Importsz)
 						{	
 #ifdef _DEBUG 
@@ -285,9 +285,9 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 			CString strTemp="";
 // Add functions
 			bool bUsingRVA = pDImportDesc->grAttrs & 1;
-			PIMAGE_THUNK_DATA32 thunk = bUsingRVA  
-				? (PIMAGE_THUNK_DATA32) m_pPE->GetReadablePointerFromRVA((DWORD)pDImportDesc->rvaINT)
-				: (PIMAGE_THUNK_DATA32) m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)pDImportDesc->rvaINT);
+			PIMAGE_THUNK_DATA32 thunk = bUsingRVA
+				? (PIMAGE_THUNK_DATA32) m_pPE->GetReadablePointerFromRVA(pDImportDesc->rvaINT)
+				: (PIMAGE_THUNK_DATA32) m_pPE->GetReadablePointerFromVA((PBYTE)0+pDImportDesc->rvaINT);
 
 			if (m_pPE->Is64bits()) {
 				PIMAGE_THUNK_DATA64 thunk64 = (PIMAGE_THUNK_DATA64) thunk;
@@ -301,11 +301,11 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 					}
 					else
 					{
-						PIMAGE_IMPORT_BY_NAME pOrdinalName = ( PIMAGE_IMPORT_BY_NAME ) thunk64->u1.AddressOfData;
-						if ( bUsingRVA ) 
-							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)pOrdinalName);
-						else 
-							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)pOrdinalName);
+						PIMAGE_IMPORT_BY_NAME pOrdinalName;
+						if ( bUsingRVA )
+							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)thunk64->u1.AddressOfData);
+						else
+							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)thunk64->u1.AddressOfData);
 						if (pOrdinalName) 
 							pNew->m_pNext->AddFunc( (PCHAR) pOrdinalName->Name );
 						else pNew->m_pNext->AddFunc( (PCHAR) "<invalid name>" );
@@ -325,11 +325,11 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 					}
 					else
 					{
-						PIMAGE_IMPORT_BY_NAME pOrdinalName = ( PIMAGE_IMPORT_BY_NAME ) thunk->u1.AddressOfData;
+						PIMAGE_IMPORT_BY_NAME pOrdinalName;
 						if ( bUsingRVA )
-							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)pOrdinalName);
+							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromRVA((DWORD)thunk->u1.AddressOfData);
 						else
-							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)pOrdinalName);
+							pOrdinalName = (PIMAGE_IMPORT_BY_NAME) m_pPE->GetReadablePointerFromVA((PBYTE)0+(DWORD)thunk->u1.AddressOfData);
 						if (pOrdinalName) 
 							pNew->m_pNext->AddFunc( (PCHAR) pOrdinalName->Name );
 						else pNew->m_pNext->AddFunc( (PCHAR) "<invalid name>" );

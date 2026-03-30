@@ -381,7 +381,7 @@ void CListExport::OnTestImport()
 						func = pFlist->GetNext(pos);
 						if (strncmp("ordinal ", func, 8)==0)
 						{
-							if (!GetProcAddress( h, (const char *) MAKELONG(atoi((LPCTSTR) func + 8),0)))
+							if (!GetProcAddress( h, MAKEINTRESOURCEA(atoi((LPCTSTR) func + 8))))
 								error ++;
 						}
 						else if (!GetProcAddress( h, func ))

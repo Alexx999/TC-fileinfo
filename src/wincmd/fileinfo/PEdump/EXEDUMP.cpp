@@ -129,23 +129,23 @@ CString DumpImportsSection(PE_EXE &pe)
 		strTemp.Format("\tFirst thunk RVA: \t%08Xh\r\n", importDesc->FirstThunk);
 		str += strTemp;
 	
-		thunk = (PIMAGE_THUNK_DATA32) importDesc->Characteristics;
-		thunkIAT = (PIMAGE_THUNK_DATA32) importDesc->FirstThunk;
+		DWORD thunkRVA = importDesc->Characteristics;
+		DWORD thunkIATRVA = importDesc->FirstThunk;
 
-		if ( thunk == 0 )   // No Characteristics field?
+		if ( thunkRVA == 0 )   // No Characteristics field?
 		{	// Yes! Gotta have a non-zero FirstThunk field then.
-			thunk = thunkIAT;
-			if ( thunk == 0 )   // No FirstThunk field?  Ooops!!!
+			thunkRVA = thunkIATRVA;
+			if ( thunkRVA == 0 )   // No FirstThunk field?  Ooops!!!
 				return str;
 		}
-	
+
 		// Adjust the pointer to point where the tables are in the mem mapped file.
-		thunk = (PIMAGE_THUNK_DATA32) pe.GetReadablePointerFromRVA((DWORD)thunk);
+		thunk = (PIMAGE_THUNK_DATA32) pe.GetReadablePointerFromRVA(thunkRVA);
 
 		if (!thunk ) return str;
-		
 
-		thunkIAT = (PIMAGE_THUNK_DATA32) pe.GetReadablePointerFromRVA((DWORD)thunkIAT);
+
+		thunkIAT = (PIMAGE_THUNK_DATA32) pe.GetReadablePointerFromRVA(thunkIATRVA);
 		str += ("\tOrdn  \tName\r\n");
 		str += ("\t-----\t-----\r\n");
 		
@@ -163,9 +163,8 @@ CString DumpImportsSection(PE_EXE &pe)
 				}
 				else
 				{
-					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) thunk64->u1.AddressOfData;
-					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromRVA((DWORD)pOrdinalName);
-					{	// Undecorate Name   
+					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromRVA((DWORD)thunk64->u1.AddressOfData);
+					{	// Undecorate Name
 						if ((pOrdinalName) && test_Name((PCHAR) pOrdinalName->Name))
 						{
 							PCHAR Textin = (PCHAR) pOrdinalName->Name;
@@ -210,8 +209,7 @@ CString DumpImportsSection(PE_EXE &pe)
 				}
 				else
 				{
-					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) thunk->u1.AddressOfData;
-					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromRVA((DWORD)pOrdinalName);
+					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromRVA((DWORD)thunk->u1.AddressOfData);
 					if ((ULONG_PTR) pOrdinalName <= Importsz)
 					{	
 #ifdef _DEBUG 
@@ -309,7 +307,7 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 		str += strTemp;
 
 
-		strTemp.Format("\tDLL Name %s: \t%08Xh\n", (bUsingRVA?"RVA":"VA"), (bUsingRVA?dllNameRVA: (DWORD) dllNameVA));
+		strTemp.Format("\tDLL Name %s: \t%08Xh\n", (bUsingRVA?"RVA":"VA"), (DWORD)pDImportDesc->rvaDLLName);
 		str += strTemp;
 
 		strTemp.Format("\tModule Handle Address %s: \t%08Xh\n", (bUsingRVA?"RVA":"VA"), pDImportDesc->rvaHmod);
@@ -357,11 +355,10 @@ CString DumpImportsDelayedSection(PE_EXE &pe)
 			}
 			else
 			{
-				pOrdinalName = (PIMAGE_IMPORT_BY_NAME) thunk->u1.AddressOfData;
-				if ( bUsingRVA ) 
-					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromRVA((DWORD)pOrdinalName);
-				else 
-					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromVA((PBYTE)0+(DWORD)pOrdinalName);
+				if ( bUsingRVA )
+					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromRVA((DWORD)thunk->u1.AddressOfData);
+				else
+					pOrdinalName = (PIMAGE_IMPORT_BY_NAME) pe.GetReadablePointerFromVA((PBYTE)0+(DWORD)thunk->u1.AddressOfData);
 				if ((pOrdinalName) && test_Name((PCHAR) pOrdinalName->Name))
 				{	// Undecorate Name   
 					PCHAR Textin = (PCHAR) pOrdinalName->Name;
@@ -403,8 +400,8 @@ CString DumpExportsSection(PE_EXE &pe)
 	PWORD	ordinals;
 	PDWORD	name;
 
-	DWORD exportsStartRVA = (DWORD) pe.GetDataDirectoryEntryPointer(IMAGE_DIRECTORY_ENTRY_EXPORT);
-	DWORD exportsEndRVA = exportsStartRVA + (DWORD) pe.GetDataDirectoryEntrySize( IMAGE_DIRECTORY_ENTRY_EXPORT );
+	DWORD exportsStartRVA = pe.GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_EXPORT);
+	DWORD exportsEndRVA = exportsStartRVA + pe.GetDataDirectoryEntrySize( IMAGE_DIRECTORY_ENTRY_EXPORT );
 
 // Get the IMAGE_SECTION_HEADER that contains the exports.  This is usually the .edata section, but doesn't have to be.
 	exportDir = pe.GetExportsDesc();

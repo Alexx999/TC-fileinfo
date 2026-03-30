@@ -122,7 +122,7 @@ void CListOcx::Load()
 			int  itemPos  =  m_listocx.InsertItem( i, DllList[i]);
 			if (lpfnDllRegisterServer )
 			{
-				str.Format("%Xh", (DWORD) lpfnDllRegisterServer);
+				str.Format("%IXh", (ULONG_PTR) lpfnDllRegisterServer);
 				m_listocx.SetItemText( itemPos, 1, str);
 				bproc = TRUE;
 			} else m_listocx.SetItemText( itemPos, 1, "Entry point not found");

@@ -107,8 +107,8 @@ BOOL GetVxdVersion( LPSTR szFile, LPDWORD lpdwLen, LPVOID lpData ) {
      }
 
      // Find the beginning of the NT header at offset e_lfanew.
-     pNtExeHdr = (PIMAGE_NT_HEADERS) ( (DWORD) pView
-           + (DWORD) pDosExeHdr->e_lfanew );
+     pNtExeHdr = (PIMAGE_NT_HEADERS) ( (ULONG_PTR) pView
+           + (ULONG_PTR) pDosExeHdr->e_lfanew );
 
      // Check to make sure the file is a VxD.
      if ( (DWORD) pNtExeHdr->Signature != IMAGE_VXD_SIGNATURE ) {
@@ -127,8 +127,8 @@ BOOL GetVxdVersion( LPSTR szFile, LPDWORD lpdwLen, LPVOID lpData ) {
      }
 
      // e32_winresoff contains the offset of the resource in the VxD.
-     pVerRes = (VXD_VERSION_RESOURCE *) ( (DWORD) pView
-           + (DWORD) pLEHdr->e32_winresoff );
+     pVerRes = (VXD_VERSION_RESOURCE *) ( (ULONG_PTR) pView
+           + (ULONG_PTR) pLEHdr->e32_winresoff );
      dwSize = pVerRes->dwResSize;
      pRawRes = &(pVerRes->bVerData);
 

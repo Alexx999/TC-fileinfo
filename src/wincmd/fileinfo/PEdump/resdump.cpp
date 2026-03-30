@@ -437,7 +437,7 @@ CString DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTO
 // Get an ASCII string representing a resource type
 void GetResourceTypeName(DWORD type, PSTR buffer, UINT cBytes)
 {
-    if ( type <= (WORD)RT_MANIFEST) // RT_ANIICON )  // RT_MANIFEST
+    if ( type <= PtrToUlong(RT_MANIFEST))
         strncpy(buffer, SzResourceTypes[type], cBytes);
     else
 		if ( type == 240) 
@@ -572,20 +572,20 @@ CString DumpResourceDirectory ( PIMAGE_RESOURCE_DIRECTORY resDir, ULONG_PTR reso
     resDirEntry = (PIMAGE_RESOURCE_DIRECTORY_ENTRY)(resDir+1);
 
 	// If it's a stringtable, save off info for future use
-	if ( level == 1 && (resourceType == (WORD)RT_STRING))
+	if ( level == 1 && (resourceType == PtrToUlong(RT_STRING)))
 	{
 		pStrResEntries = resDirEntry;
 		cStrResEntries = resDir->NumberOfIdEntries;
 	}
 
-	if ( level == 1 && (resourceType == (WORD)RT_MANIFEST))
+	if ( level == 1 && (resourceType == PtrToUlong(RT_MANIFEST)))
 	{
 		pMFTResEntries = resDirEntry;
 		cMFTResEntries = resDir->NumberOfIdEntries;
 	}
 
 	// If it's a dialog, save off info for future use
-	if ( level == 1 && (resourceType == (WORD)RT_DIALOG))
+	if ( level == 1 && (resourceType == PtrToUlong(RT_DIALOG)))
 	{
 		pDlgResEntries = resDirEntry;
 		cDlgResEntries = resDir->NumberOfIdEntries;
@@ -672,7 +672,7 @@ bool IsMFTres(PE_EXE &pe)
 	if (!resDir) return false;
 	for ( DWORD i=0; i < resDir->NumberOfIdEntries; i++, resDirEntry++ )
 	{
-		if ((resDirEntry->Id == (WORD)RT_MANIFEST))
+		if ((resDirEntry->Id == PtrToUlong(RT_MANIFEST)))
 		{
 			DumpResourceEntry(resDirEntry, (ULONG_PTR) resDir, 1); // initialize values
 			return true;

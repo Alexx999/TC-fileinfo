@@ -116,7 +116,7 @@ CString DumpNEHeader( PIMAGE_DOS_HEADER dosHeader )
 {
     CString str="", strTemp="";
     PIMAGE_OS2_HEADER pNEHeader;
-    DWORD base = (DWORD)dosHeader;
+    ULONG_PTR base = (ULONG_PTR)dosHeader;
 
     pNEHeader = MakePtr( PIMAGE_OS2_HEADER, dosHeader, dosHeader->e_lfanew );
     if ( pNEHeader->ne_magic != IMAGE_OS2_SIGNATURE )

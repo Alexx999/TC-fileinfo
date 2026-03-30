@@ -308,7 +308,7 @@ HWND __stdcall ListLoad(HWND ParentWin,char* File,int ShowFlags)
 		prec = new CFileinfoListWnd( pPE );
 //		prec->SetOptionDefault( op );
 		ParentWnd->GetClientRect(&r); 
-		if (prec->Create(NULL, NULL, WS_CHILD | WS_VISIBLE | ES_READONLY | ES_NOHIDESEL, r, ParentWnd, (UINT) hInst))
+		if (prec->Create(NULL, NULL, WS_CHILD | WS_VISIBLE | ES_READONLY | ES_NOHIDESEL, r, ParentWnd, AFX_IDW_PANE_FIRST))
 		{
 			bool b_TLib = (lpTypeLib != NULL);
 // Setup Page

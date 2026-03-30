@@ -66,7 +66,7 @@ BOOL MODULE_FILE_INFO::TestFunction( )
 						if (strncmp(func, "<invalid name>", 14) == 0) continue;
 						if (strncmp("ordinal ", func, 8)==0)
 						{
-							if (!GetProcAddress( h, (const char *) MAKELONG(atoi((LPCTSTR) func + 8),0)))
+							if (!GetProcAddress( h, MAKEINTRESOURCEA(atoi((LPCTSTR) func + 8))))
 							{ pos = NULL; ret = FALSE; }
 						}
 						else if (!GetProcAddress( h, func))

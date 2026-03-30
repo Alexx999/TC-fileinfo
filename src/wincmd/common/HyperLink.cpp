@@ -519,7 +519,7 @@ HINSTANCE CHyperLink::GotoURL(LPCTSTR url, int showcmd)
 
     // If it failed, get the .htm regkey and lookup the program
 	// Or the .eml
-    if ((UINT)result <= HINSTANCE_ERROR) 
+    if ((UINT_PTR)result <= HINSTANCE_ERROR)
 	{
 //		if (strncmp(url, "mailto", 6)==0) 
 
@@ -555,7 +555,7 @@ HINSTANCE CHyperLink::GotoURL(LPCTSTR url, int showcmd)
 // Activate the link
 void CHyperLink::FollowLink() 
 {	
-	int result = (int) GotoURL(m_strURL, SW_SHOWNORMAL);
+	INT_PTR result = (INT_PTR) GotoURL(m_strURL, SW_SHOWNORMAL);
     if (result <= HINSTANCE_ERROR) {
         MessageBeep(MB_ICONEXCLAMATION);	// Unable to follow link
         ReportError(result);

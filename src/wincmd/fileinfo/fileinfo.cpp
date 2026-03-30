@@ -587,7 +587,7 @@ BOOL CListplugApp::InitInstance()
 
    if (val)
    {
-      if (!AfxInitRichEdit( ))
+      if (!AfxInitRichEdit2( ))
       {   // IDS_RICHED_LOAD_FAIL
          AfxMessageBox(_T("Fail to Load RICHEDIT library"), MB_OK|MB_ICONEXCLAMATION);
          return FALSE;

@@ -43,6 +43,9 @@ CString MODULE_FILE_INFO::GetDisplayName( int padTo )
 
 BOOL MODULE_FILE_INFO::TestFunction( CDllHandleCache* pHandleCache )
 {
+	if ( m_Tested )
+		return m_bIFound;
+
 	BOOL ret=TRUE;
 	if ( m_bFound )
 	{

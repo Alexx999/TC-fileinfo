@@ -307,10 +307,10 @@ char *  skipTemplateName(char *srcP)
  *  to make room for a null terminator.  We know the first char is a digit.
  *  Return pointer to the name through src, and the name length.
  */
-static  void    class_name(char **src, unsigned *len)
+static  void    class_name(char **src, size_t *len)
 {
-    int     l;
-    unsigned     i = 0;
+    size_t  l;
+    size_t  i = 0;
     char    *s = *src;
 
     do                  // compute length
@@ -652,7 +652,7 @@ NOT_BUILT_IN:
     else if (*s == 'M')         /* member pointer type */
     {
         char    *   classPtr;
-        unsigned    classLen;
+        size_t      classLen;
 
         int     memberFn;
         char    *   outerPtr;

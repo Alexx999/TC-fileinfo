@@ -623,8 +623,9 @@ CStringA DumpSectionTable(PIMAGE_SECTION_HEADER section,
 			}
         }
 		
-		switch( section->Characteristics & IMAGE_SCN_ALIGN_64BYTES )
+		switch( section->Characteristics & 0x00F00000 )
 		{
+			case 0:                      pszAlign = "ALIGN_DEFAULT(16)"; break;
 			case IMAGE_SCN_ALIGN_1BYTES: pszAlign = "ALIGN_1BYTES"; break;
 			case IMAGE_SCN_ALIGN_2BYTES: pszAlign = "ALIGN_2BYTES"; break;
 			case IMAGE_SCN_ALIGN_4BYTES: pszAlign = "ALIGN_4BYTES"; break;
@@ -632,7 +633,14 @@ CStringA DumpSectionTable(PIMAGE_SECTION_HEADER section,
 			case IMAGE_SCN_ALIGN_16BYTES: pszAlign = "ALIGN_16BYTES"; break;
 			case IMAGE_SCN_ALIGN_32BYTES: pszAlign = "ALIGN_32BYTES"; break;
 			case IMAGE_SCN_ALIGN_64BYTES: pszAlign = "ALIGN_64BYTES"; break;
-			default: pszAlign = "ALIGN_DEFAULT(16)"; break;
+			case 0x00800000: pszAlign = "ALIGN_128BYTES"; break;
+			case 0x00900000: pszAlign = "ALIGN_256BYTES"; break;
+			case 0x00A00000: pszAlign = "ALIGN_512BYTES"; break;
+			case 0x00B00000: pszAlign = "ALIGN_1024BYTES"; break;
+			case 0x00C00000: pszAlign = "ALIGN_2048BYTES"; break;
+			case 0x00D00000: pszAlign = "ALIGN_4096BYTES"; break;
+			case 0x00E00000: pszAlign = "ALIGN_8192BYTES"; break;
+			default: pszAlign = "ALIGN_UNKNOWN"; break;
 		}
 		strTemp.Format( "%s  ", pszAlign );
 		str += strTemp;

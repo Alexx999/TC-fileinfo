@@ -204,12 +204,23 @@ void CPageTree::SetDarkMode(bool bDark)
 			m_tree.ModifyStyle(WS_BORDER, 0, SWP_FRAMECHANGED);
 			m_tree.ModifyStyleEx(WS_EX_CLIENTEDGE, 0, SWP_FRAMECHANGED);
 			SetWindowTheme(m_tree.m_hWnd, L"DarkMode_Explorer", NULL);
+			// Dark-theme the tree's built-in tooltip (shown for clipped items)
+			HWND hTip = TreeView_GetToolTips(m_tree.m_hWnd);
+			if (hTip) {
+				DarkMode_AllowForWindow(hTip, TRUE);
+				SetWindowTheme(hTip, L"DarkMode_Explorer", NULL);
+			}
 		} else {
 			m_tree.SetBkColor((COLORREF)-1); // reset to default
 			m_tree.SetTextColor((COLORREF)-1);
 			m_tree.SetLineColor(CLR_DEFAULT);
 			m_tree.ModifyStyleEx(0, WS_EX_CLIENTEDGE, SWP_FRAMECHANGED);
 			SetWindowTheme(m_tree.m_hWnd, NULL, NULL);
+			HWND hTip = TreeView_GetToolTips(m_tree.m_hWnd);
+			if (hTip) {
+				DarkMode_AllowForWindow(hTip, FALSE);
+				SetWindowTheme(hTip, NULL, NULL);
+			}
 		}
 		m_tree.Invalidate(TRUE);
 	}

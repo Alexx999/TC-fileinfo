@@ -24,6 +24,7 @@ MODULE_DEPENDENCY_LIST::MODULE_DEPENDENCY_LIST(  )
 	m_pList = 0;
 	m_pListDelayed = 0;
 	m_pPE = NULL;
+	m_pPathCache = NULL;
 }
 
 void MODULE_DEPENDENCY_LIST::LoadPE( PE_EXE *pPE )
@@ -48,7 +49,13 @@ void MODULE_DEPENDENCY_LIST::LoadPE( PE_EXE *pPE )
 
 MODULE_DEPENDENCY_LIST::MODULE_DEPENDENCY_LIST( PE_EXE *pPE )
 {
-	MODULE_DEPENDENCY_LIST(  );
+	m_errorType = errMDL_GENERAL_FAILURE;
+	m_cModules = 0;
+	m_cDelayedModules = 0;
+	m_pList = 0;
+	m_pListDelayed = 0;
+	m_pPE = NULL;
+	m_pPathCache = NULL;
 	LoadPE( pPE );
 }
 
@@ -147,7 +154,10 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 			CString strBaseName(pszBaseName);  // ANSI to wide conversion
 			pTemp = LookupModule( strBaseName, FALSE );
 			findyet = (pTemp != NULL);
-			if ( !findyet && !ResolveDllPath(strBaseName, szPath, MAX_PATH))
+			BOOL bResolved = m_pPathCache
+				? m_pPathCache->Resolve(strBaseName, szPath, MAX_PATH)
+				: ResolveDllPath(strBaseName, szPath, MAX_PATH);
+			if ( !findyet && !bResolved)
 				pTemp = pNew->m_pNext = new MODULE_FILE_INFO( strBaseName, pImportDir->Name, FALSE);
 			else
 			{
@@ -282,7 +292,10 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 		if (pszDLLName)
 		{
 			CString strDLLName(pszDLLName);  // ANSI to wide conversion
-			if ( !ResolveDllPath(strDLLName, szPath, MAX_PATH))
+			BOOL bResolvedD = m_pPathCache
+				? m_pPathCache->Resolve(strDLLName, szPath, MAX_PATH)
+				: ResolveDllPath(strDLLName, szPath, MAX_PATH);
+			if ( !bResolvedD)
 				pNew->m_pNext = new MODULE_FILE_INFO( strDLLName, 0, FALSE );
 			else
 			{
@@ -411,7 +424,9 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddForwardedExportModules()
 		}
 
 		TCHAR szPath[MAX_PATH];
-		BOOL found = ResolveDllPath( strDllName, szPath, MAX_PATH );
+		BOOL found = m_pPathCache
+			? m_pPathCache->Resolve( strDllName, szPath, MAX_PATH )
+			: ResolveDllPath( strDllName, szPath, MAX_PATH );
 		PMODULE_FILE_INFO pNew = new MODULE_FILE_INFO(
 			found ? szPath : (LPCTSTR)strDllName, 0, found );
 		if ( found && IsApiSetName( strDllName ) )

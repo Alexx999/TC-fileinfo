@@ -11,6 +11,8 @@
 #include "peexe.h"
 #endif
 
+class CDllPathCache;  // forward declaration
+
 enum errModuleDependencyList {  errMDL_NO_ERROR,
                                 errMDL_FILE_NOT_FOUND,
                                 errMDL_NOT_PE_FILE,
@@ -32,13 +34,15 @@ protected:
 	PMODULE_FILE_INFO   m_pListDelayed;		// Pointer to head of linked list 2
 	unsigned            m_cDelayedModules;	// Number of modules in list 2
 	PE_EXE				*m_pPE;				// Pointer to EXE module
+	CDllPathCache		*m_pPathCache;		// Optional path resolution cache
 
 public:
-        
+
     MODULE_DEPENDENCY_LIST( PE_EXE *);
 	MODULE_DEPENDENCY_LIST(  );
     void LoadPE( PE_EXE *pPE );
-	
+	void SetPathCache(CDllPathCache* p) { m_pPathCache = p; }
+
 	~MODULE_DEPENDENCY_LIST( );
     
     BOOL IsValid( void ){ return (BOOL)(m_errorType == errMDL_NO_ERROR); }

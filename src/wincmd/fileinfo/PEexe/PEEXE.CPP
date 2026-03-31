@@ -16,6 +16,7 @@ PE_EXE::PE_EXE( LPCTSTR pszFileName ) : EXE_FILE( pszFileName )
 	m_pNtHdr64 = (PIMAGE_NT_HEADERS64) m_pNtHdr;
 	m_pDec = NULL;
 	m_pdep = NULL;
+	m_pPathCache = NULL;
 	m_btested = FALSE;
 
     if ( FALSE == EXE_FILE::IsValid() )	return;
@@ -192,9 +193,11 @@ BOOL PE_EXE::IsCoded()
 
 MODULE_DEPENDENCY_LIST *PE_EXE::GetDepends()
 {
-	if ( m_pdep == NULL ) 
+	if ( m_pdep == NULL )
 	{
 		m_pdep = new (MODULE_DEPENDENCY_LIST);
+		if (m_pPathCache)
+			m_pdep->SetPathCache(m_pPathCache);
 		m_pdep->LoadPE(this);
 	}
 	return m_pdep;

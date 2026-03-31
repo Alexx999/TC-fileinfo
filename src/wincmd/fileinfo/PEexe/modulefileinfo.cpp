@@ -16,6 +16,8 @@ MODULE_FILE_INFO::MODULE_FILE_INFO( LPCTSTR pszFileName, long address, BOOL foun
 {
     m_pNext = NULL;
 	m_bFound = found;
+	m_bIFound = TRUE;
+	m_Tested = FALSE;
 	m_Address = address;
 	m_szApiSetName[0] = _T('\0');
     // Initialize the new MODULE_FILE_INFO, and stick it at the head of the list.
@@ -39,7 +41,7 @@ CString MODULE_FILE_INFO::GetDisplayName( int padTo )
 	return displayBase;
 }
 
-BOOL MODULE_FILE_INFO::TestFunction( )
+BOOL MODULE_FILE_INFO::TestFunction( CDllHandleCache* pHandleCache )
 {
 	BOOL ret=TRUE;
 	if ( m_bFound )
@@ -86,10 +88,17 @@ BOOL MODULE_FILE_INFO::TestFunction( )
 			if (SearchPath(0, m_szFullName, 0, MAX_PATH, szPath, &pszDontCare))
 			{
 				HINSTANCE h;
-				if (b_W95Protect)
-					h = LoadLibraryEx(szPath, NULL, LOAD_LIBRARY_AS_DATAFILE);
-				else 
-					h = LoadLibraryEx(szPath, NULL, DONT_RESOLVE_DLL_REFERENCES);  				
+				if (pHandleCache)
+				{
+					h = pHandleCache->GetHandle(szPath, b_W95Protect);
+				}
+				else
+				{
+					if (b_W95Protect)
+						h = LoadLibraryEx(szPath, NULL, LOAD_LIBRARY_AS_DATAFILE);
+					else
+						h = LoadLibraryEx(szPath, NULL, DONT_RESOLVE_DLL_REFERENCES);
+				}
 				if (h)
 				{
 					CString func;
@@ -104,9 +113,10 @@ BOOL MODULE_FILE_INFO::TestFunction( )
 						else if (!GetProcAddress( h, CT2A(func)))
 						{ ret = FALSE; pos = NULL; }
 					} while( pos );
-					FreeLibrary( h );		// FG 
-				} 
-			} 
+					if (!pHandleCache)
+						FreeLibrary( h );	// Only free if not cached
+				}
+			}
 			if ( fHasPath ) SetCurrentDirectory( szOriginalPath );
 		}
 	}

@@ -44,3 +44,45 @@ BOOL ResolveDllPath(LPCTSTR pszDllName, LPTSTR szResolvedPath, DWORD cchResolved
 
 	return FALSE;
 }
+
+//------------------------------------------------------------------
+// CDllPathCache: caches ResolveDllPath results (hits and misses)
+//------------------------------------------------------------------
+BOOL CDllPathCache::Resolve(LPCTSTR pszDllName, LPTSTR szResolvedPath, DWORD cchResolvedPath)
+{
+	CString key(pszDllName);
+	auto it = m_cache.find(key);
+	if (it != m_cache.end()) {
+		if (it->second.IsEmpty())
+			return FALSE;  // cached miss
+		lstrcpyn(szResolvedPath, it->second, cchResolvedPath);
+		return TRUE;
+	}
+	// Not in cache — do the real resolution
+	BOOL found = ResolveDllPath(pszDllName, szResolvedPath, cchResolvedPath);
+	m_cache[key] = found ? CString(szResolvedPath) : CString();
+	return found;
+}
+
+//------------------------------------------------------------------
+// CDllHandleCache: caches LoadLibraryEx handles
+//------------------------------------------------------------------
+CDllHandleCache::~CDllHandleCache()
+{
+	for (auto& pair : m_cache)
+		if (pair.second)
+			FreeLibrary(pair.second);
+}
+
+HINSTANCE CDllHandleCache::GetHandle(LPCTSTR pszFullPath, BOOL bAsDataFile)
+{
+	CString key(pszFullPath);
+	auto it = m_cache.find(key);
+	if (it != m_cache.end())
+		return it->second;  // may be NULL (cached load failure)
+
+	HINSTANCE h = LoadLibraryEx(pszFullPath, NULL,
+		bAsDataFile ? LOAD_LIBRARY_AS_DATAFILE : DONT_RESOLVE_DLL_REFERENCES);
+	m_cache[key] = h;
+	return h;
+}

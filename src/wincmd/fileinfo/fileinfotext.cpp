@@ -12,6 +12,8 @@
 #include "..\..\common\verwin.h"
 
 #include "peexe\dependencylist.h"
+#include "peexe\apisetresolve.h"
+#include <map>
 #include "pedump\exedump.h"
 #include "pedump\objdump.h"
 #include "pedump\libdump.h"
@@ -332,10 +334,41 @@ CString CreateText3(PVOID ptr, CWait &wait)
 /************* Dll Dependencies ******************/
 
 extern int MaxDepth;
-void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_LIST *pdep)
-{ // MaxDepth 2
-// #define MaxDepth 1
-	static int depth = 0;
+
+//------------------------------------------------------------------
+// CModuleCache: caches PE_EXE objects so each DLL is parsed only once
+// during a single dependency-tree analysis.
+//------------------------------------------------------------------
+class CModuleCache
+{
+	std::map<CString, PE_EXE*, CStringNoCaseLess> m_cache;
+public:
+	~CModuleCache()
+	{
+		for (auto& pair : m_cache)
+			delete pair.second;
+	}
+
+	// Returns the dependency list for the given DLL path.
+	// Creates and caches the PE_EXE if not already seen.
+	MODULE_DEPENDENCY_LIST* GetDepends(LPCTSTR pszFullPath, CDllPathCache* pPathCache)
+	{
+		CString key(pszFullPath);
+		auto it = m_cache.find(key);
+		if (it != m_cache.end())
+			return it->second->GetDepends();
+
+		PE_EXE* pPE = new PE_EXE(pszFullPath);
+		pPE->SetPathCache(pPathCache);
+		m_cache[key] = pPE;
+		return pPE->GetDepends();
+	}
+};
+
+static void CreateChildTreeCached( CTreeCtrl &tree, HTREEITEM &ParentItem,
+	MODULE_DEPENDENCY_LIST *pdep, int depth,
+	CModuleCache &modCache, CDllPathCache &pathCache, CDllHandleCache &handleCache)
+{
 	HTREEITEM ChidItem;
 
 	// First pass: find longest base name among all siblings for alignment
@@ -363,17 +396,16 @@ void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_
 		{
 			if (pModInfo->IsModuleFound())
 			{
-				PE_EXE pe(pModInfo->GetFullName());
-			    MODULE_DEPENDENCY_LIST *pDepChild = pe.GetDepends();
+				MODULE_DEPENDENCY_LIST *pDepChild = modCache.GetDepends(pModInfo->GetFullName(), &pathCache);
 
-				if (pModInfo->TestFunction())
+				if (pModInfo->TestFunction(&handleCache))
 					ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 0, 0, ParentItem );
 				else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 4, 4, ParentItem );/**/
 				if ( pDepChild->IsValid() )
 				{
-					if ( ++depth < MaxDepth )
-						CreateChildTree(tree, ChidItem, pDepChild);
-					depth--;
+					if ( depth + 1 < MaxDepth )
+						CreateChildTreeCached(tree, ChidItem, pDepChild, depth + 1,
+							modCache, pathCache, handleCache);
 				}
 			}
 			else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 1, 1, ParentItem );/**/
@@ -385,17 +417,15 @@ void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_
 		{
 			if (pModInfo->IsModuleFound())
 			{
-				PE_EXE pe(pModInfo->GetFullName());
-				MODULE_DEPENDENCY_LIST *pDepChild = pe.GetDepends();
-				if (pModInfo->TestFunction())
+				MODULE_DEPENDENCY_LIST *pDepChild = modCache.GetDepends(pModInfo->GetFullName(), &pathCache);
+				if (pModInfo->TestFunction(&handleCache))
 					ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 2, 2, ParentItem );
 				else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 5, 5, ParentItem );
 				if ( pDepChild->IsValid() )
 				{
-//TRACE1("fileinfo : %s \n", pModInfo->GetFullName());
-					if (++depth<MaxDepth)
-						CreateChildTree(tree, ChidItem, pDepChild);
-					depth--;
+					if (depth + 1 < MaxDepth)
+						CreateChildTreeCached(tree, ChidItem, pDepChild, depth + 1,
+							modCache, pathCache, handleCache);
 				}
 			}
 			else
@@ -406,16 +436,30 @@ void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_
 void CreateParentTree( PVOID ptr, CTreeCtrl &tree, CWait &wait)
 {
 	PE_EXE *pPE = (PE_EXE *) ptr;
-   
+
 	ASSERT(tree);
     if (!tree.m_hWnd) return;
     wait.SetStatus("Analysing Modules...");
+
+	// Suppress redraws during tree population for performance
+	tree.SetRedraw(FALSE);
+
     HTREEITEM ParentItem = tree.InsertItem( pPE->GetName()); //>GetPath() + pPE->GetBaseName());
 	pPE->IsCoded();		//Test compressed and decompress
+
+	// Create per-analysis caches (auto-destroyed when scope exits)
+	CDllPathCache pathCache;
+	CModuleCache modCache;
+	CDllHandleCache handleCache;
+
+	pPE->SetPathCache(&pathCache);
     MODULE_DEPENDENCY_LIST *pDep = pPE->GetDepends();
     if (pDep->IsValid())
-		CreateChildTree(tree, ParentItem, pDep);
+		CreateChildTreeCached(tree, ParentItem, pDep, 0, modCache, pathCache, handleCache);
 
+	// Re-enable redraws and force a single repaint
+	tree.SetRedraw(TRUE);
+	tree.Invalidate();
 }
 
 

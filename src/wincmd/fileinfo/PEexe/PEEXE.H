@@ -11,6 +11,8 @@
 #include "decplug.h"
 #include "dependencylist.h"
 
+class CDllPathCache;  // forward declaration
+
 class PE_EXE : public EXE_FILE
 {
 	BOOL m_btested;
@@ -18,6 +20,7 @@ class PE_EXE : public EXE_FILE
 	PIMAGE_NT_HEADERS32	m_pNtHdr;
 	PIMAGE_NT_HEADERS64	m_pNtHdr64;
 	MODULE_DEPENDENCY_LIST *m_pdep;
+	CDllPathCache		*m_pPathCache;		// Optional path resolution cache
 	DWORD EntryPointRAW, EntryPointRVA;
 public:
 	PE_EXE( LPCTSTR pszFileName );
@@ -25,6 +28,7 @@ public:
 	BOOL IsValid() { return m_pNtHdr ? TRUE : FALSE; }
 	BOOL IsCoded();
 	void Save(CString st);
+	void SetPathCache(CDllPathCache* p) { m_pPathCache = p; }
 	DecPlugin *GetDecPtr() { return m_pDec; }
 	PIMAGE_NT_HEADERS32 GetIMAGE_NT_HEADERS32( void ) { return m_pNtHdr; }
 	PIMAGE_NT_HEADERS64 GetIMAGE_NT_HEADERS64( void ) { return m_pNtHdr64; }

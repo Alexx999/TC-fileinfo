@@ -626,6 +626,16 @@ CString CFileVersionInfo::GetFileType(UINT nID) const
 //	if (!str.LoadString(nID)) return CString(_T(""));
 	str = Type_STR;
 
+#ifndef VFT2_DRV_COMM
+#define VFT2_DRV_COMM              0x0000000AL
+#endif
+#ifndef VFT2_DRV_INPUTMETHOD
+#define VFT2_DRV_INPUTMETHOD       0x0000000BL
+#endif
+#ifndef VFT2_DRV_VERSIONED_PRINTER
+#define VFT2_DRV_VERSIONED_PRINTER 0x0000000CL
+#endif
+
 	switch (m_fixedFileInfo.dwFileType)
 	{
 	case VFT_DRV:
@@ -635,14 +645,18 @@ CString CFileVersionInfo::GetFileType(UINT nID) const
 		case VFT2_DRV_INSTALLABLE:	n = FT_DRV_INSTALLABLE;	break;
 		case VFT2_DRV_KEYBOARD:		n = FT_DRV_KEYBOARD;	break;
 		case VFT2_DRV_LANGUAGE:		n = FT_DRV_LANGUAGE;	break;
-		case VFT2_DRV_MOUSE:			n = FT_DRV_MOUSE;		break;
+		case VFT2_DRV_MOUSE:		n = FT_DRV_MOUSE;		break;
 		case VFT2_DRV_NETWORK:		n = FT_DRV_NETWORK;		break;
 		case VFT2_DRV_PRINTER:		n = FT_DRV_PRINTER;		break;
-		case VFT2_DRV_SOUND:			n = FT_DRV_SOUND;		break;
+		case VFT2_DRV_SOUND:		n = FT_DRV_SOUND;		break;
 		case VFT2_DRV_SYSTEM:		n = FT_DRV_SYSTEM;		break;
+		case VFT2_DRV_COMM:			n = FT_DRV_COMM;		break;
+		case VFT2_DRV_INPUTMETHOD:	n = FT_DRV_INPUTMETHOD;	break;
+		case VFT2_DRV_VERSIONED_PRINTER: n = FT_DRV_VERSIONED_PRINTER; break;
 		case VFT2_UNKNOWN:
-		default:							n = FT_DRV_UNKNOWN;		break;
+		default:					n = FT_DRV_UNKNOWN;		break;
 		}
+		break;
 	case VFT_FONT:
 		switch (m_fixedFileInfo.dwFileSubtype)
 		{
@@ -652,6 +666,7 @@ CString CFileVersionInfo::GetFileType(UINT nID) const
 		case VFT2_UNKNOWN:
 		default:					n = FT_FONT_UNKNOWN;	break;
 		}
+		break;
 	case VFT_APP:					n = FT_APP;				break;
 	case VFT_DLL:					n = FT_DLL;				break;
 	case VFT_STATIC_LIB:			n = FT_STATIC_LIB;		break;

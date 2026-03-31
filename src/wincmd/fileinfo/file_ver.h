@@ -45,8 +45,8 @@
 #define IDS_FT                          3
 
 #define Name_STR _T("Company Name\nFile Description\nFile Version\nInternal Name\nLegal Copyright\nOriginal Filename\nProduct Name\nProduct Version\nComments\nLegal Trademarks\nPrivate Build\nSpecial Build")
-#define OS_STR _T("MS-DOS\nWin16\nWin32\nWin16 (MS-DOS)\nWin32 API (MS-DOS)\nOS/2 16bit\n OS/2 32bit\nWindows NT\nWin32 API (Windows NT)\nUnknown")
-#define Type_STR _T("Display Driver\nInstallable Driver\nKeyboard Driver\nLanguage Driver\nMouse Driver\nNetwork Driver\nPrinter Driver\nSound Driver\nSystem Driver\nUnknown Driver Type\nRaster Font\nTruetype Font\nVector Font\nFont\nApplication\nDynamic Link Library\nStatic Link Library\nVirtual Device\nUnknown File Type")
+#define OS_STR _T("MS-DOS\nWin16\nWin32\nWin16 (MS-DOS)\nWin32 API (MS-DOS)\nOS/2 16bit\nOS/2 32bit\nWindows NT\nWin32 API (Windows NT)\nUnknown")
+#define Type_STR _T("Display Driver\nInstallable Driver\nKeyboard Driver\nLanguage Driver\nMouse Driver\nNetwork Driver\nPrinter Driver\nSound Driver\nSystem Driver\nComm Driver\nInput Method Driver\nVersioned Printer Driver\nUnknown Driver Type\nRaster Font\nTruetype Font\nVector Font\nFont\nApplication\nDynamic Link Library\nStatic Link Library\nVirtual Device\nUnknown File Type")
 // BOOL AfxExtractSubString(CString& rString, LPCTSTR lpszFullString, int iSubString, TCHAR chSep = '\n');
 
 //*****************************************************************************
@@ -62,9 +62,9 @@
 #define OS_WIN16				1
 #define OS_WIN32				2
 #define OS_WIN16_DOS			3
-#define OS_WIN32_DOS			3
+#define OS_WIN32_DOS			4
 #define OS_OS216				5
-#define OS_OS232				5
+#define OS_OS232				6
 #define OS_WINNT				7
 #define OS_WIN32_NT				8
 #define OS_UNKNOWN				9
@@ -84,16 +84,19 @@
 #define FT_DRV_PRINTER			 6
 #define FT_DRV_SOUND			 7
 #define FT_DRV_SYSTEM			 8
-#define FT_DRV_UNKNOWN			 9
-#define FT_FONT_RASTER			10
-#define FT_FONT_TRUETYPE		11
-#define FT_FONT_VECTOR			12
-#define FT_FONT_UNKNOWN			13
-#define FT_APP					14
-#define FT_DLL					15
-#define FT_STATIC_LIB			16
-#define FT_VXD					17
-#define FT_UNKNOWN				18
+#define FT_DRV_COMM				 9
+#define FT_DRV_INPUTMETHOD		10
+#define FT_DRV_VERSIONED_PRINTER 11
+#define FT_DRV_UNKNOWN			12
+#define FT_FONT_RASTER			13
+#define FT_FONT_TRUETYPE		14
+#define FT_FONT_VECTOR			15
+#define FT_FONT_UNKNOWN			16
+#define FT_APP					17
+#define FT_DLL					18
+#define FT_STATIC_LIB			19
+#define FT_VXD					20
+#define FT_UNKNOWN				21
 #define FT_FIRST				FT_DRV_DISPLAY
 #define FT_LAST					FT_UNKNOWN
 

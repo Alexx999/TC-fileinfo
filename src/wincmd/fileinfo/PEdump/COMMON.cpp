@@ -300,12 +300,10 @@ CStringA DumpOptionalHeader(PIMAGE_OPTIONAL_HEADER32 optionalHeader)
     {
         if ( optionalHeader->DllCharacteristics &  DllCharacteristics[i].flag )
 		{
-            strTemp.Format( "\t%-*s\t%s", width, " ", DllCharacteristics[i].name );
+            strTemp.Format( "\t%-*s\t%s\r\n", width, " ", DllCharacteristics[i].name );
 			str += strTemp;
 		}
     }
-    if ( optionalHeader->DllCharacteristics )
-        str += ("\r\n");
 
 	if (optionalHeader->Magic == 0x10b)
 	{

@@ -603,15 +603,19 @@ CString CFileVersionInfo::GetTargetOs(UINT nID) const
 	switch (m_fixedFileInfo.dwFileOS)
 	{
 	case VOS_DOS:				n = OS_DOS;			break;
-	case VOS_DOS_WINDOWS16:	n = OS_WIN16_DOS;	break;
-	case VOS_DOS_WINDOWS32:	n = OS_WIN32_DOS;	break;
+	case VOS_DOS_WINDOWS16:		n = OS_WIN16_DOS;	break;
+	case VOS_DOS_WINDOWS32:		n = OS_WIN32_DOS;	break;
 	case VOS__WINDOWS16:		n = OS_WIN16;		break;
 	case VOS__WINDOWS32:		n = OS_WIN32;		break;
-	case VOS_OS216:			n = OS_OS216;		break;
-	case VOS_OS232:			n = OS_OS232;		break;
+	case VOS__PM16:				n = OS_PM16;		break;
+	case VOS__PM32:				n = OS_PM32;		break;
+	case VOS_OS216:				n = OS_OS216;		break;
+	case VOS_OS232:				n = OS_OS232;		break;
+	case VOS_OS216_PM16:		n = OS_OS216_PM16;	break;
+	case VOS_OS232_PM32:		n = OS_OS232_PM32;	break;
 	case VOS_NT:				n = OS_WINNT;		break;
-	case VOS_NT_WINDOWS32:	n = OS_WIN32_NT;	break;
-	default:						n = OS_UNKNOWN;	break;
+	case VOS_NT_WINDOWS32:		n = OS_WIN32_NT;	break;
+	default:					n = OS_UNKNOWN;		break;
 	}
 	return (AfxExtractSubString(strRes, str, n)) ? strRes : CString(_T(""));
 }	// GetTargetOs

@@ -45,7 +45,7 @@
 #define IDS_FT                          3
 
 #define Name_STR _T("Company Name\nFile Description\nFile Version\nInternal Name\nLegal Copyright\nOriginal Filename\nProduct Name\nProduct Version\nComments\nLegal Trademarks\nPrivate Build\nSpecial Build")
-#define OS_STR _T("MS-DOS\nWin16\nWin32\nWin16 (MS-DOS)\nWin32 API (MS-DOS)\nOS/2 16bit\nOS/2 32bit\nWindows NT\nWin32 API (Windows NT)\nUnknown")
+#define OS_STR _T("MS-DOS\nWin16\nWin32\nWin16 (MS-DOS)\nWin32 API (MS-DOS)\nOS/2 16bit\nOS/2 32bit\nWindows NT\nWin32 API (Windows NT)\nPM16\nPM32\nOS/2 16bit PM16\nOS/2 32bit PM32\nUnknown")
 #define Type_STR _T("Display Driver\nInstallable Driver\nKeyboard Driver\nLanguage Driver\nMouse Driver\nNetwork Driver\nPrinter Driver\nSound Driver\nSystem Driver\nComm Driver\nInput Method Driver\nVersioned Printer Driver\nUnknown Driver Type\nRaster Font\nTruetype Font\nVector Font\nFont\nApplication\nDynamic Link Library\nStatic Link Library\nVirtual Device\nUnknown File Type")
 // BOOL AfxExtractSubString(CString& rString, LPCTSTR lpszFullString, int iSubString, TCHAR chSep = '\n');
 
@@ -67,7 +67,11 @@
 #define OS_OS232				6
 #define OS_WINNT				7
 #define OS_WIN32_NT				8
-#define OS_UNKNOWN				9
+#define OS_PM16					9
+#define OS_PM32					10
+#define OS_OS216_PM16			11
+#define OS_OS232_PM32			12
+#define OS_UNKNOWN				13
 
 
 // FT_xxx: various file types.

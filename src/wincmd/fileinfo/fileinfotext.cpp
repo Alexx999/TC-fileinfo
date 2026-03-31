@@ -466,7 +466,7 @@ CString CreateText2(PVOID ptr, CWait &wait)
 
 extern DWORD cMFTResEntries;
 extern PIMAGE_RESOURCE_DIRECTORY_ENTRY pMFTResEntries;
-CStringA DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry, DWORD cResEntries );
+CString DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry, DWORD cResEntries );
 PIMAGE_RESOURCE_DIRECTORY GetResDir(PE_EXE &pe);
 CString CreateManifest(PVOID ptr, CWait &wait)
 {
@@ -480,5 +480,5 @@ CString CreateManifest(PVOID ptr, CWait &wait)
         return str;
     }
 	return DumpManifest(*pPE, (ULONG_PTR) GetResDir(*pPE), pMFTResEntries, cMFTResEntries );
-;
+
 }

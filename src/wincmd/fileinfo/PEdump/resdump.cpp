@@ -372,63 +372,75 @@ CStringA DumpDialogs(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTO
 	return str;
 }
 
-CStringA DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry, DWORD cResEntries )
+CString DumpManifest(PE_EXE &pe, ULONG_PTR resourceBase, PIMAGE_RESOURCE_DIRECTORY_ENTRY pResEntry, DWORD cResEntries )
 {
-	CStringA str="", strTemp="";
+	CString str;
 	for ( unsigned i = 0; i < cResEntries; i++, pResEntry++ )
 	{
 		PIMAGE_RESOURCE_DATA_ENTRY pMFTDataEntry = GetDataEntryFromResEntry( pe.GetBase (), resourceBase, pResEntry );
-		ULONG size = pMFTDataEntry->Size - 8;
+		ULONG totalSize = pMFTDataEntry->Size;
 
 		DWORD offsetToData = GetOffsetToDataFromResEntry( pe.GetBase(), resourceBase, pResEntry );
-		PCHAR pStart = (PCHAR) GetPtrFromRVA( offsetToData, pe.GetIMAGE_NT_HEADERS32(), pe.GetBase());
-		PCHAR pChar = pStart;
-		if ( !pChar) {
-#ifdef _DEBUG 
+		PBYTE pRaw = (PBYTE) GetPtrFromRVA( offsetToData, pe.GetIMAGE_NT_HEADERS32(), pe.GetBase());
+		if ( !pRaw) {
+#ifdef _DEBUG
 			AfxMessageBox(_T("Error in Manifest Resource"), MB_OK|MB_ICONEXCLAMATION);
 #endif
-			str = "Possible compressed resource\r\n";
+			str = _T("Possible compressed resource\r\n");
 			return str;
 		}
-		ULONG level = 0;
-		str += ("        ");
-		while(pChar - pStart < (size+8))
-		{	
-			if (*pChar==0x0D) {
-				pChar++;
-				str += "\r\n";
-			} else if (*pChar==0x09) {
-				pChar++;
-				str += ("   ");
-			} else if (*pChar==0x0A) {
-				pChar++;
-				for ( i=0; i <= level; i++ ) str += ("    ");
-			} else
-				str += *pChar++;
-			}
-/*
-			while (*pChar!='<') {  pChar++; }
-			if ((*pChar == '<') && (*(pChar+1) != '/')) level++;
-			for ( i=0; i <= level; i++ ) str += ("   ");
-			if ((*pChar == '<') && (*(pChar+1) == '/')) level--;
 
-			while (*pChar!='>')
+		// Convert raw resource bytes to a wide string, detecting encoding
+		CString content;
+		if (totalSize >= 2 && pRaw[0] == 0xFF && pRaw[1] == 0xFE)
+		{
+			// UTF-16 LE (with BOM)
+			LPCWSTR pWide = (LPCWSTR)(pRaw + 2);
+			int cch = (int)(totalSize - 2) / (int)sizeof(WCHAR);
+			content = CString(pWide, cch);
+		}
+		else if (totalSize >= 2 && pRaw[0] == 0xFE && pRaw[1] == 0xFF)
+		{
+			// UTF-16 BE (with BOM) - byte-swap
+			int cch = (int)(totalSize - 2) / (int)sizeof(WCHAR);
+			LPWSTR pBuf = content.GetBuffer(cch);
+			const BYTE *pSrc = pRaw + 2;
+			for (int j = 0; j < cch; j++, pSrc += 2)
+				pBuf[j] = (WCHAR)(pSrc[0] << 8 | pSrc[1]);
+			content.ReleaseBuffer(cch);
+		}
+		else
+		{
+			// UTF-8 (with or without BOM)
+			LPCSTR pUtf8 = (LPCSTR)pRaw;
+			int cb = (int)totalSize;
+			if (totalSize >= 3 && pRaw[0] == 0xEF && pRaw[1] == 0xBB && pRaw[2] == 0xBF)
 			{
-				if (*pChar==0x0D) {
-					pChar++;
-					str += "\r\n";
-				} else if (*pChar==0x09) {
-					pChar++;
-					str += (" ");
-				} else if (*pChar==0x0A) {
-					pChar++;
-					for ( i=0; i <= level; i++ ) str += ("   ");
-				} else
-					str += *pChar++;
+				pUtf8 += 3;
+				cb -= 3;
 			}
-			if ((*(pChar-1) == '/')) level--;
-			str += *pChar++;
-			str += "\r\n"; /**/
+			int cch = MultiByteToWideChar(CP_UTF8, 0, pUtf8, cb, NULL, 0);
+			LPWSTR pBuf = content.GetBuffer(cch);
+			MultiByteToWideChar(CP_UTF8, 0, pUtf8, cb, pBuf, cch);
+			content.ReleaseBuffer(cch);
+		}
+
+		// Format the manifest text: normalize line endings, pass through content as-is
+		int len = content.GetLength();
+		for (int pos = 0; pos < len; )
+		{
+			TCHAR ch = content[pos++];
+			if (ch == _T('\r'))
+			{
+				str += _T("\r\n");
+				if (pos < len && content[pos] == _T('\n'))
+					pos++;	// consume \n in \r\n pair
+			}
+			else if (ch == _T('\n'))
+				str += _T("\r\n");
+			else
+				str += ch;
+		}
 	}
 	return str;
 }
@@ -652,7 +664,7 @@ CString DumpResourceSection(PE_EXE &pe)
 	{
 		str += _T("     MANIFEST\r\n");
 		str += _T("====================\r\n");
-		str += CString(DumpManifest( pe, (ULONG_PTR)resDir, pMFTResEntries, cMFTResEntries ));
+		str += DumpManifest( pe, (ULONG_PTR)resDir, pMFTResEntries, cMFTResEntries );
 		str += _T("\r\n====================\r\n\r\n");
 	}
 

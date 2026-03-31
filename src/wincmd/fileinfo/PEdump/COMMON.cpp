@@ -109,7 +109,7 @@ CStringA DumpHeader(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER3
     strTemp.Format("\t%-*s\t%08Xh ", headerFieldWidth, "Time Date Stamp:", pImageFileHeader->TimeDateStamp);
 	str += strTemp;
 	strTemp.Format( !(pImageFileHeader->TimeDateStamp==0 || (pImageFileHeader->TimeDateStamp == 0xFFFFFFFF))
-			?" -> %s \r\n" 
+			?" -> %ls \r\n" 
 			: "\r\n", FormatShortDate(CreateSystemeTime(pImageFileHeader->TimeDateStamp)));
 	str += strTemp;
 
@@ -757,7 +757,7 @@ CStringA DumpDebugDirectory(PIMAGE_DEBUG_DIRECTORY debugDir, DWORD size, ULONG_P
 		Temp.Format("\tTimeDate\t%08Xh ", debugDir->TimeDateStamp);
 		str +=Temp;
 		Temp.Format( !(debugDir->TimeDateStamp==0 || (debugDir->TimeDateStamp == 0xFFFFFFFF))
-				?" -> %s \r\n" 
+				?" -> %ls \r\n" 
 				: "\r\n", FormatShortDate(CreateSystemeTime(debugDir->TimeDateStamp)));
 		str += Temp;
 		Temp.Format("\tVersion\t%u.%02u\r\n", debugDir->MajorVersion, debugDir->MinorVersion);

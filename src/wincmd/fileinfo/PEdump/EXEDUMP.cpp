@@ -112,7 +112,7 @@ CStringA DumpImportsSection(PE_EXE &pe)
 		strTemp.Format("\tTimeDateStamp: \t%08Xh   ", importDesc->TimeDateStamp );
 		str += strTemp;
 		strTemp.Format( !(importDesc->TimeDateStamp==0 || (importDesc->TimeDateStamp == 0xFFFFFFFF))
-				?" -> %s \r\n" 
+				?" -> %ls \r\n" 
 				: "\r\n", FormatShortDate(CreateSystemeTime(importDesc->TimeDateStamp)));
 		str += strTemp;
 
@@ -323,7 +323,7 @@ CStringA DumpImportsDelayedSection(PE_EXE &pe)
 		strTemp.Format("\tTimeDateStamp: \t%08Xh   ", pDImportDesc->dwTimeStamp);
 		str += strTemp;
 		strTemp.Format( !(pDImportDesc->dwTimeStamp ==0 || (pDImportDesc->dwTimeStamp == 0xFFFFFFFF))
-				?" -> %s \r\n" 
+				?" -> %ls \r\n" 
 				: "\r\n", FormatShortDate(CreateSystemeTime(pDImportDesc->dwTimeStamp)));
 		str += strTemp;
 
@@ -436,7 +436,7 @@ CStringA DumpExportsSection(PE_EXE &pe)
 	strTemp.Format("\tTimeDateStamp: \t%08Xh   ", exportDir->TimeDateStamp );
 	str += strTemp;
 	strTemp.Format( !(exportDir->TimeDateStamp==0 || (exportDir->TimeDateStamp == 0xFFFFFFFF))
-			?" -> %s \r\n" 
+			?" -> %ls \r\n" 
 			: "\r\n", FormatShortDate(CreateSystemeTime(exportDir->TimeDateStamp)));
 	str += strTemp;
 
@@ -644,7 +644,7 @@ CStringA DumpBoundImportDescriptors( PE_EXE &pe )
 	  strTemp.Format("  \t%-12s  \t%08Xh  ", pe.GetBase() + bidRVA + pibid->OffsetModuleName, pibid->TimeDateStamp );
 	  str += strTemp;
 	  strTemp.Format( !(pibid->TimeDateStamp==0 || (pibid->TimeDateStamp == 0xFFFFFFFF))
-		 ?" -> %s \r\n" 
+		 ?" -> %ls \r\n" 
 		 : "\r\n", FormatShortDate(CreateSystemeTime(pibid->TimeDateStamp)));
 	  str += strTemp;
 
@@ -654,7 +654,7 @@ CStringA DumpBoundImportDescriptors( PE_EXE &pe )
 	     strTemp.Format(" forwarder : %-12s  \t%08Xh  ", pe.GetBase() + bidRVA + pibfr->OffsetModuleName, pibfr->TimeDateStamp );
          str += strTemp;
          strTemp.Format( !(pibfr->TimeDateStamp==0 || (pibfr->TimeDateStamp == 0xFFFFFFFF))
-            ?" -> %s \r\n" 
+            ?" -> %ls \r\n" 
             : "\r\n", FormatShortDate(CreateSystemeTime(pibfr->TimeDateStamp)));
          str += strTemp;
 

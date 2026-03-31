@@ -58,7 +58,7 @@ CStringA DisplayArchiveMemberHeader(
 	    strTp.Format("\tDate\t: %ld ", dateAsLong);
 	str += strTp;
 	strTp.Format( !(dateAsLong==0 || (dateAsLong == 0xFFFFFFFF))
-			?" -> %s \r\n" 
+			?" -> %ls \r\n" 
 			: "\r\n", FormatShortDate(CreateSystemeTime(dateAsLong)));
 	str += strTp;
 

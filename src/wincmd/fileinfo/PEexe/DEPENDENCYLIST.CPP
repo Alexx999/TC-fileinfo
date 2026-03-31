@@ -40,6 +40,7 @@ void MODULE_DEPENDENCY_LIST::LoadPE( PE_EXE *pPE )
 
 	m_errorType = AddDirectModule( );
 	m_errorType = AddDirectDelayedModule( );
+	AddForwardedExportModules( );
 	 
 	if ( *(pPE->GetPath()) != _T('\0'))
 		SetCurrentDirectory( szOriginalPath );
@@ -354,6 +355,77 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 	return errMDL_NO_ERROR;
 }
 
+errModuleDependencyList MODULE_DEPENDENCY_LIST::AddForwardedExportModules()
+{
+	if ( FALSE == m_pPE->IsValid() )
+		return errMDL_NO_ERROR;
+	if ( 0 == m_pPE->GetDataDirectoryEntrySize( IMAGE_DIRECTORY_ENTRY_EXPORT ) )
+		return errMDL_NO_ERROR;
+
+	PIMAGE_EXPORT_DIRECTORY exportDir = m_pPE->GetExportsDesc();
+	if ( !exportDir || !m_pPE->IsValidPtr( (ULONG_PTR)exportDir ) )
+		return errMDL_NO_ERROR;
+
+	DWORD exportsStartRVA = m_pPE->GetDataDirectoryEntryRVA( IMAGE_DIRECTORY_ENTRY_EXPORT );
+	DWORD exportsEndRVA = exportsStartRVA + m_pPE->GetDataDirectoryEntrySize( IMAGE_DIRECTORY_ENTRY_EXPORT );
+
+	PDWORD functions = (PDWORD)m_pPE->GetReadablePointerFromRVA( exportDir->AddressOfFunctions );
+	if ( !functions )
+		return errMDL_NO_ERROR;
+
+	// Find the tail of the existing module list so we can append
+	PMODULE_FILE_INFO pTail = m_pList;
+	if ( pTail )
+		while ( pTail->m_pNext )
+			pTail = pTail->m_pNext;
+
+	for ( DWORD i = 0; i < exportDir->NumberOfFunctions; i++ )
+	{
+		DWORD entryPointRVA = functions[i];
+		if ( entryPointRVA == 0 )
+			continue;
+		// Forwarded export: RVA points inside the export directory
+		if ( entryPointRVA < exportsStartRVA || entryPointRVA > exportsEndRVA )
+			continue;
+
+		PSTR pszForward = (PSTR)m_pPE->GetReadablePointerFromRVA( entryPointRVA );
+		if ( !pszForward )
+			continue;
+
+		// Parse "DLLName.FunctionName" — extract DLL name up to the dot
+		CString strForward( pszForward );
+		int dotPos = strForward.Find( _T('.') );
+		if ( dotPos <= 0 )
+			continue;
+		CString strDllName = strForward.Left( dotPos ) + _T(".dll");
+
+		// Skip if already in the dependency list
+		if ( LookupModule( strDllName, FALSE ) )
+			continue;
+
+		TCHAR szPath[MAX_PATH];
+		BOOL found = ResolveDllPath( strDllName, szPath, MAX_PATH );
+		PMODULE_FILE_INFO pNew = new MODULE_FILE_INFO(
+			found ? szPath : (LPCTSTR)strDllName, 0, found );
+		if ( found && IsApiSetName( strDllName ) )
+			pNew->SetApiSetName( strDllName );
+
+		// Append to the module list
+		if ( pTail )
+		{
+			pTail->m_pNext = pNew;
+			pTail = pNew;
+		}
+		else
+		{
+			m_pList = pNew;
+			pTail = pNew;
+		}
+		m_cModules++;
+	}
+
+	return errMDL_NO_ERROR;
+}
 
 /*
 errModuleDependencyList MODULE_DEPENDENCY_LIST::AddModule( PSTR pszFileName )

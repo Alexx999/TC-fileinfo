@@ -55,6 +55,7 @@ private:
 //  errModuleDependencyList AddModule( PSTR pszFullName );
 	errModuleDependencyList AddDirectModule();
 	errModuleDependencyList AddDirectDelayedModule();
+	errModuleDependencyList AddForwardedExportModules();
 	void DeletePList(PMODULE_FILE_INFO pList);
 
     errModuleDependencyList m_errorType;    // Error type

@@ -74,8 +74,6 @@ protected:
 	afx_msg void OnTestImport();
 	afx_msg void OnSelchangeFunc();
 	afx_msg void OnSort();
-	afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
-	afx_msg void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

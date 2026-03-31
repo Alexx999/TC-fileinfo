@@ -226,9 +226,9 @@ int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlag
 //**********  Transfert Option  *********************/
 //			sheet->m_option.SetOptionDefault(op);
 		//			if (op.rememberAP ) sheet->SetActivePage( page );
-	
-// retirer tous les onglets et remettre les bons
-// voir mmedia & mask
+
+		// Dark mode detection on file change
+		sheet->SetDarkMode((ShowFlags & lcp_darkmode) != 0);
 
 //	pMediaWnd->SetFile(FileToLoad, audio);
 		return LISTPLUGIN_OK;
@@ -310,7 +310,13 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 		}
 		prec = new CFileinfoListWnd( pPE );
 //		prec->SetOptionDefault( op );
-		ParentWnd->GetClientRect(&r); 
+		// Pre-set dark mode flag on sheet pages BEFORE Create(),
+		// so OnInitDialog() already knows the dark mode state
+		if (ShowFlags & lcp_darkmode) {
+			CListSheet *pSheet = (CListSheet *)prec->GetpSheet();
+			pSheet->PreSetDarkMode(true);
+		}
+		ParentWnd->GetClientRect(&r);
 		if (prec->Create(NULL, NULL, WS_CHILD | WS_VISIBLE | ES_READONLY | ES_NOHIDESEL, r, ParentWnd, AFX_IDW_PANE_FIRST))
 		{
 			bool b_TLib = (lpTypeLib != NULL);
@@ -421,7 +427,11 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 //**********  Transfert Option  *********************/
 //			sheet->m_option.SetOptionDefault(op);
 			if (op.rememberAP ) sheet->SetActivePage( page );
-		} 
+
+			// Dark mode detection at load time
+			if (ShowFlags & lcp_darkmode)
+				sheet->SetDarkMode(true);
+		}
 		if ( calledbyQV && pFocusedWnd)		//	->IsWindow())
 			pFocusedWnd->SetFocus();
 	} else { delete pPE; pPE = NULL; return NULL; }
@@ -459,11 +469,11 @@ int __stdcall ListSendCommand(HWND ListWin,int Command,int Parameter)
          ((CResizePage *) rec->GetpSheet()->GetActivePage())->PostMessage(WM_COPY,0,0);
          return LISTPLUGIN_OK;
       case lc_newparams:
-/*			switch (Command) 
-				case lcp_wraptext	:
-//					rec->GetpSheet()->;
-				return LISTPLUGIN_OK; /**/
+      {
+         CListSheet *sheet = (CListSheet *)rec->GetpSheet();
+         sheet->SetDarkMode((Parameter & lcp_darkmode) != 0);
          return LISTPLUGIN_OK;
+      }
       case lc_selectall:
          ((CResizePage *) rec->GetpSheet()->GetActivePage())->PostMessage(EM_SETSEL,0,-1);
          return LISTPLUGIN_OK;

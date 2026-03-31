@@ -22,6 +22,9 @@ public:
 	CString	m_str;
 	//}}AFX_DATA
 
+private:
+	bool	m_bDarkMode;
+	CBrush	m_brDarkBg;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -35,7 +38,8 @@ protected:
 
 	// Generated message map functions
 	//{{AFX_MSG(CWait)
-		// NOTE: the ClassWizard will add member functions here
+	virtual BOOL OnInitDialog();
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

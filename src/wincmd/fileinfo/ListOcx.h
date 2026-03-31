@@ -44,10 +44,11 @@ public:
 	void UpdateFont( void );
 	void SetFontPpty( FontOptions fo) { m_fo = fo; if (!m_first) UpdateFont();}
 	void SetWrap(bool wrap)
-	{ 
+	{
 		m_ocx.SetTargetDevice(NULL, wrap); // 1 = wrap on, 0 = wrap off
 		m_ocx.ShowScrollBar( SB_HORZ , wrap);
 	}
+	virtual void SetDarkMode(bool bDark);
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -64,7 +65,11 @@ protected:
 	   virtual BOOL OnInitDialog();
 	afx_msg void OnRegServer();
 	afx_msg void OnUnRegServer();
+	afx_msg void OnCustomDrawList(NMHDR* pNMHDR, LRESULT* pResult);
 	//}}AFX_MSG
+
+	WNDPROC m_pfnOrigListProc;
+	static LRESULT CALLBACK DarkListProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
 private:
 	void Load();

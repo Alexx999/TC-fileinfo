@@ -23,6 +23,11 @@ class CListSheet : public CPropertySheetRz
 {
 	DECLARE_DYNAMIC(CListSheet)
 // Var privées
+	bool	m_bDarkMode;
+	CBrush	m_brDarkBgAlt;
+	WNDPROC	m_pfnOrigTabProc;	// Original tab control wndproc for subclassing
+	static LRESULT CALLBACK DarkTabProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 // Construction
 public:
 	CListSheet(LPCTSTR pszCaption, CWnd* pParentWnd = NULL, UINT iSelectPage = 0);
@@ -44,6 +49,10 @@ protected:
 // Operations
 public:
 	void Renew(PE_EXE *pPE);
+	void PreSetDarkMode(bool bDark);
+	void SetDarkMode(bool bDark);
+	void ApplyDarkMode();
+	bool IsDarkMode() const { return m_bDarkMode; }
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -59,6 +68,8 @@ public:
 	// Generated message map functions
 protected:
 	//{{AFX_MSG(CListSheet)
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+	afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

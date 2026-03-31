@@ -128,10 +128,14 @@ void CAbout::Resize(CRect &rectPage)
 //   m_Redit.SetSel( 0, 0);
 }
 
-BOOL CAbout::OnInitDialog() 
+BOOL CAbout::OnInitDialog()
 {
 	Init();
    CResizePage::OnInitDialog();
+
+   // Apply dark mode early, before content is loaded
+   if (m_bDarkMode)
+		SetDarkMode(true);
    CString str;
    str.LoadString( IDS_STRING1 ); // Title
    m_edit = str;
@@ -202,11 +206,13 @@ BOOL CAbout::OnInitDialog()
 //   m_Redit.SetEventMask( ENM_KEYEVENTS );
    m_Redit.SetOptions(ECOOP_OR, ECO_SAVESEL);
    UpdateData(FALSE);
+   ApplyDarkTextFormat(m_Redit, m_bDarkMode);
+
    return TRUE;  // return TRUE unless you set the focus to a control
                  // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-BOOL CAbout::PreTranslateMessage(MSG* pMsg) 
+BOOL CAbout::PreTranslateMessage(MSG* pMsg)
 {
    if (pMsg->message == EM_SETSEL)
    {
@@ -219,4 +225,10 @@ BOOL CAbout::PreTranslateMessage(MSG* pMsg)
       return 1;
    }
    return CResizePage::PreTranslateMessage(pMsg);
+}
+
+void CAbout::SetDarkMode(bool bDark)
+{
+	CResizePage::SetDarkMode(bDark);
+	ApplyDarkRichEdit(m_Redit, bDark);
 }

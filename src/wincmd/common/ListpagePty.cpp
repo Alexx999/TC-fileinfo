@@ -3,6 +3,8 @@
 
 #include "stdafx.h"
 #include "ListpagePty.h"
+#include <uxtheme.h>
+#pragma comment(lib, "uxtheme.lib")
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -45,7 +47,7 @@ void CListpagePty::Renew(PVOID pPE)
 	m_text = _T("");
 	m_ptr = pPE;
 	if ( m_Redit.m_hWnd) {
-	   if (FillEdit) 
+	   if (FillEdit)
 	   {
 			CWait wait(this);
 			wait.SetStatus("Dumping...");
@@ -55,6 +57,7 @@ void CListpagePty::Renew(PVOID pPE)
 		m_Redit.SetWindowText( m_text );
 		UpdateTab( );
 		m_Redit.SetOptions(ECOOP_OR, ECO_SAVESEL);
+		ApplyDarkTextFormat(m_Redit, m_bDarkMode);
 	}
 }
 
@@ -148,9 +151,15 @@ void CListpagePty::Resize(CRect &rectPage)
 
 BOOL CListpagePty::OnInitDialog()
 {
-   CResizePage::OnInitDialog();   
-   UpdateFont();   
-   if (FillEdit) 
+   CResizePage::OnInitDialog();
+
+   // Apply dark mode early - before content loading, so background/borders
+   // are dark before the CWait dialog appears
+   if (m_bDarkMode)
+		SetDarkMode(true);
+
+   UpdateFont();
+   if (FillEdit)
    {
 		CWait wait(this);
 		wait.SetStatus("Dumping...");
@@ -160,6 +169,7 @@ BOOL CListpagePty::OnInitDialog()
    m_Redit.SetWindowText( m_text );
    UpdateTab( );
    m_Redit.SetOptions(ECOOP_OR, ECO_SAVESEL);
+   ApplyDarkTextFormat(m_Redit, m_bDarkMode);
 
 	//   m_Redit.SetEventMask( ENM_KEYEVENTS );
    return TRUE;  // return TRUE unless you set the focus to a control
@@ -269,14 +279,15 @@ void CListpagePty::UpdateTab( void )
    m_Redit.SetSel(0,0);
 }
 
-void CListpagePty::SetText(CString &text) 
-{ 
+void CListpagePty::SetText(CString &text)
+{
 	m_text = text;
-	if (!m_first) 
+	if (!m_first)
 	{
 		if (m_Redit) {
 			m_Redit.SetWindowText( m_text );
 			UpdateTab( );
+			ApplyDarkTextFormat(m_Redit, m_bDarkMode);
 		}
 	}
 }
@@ -284,4 +295,10 @@ void CListpagePty::SetText(CString &text)
 void CListpagePty::SetCenter(bool b)
 {
 	m_bcenter = b;
+}
+
+void CListpagePty::SetDarkMode(bool bDark)
+{
+	CResizePage::SetDarkMode(bDark);
+	ApplyDarkRichEdit(m_Redit, bDark);
 }

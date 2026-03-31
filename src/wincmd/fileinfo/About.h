@@ -27,6 +27,7 @@ public:
    ~CAbout();
    void Resize(CRect &rectPage);
    void Init(void);
+   virtual void SetDarkMode(bool bDark);
 // Dialog Data
    //{{AFX_DATA(CAbout)
    enum { IDD = IDD_About };

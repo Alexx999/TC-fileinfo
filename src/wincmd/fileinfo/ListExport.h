@@ -24,6 +24,7 @@ public:
     void SetPtr(PE_EXE * ptr) { m_pe = ptr; }
 	void SetSortOption( BOOL b) { m_bsort = b; }
 	void Renew(PE_EXE *pPE);
+	virtual void SetDarkMode(bool bDark);
 
 	CRect   m_rectList;
 	CRect   m_rectModule;
@@ -73,6 +74,8 @@ protected:
 	afx_msg void OnTestImport();
 	afx_msg void OnSelchangeFunc();
 	afx_msg void OnSort();
+	afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
+	afx_msg void OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

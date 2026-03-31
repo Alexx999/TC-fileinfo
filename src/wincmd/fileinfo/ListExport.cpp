@@ -7,6 +7,8 @@
 #include <imagehlp.h>
 #include <afxole.h> // for clipboard
 #include <afxadv.h> // shared file
+#include <uxtheme.h>
+#pragma comment(lib, "uxtheme.lib")
 
 #include "..\common\wait.h"
 
@@ -85,7 +87,7 @@ void CListExport::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(CListExport, CPropertyPage)
+BEGIN_MESSAGE_MAP(CListExport, CResizePage)
 	//{{AFX_MSG_MAP(CListExport)
 	ON_LBN_SELCHANGE(IDC_LIST1, OnSelchangeModules)
 	ON_BN_CLICKED(IDC_undecorate, Onundecorate)
@@ -93,8 +95,66 @@ BEGIN_MESSAGE_MAP(CListExport, CPropertyPage)
 	ON_LBN_SELCHANGE(IDC_LIST2, OnSelchangeFunc)
 	ON_BN_CLICKED(IDC_CHECK1, OnSort)
 	ON_WM_DESTROY()
+	ON_WM_DRAWITEM()
+	ON_WM_MEASUREITEM()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// Dark mode helpers for owner-drawn listboxes
+
+// Recreate a listbox with/without LBS_OWNERDRAWFIXED.
+// LBS_OWNERDRAWFIXED must be present at creation time; ModifyStyle won't work.
+static void RecreateListBoxForDarkMode(CListBox& lb, CWnd* pParent, UINT nID, bool bDark)
+{
+	if (!lb.m_hWnd) return;
+
+	// Save state
+	CRect rc;
+	lb.GetWindowRect(&rc);
+	pParent->ScreenToClient(&rc);
+	CFont* pFont = lb.GetFont();
+	int sel = lb.GetCurSel();
+	int hExtent = lb.GetHorizontalExtent();
+	DWORD style = lb.GetStyle();
+	DWORD exStyle = ::GetWindowLong(lb.m_hWnd, GWL_EXSTYLE);
+
+	// Save content
+	int count = lb.GetCount();
+	CString* items = NULL;
+	if (count > 0) {
+		items = new CString[count];
+		for (int i = 0; i < count; i++)
+			lb.GetText(i, items[i]);
+	}
+
+	// Destroy
+	lb.DestroyWindow();
+
+	// Modify style for dark/light
+	if (bDark) {
+		style = (style | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS) & ~WS_BORDER;
+		exStyle &= ~(WS_EX_CLIENTEDGE | WS_EX_STATICEDGE);
+	} else {
+		style = (style & ~LBS_OWNERDRAWFIXED) | WS_BORDER;
+		exStyle |= WS_EX_CLIENTEDGE;
+	}
+
+	// Recreate
+	lb.CreateEx(exStyle, _T("LISTBOX"), NULL,
+		style | WS_CHILD | WS_VISIBLE, rc, pParent, nID);
+	if (pFont) lb.SetFont(pFont);
+
+	// Restore content
+	if (items) {
+		for (int i = 0; i < count; i++)
+			lb.AddString(items[i]);
+		delete[] items;
+	}
+	if (sel >= 0 && sel < lb.GetCount())
+		lb.SetCurSel(sel);
+	lb.SetHorizontalExtent(hExtent);
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // CListExport message handlers
@@ -146,9 +206,14 @@ void CListExport::Load()
 		m_listmodule.SetCurSel( 0 );
 }
 
-BOOL CListExport::OnInitDialog() 
+BOOL CListExport::OnInitDialog()
 {
 	CResizePage::OnInitDialog();
+
+	// Apply dark mode early, before content is loaded
+	if (m_bDarkMode)
+		SetDarkMode(true);
+
 	if (m_bsort) OnToggleListStyle();
 	if (m_pe->IsValid())
 	{
@@ -158,21 +223,27 @@ BOOL CListExport::OnInitDialog()
 	font = new(CFont);
 	font->CreateFont( -FontSize, 0, 0, 0, FW_THIN, 0, 0, 0, ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY, FF_MODERN, _T("Tahoma") ); // modern Courrier New
 	m_list.SetFont( font );
-	
+	// After font change, re-send WM_MEASUREITEM by recreating if in dark mode
+	if (m_bDarkMode)
+		RecreateListBoxForDarkMode(m_list, this, IDC_LIST2, true);
+
     return TRUE;  // return TRUE unless you set the focus to a control
                  // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-void CListExport::OnToggleListStyle() 
+void CListExport::OnToggleListStyle()
 {
 	CRect rc;
 	CFont *fnt = m_list.GetFont();
 	m_list.GetWindowRect(&rc);
 	ScreenToClient(&rc);
 	m_ListStyle = m_list.GetStyle() ^ LBS_SORT | WS_VSCROLL | WS_HSCROLL;
+	if (m_bDarkMode)
+		m_ListStyle |= LBS_OWNERDRAWFIXED | LBS_HASSTRINGS;
 	m_list.DestroyWindow();
 	m_list.Create( m_ListStyle, rc, this, IDC_LIST2 );
-	m_list.ModifyStyleEx( 0, WS_EX_CLIENTEDGE, SWP_DRAWFRAME );
+	if (!m_bDarkMode)
+		m_list.ModifyStyleEx( 0, WS_EX_CLIENTEDGE, SWP_DRAWFRAME );
 	m_list.SetFont( fnt );
 	UpdateData(FALSE);
 }
@@ -497,4 +568,66 @@ BOOL CListExport::PreTranslateMessage(MSG* pMsg)
 		}
 	}
 	return CResizePage::PreTranslateMessage(pMsg);
+}
+
+void CListExport::SetDarkMode(bool bDark)
+{
+	CResizePage::SetDarkMode(bDark);
+	RecreateListBoxForDarkMode(m_listmodule, this, IDC_LIST1, bDark);
+	RecreateListBoxForDarkMode(m_list, this, IDC_LIST2, bDark);
+}
+
+void CListExport::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDIS)
+{
+	if (!lpDIS || lpDIS->itemID == (UINT)-1) return;
+	if (nIDCtl != IDC_LIST1 && nIDCtl != IDC_LIST2) {
+		CResizePage::OnDrawItem(nIDCtl, lpDIS);
+		return;
+	}
+
+	CListBox* pList = (nIDCtl == IDC_LIST1) ? &m_listmodule : &m_list;
+	bool bSelected = (lpDIS->itemState & ODS_SELECTED) != 0;
+	DarkModeColors dc = GetDarkColors();
+
+	COLORREF crBg = bSelected ? RGB(0, 90, 158) : dc.crBackground;
+	COLORREF crText = bSelected ? RGB(255, 255, 255) : dc.crText;
+
+	// Fill background
+	HBRUSH hBr = ::CreateSolidBrush(crBg);
+	::FillRect(lpDIS->hDC, &lpDIS->rcItem, hBr);
+	::DeleteObject(hBr);
+
+	// Draw text
+	CString str;
+	if (lpDIS->itemID < (UINT)pList->GetCount())
+		pList->GetText(lpDIS->itemID, str);
+	::SetBkMode(lpDIS->hDC, TRANSPARENT);
+	::SetTextColor(lpDIS->hDC, crText);
+	RECT rcText = lpDIS->rcItem;
+	rcText.left += 2;
+	::DrawText(lpDIS->hDC, str, -1, &rcText,
+		DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+
+	// Skip DrawFocusRect in dark mode — XOR drawing looks pink on dark backgrounds
+}
+
+void CListExport::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMIS)
+{
+	if (nIDCtl == IDC_LIST1 || nIDCtl == IDC_LIST2) {
+		CListBox* pList = (nIDCtl == IDC_LIST1) ? &m_listmodule : &m_list;
+		CDC* pDC = pList->m_hWnd ? pList->GetDC() : GetDC();
+		if (pDC) {
+			CFont* pFont = (pList->m_hWnd) ? pList->GetFont() : NULL;
+			CFont* pOld = pFont ? pDC->SelectObject(pFont) : NULL;
+			TEXTMETRIC tm;
+			pDC->GetTextMetrics(&tm);
+			lpMIS->itemHeight = tm.tmHeight + tm.tmExternalLeading + 2;
+			if (pOld) pDC->SelectObject(pOld);
+			if (pList->m_hWnd) pList->ReleaseDC(pDC); else ReleaseDC(pDC);
+		} else {
+			lpMIS->itemHeight = 16;
+		}
+		return;
+	}
+	CResizePage::OnMeasureItem(nIDCtl, lpMIS);
 }

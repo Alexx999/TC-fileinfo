@@ -9,6 +9,7 @@
 #endif // _MSC_VER > 1000
 // ResizePage.h : header file
 //
+#include "DarkMode.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CResizePage dialog
@@ -23,13 +24,17 @@ protected:
 	BOOL	m_first;
 	bool	m_editmode;
 	bool	m_forceredraw;
+	bool	m_bDarkMode;
+	CBrush	m_brDarkBg;
 // Construction
 public:
 	CResizePage(UINT nIDTemplate);
 	~CResizePage();
 	virtual void Init() { m_first = TRUE; }
 	virtual void Resize(CRect &rectPage);
+	virtual void SetDarkMode(bool bDark);
 	inline bool IsEditable() { return m_editmode; }
+	inline bool IsDarkMode() const { return m_bDarkMode; }
 // Dialog Data
 	//{{AFX_DATA(CResizePage)
 		// NOTE - ClassWizard will add data members here.
@@ -54,10 +59,15 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
 	afx_msg void OnDestroy( );
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
 };
+
+// Shared dark mode helpers for RichEdit controls
+void ApplyDarkRichEdit(CRichEditCtrl &redit, bool bDark);
+void ApplyDarkTextFormat(CRichEditCtrl &redit, bool bDark);
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

@@ -5,6 +5,8 @@
 #include "PageTree.h"
 
 #include "..\..\common\verwin.h"
+#include <uxtheme.h>
+#pragma comment(lib, "uxtheme.lib")
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -89,9 +91,13 @@ void CPageTree::Renew(PVOID pPE)
 		}
 }
 
-BOOL CPageTree::OnInitDialog() 
+BOOL CPageTree::OnInitDialog()
 {
 	CResizePage::OnInitDialog();
+
+	// Apply dark mode early, before content is loaded and shown
+	if (m_bDarkMode)
+		SetDarkMode(true);
 
 	CBitmap      bitmap;
 	pImageList = new CImageList();
@@ -123,8 +129,8 @@ BOOL CPageTree::OnInitDialog()
 
 	m_tree.SetImageList(pImageList, TVSIL_NORMAL);
 
-	if (FillTree) 
-	{	
+	if (FillTree)
+	{
 		CWait wait(this);
 		((pfunc) FillTree) (m_ptr, m_tree, wait);
 
@@ -133,6 +139,7 @@ BOOL CPageTree::OnInitDialog()
 		if (ver.ver >= WND_XP)
 			m_tree.Expand(m_tree.GetRootItem(), TVE_EXPAND);
 	}
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
@@ -172,4 +179,28 @@ BOOL CPageTree::PreTranslateMessage(MSG* pMsg)
 		}
 	}
 	return CResizePage::PreTranslateMessage(pMsg);
+}
+
+void CPageTree::SetDarkMode(bool bDark)
+{
+	CResizePage::SetDarkMode(bDark);
+
+	if (m_tree.m_hWnd) {
+		if (bDark) {
+			DarkModeColors dc = GetDarkColors();
+			m_tree.SetBkColor(dc.crBackground);
+			m_tree.SetTextColor(dc.crText);
+			m_tree.SetLineColor(dc.crText);
+			m_tree.ModifyStyle(WS_BORDER, 0, SWP_FRAMECHANGED);
+			m_tree.ModifyStyleEx(WS_EX_CLIENTEDGE, 0, SWP_FRAMECHANGED);
+			SetWindowTheme(m_tree.m_hWnd, L"DarkMode_Explorer", NULL);
+		} else {
+			m_tree.SetBkColor((COLORREF)-1); // reset to default
+			m_tree.SetTextColor((COLORREF)-1);
+			m_tree.SetLineColor(CLR_DEFAULT);
+			m_tree.ModifyStyleEx(0, WS_EX_CLIENTEDGE, SWP_FRAMECHANGED);
+			SetWindowTheme(m_tree.m_hWnd, NULL, NULL);
+		}
+		m_tree.Invalidate(TRUE);
+	}
 }

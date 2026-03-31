@@ -57,6 +57,7 @@ public:
 	void SetText(CString &text);
 	void SetCenter(bool b=TRUE);
 	void CListpagePty::Renew();
+	virtual void SetDarkMode(bool bDark);
 
 protected:
 	void CleanUp();

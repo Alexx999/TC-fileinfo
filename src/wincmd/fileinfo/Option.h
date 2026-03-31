@@ -28,6 +28,7 @@ public:
 	void Resize(CRect &rectPage);
 	BOOL UpdateData(BOOL bSaveAndValidate = TRUE);
 	BOOL Update();
+	virtual void SetDarkMode(bool bDark);
 // Dialog Data
    //{{AFX_DATA(COption)
 	enum { IDD = IDD_Option };

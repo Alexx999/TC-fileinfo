@@ -27,6 +27,7 @@ public:
    void SetPtr(PVOID ptr) { m_ptr = ptr; }
    void SetFillTree(pfunc FT) { FillTree = FT; }
    void Renew(PVOID pPE);
+   virtual void SetDarkMode(bool bDark);
 
 // Dialog Data
    //{{AFX_DATA(CPageTree)

@@ -142,7 +142,7 @@ BOOL CFileVersionInfo::ReadVersionInfo16(EXE_FILE &le)
 	pVerRes = (VXD_VERSION_RESOURCE *) le.GetTranslatedPtr((DWORD) pLXHeader->e32_winresoff);
 	if (pVerRes->cName > 0)
 	{  // ???????????????????
-		int szKeySize = strlen(&pVerRes->cName);
+		size_t szKeySize = strlen(&pVerRes->cName);
 #ifdef _DEBUG
 		AfxMessageBox(_T("??????"));
 #endif
@@ -228,7 +228,7 @@ VS_Dflt_NT *CFileVersionInfo::ReadStringFI_NT(VS_Dflt_NT *vi_st)
 	WCHAR   *vi_string;
 	BYTE    *decal = (BYTE *) vi_st;
 	BYTE    *start = (BYTE *) vi_st;
-	UINT	szKeySize;
+	size_t	szKeySize;
 	INT		szSize = vi_st->wLength;
 	CString	temp;
 
@@ -288,7 +288,7 @@ VS_Dflt_NT *CFileVersionInfo::ReadVarFI_NT(VS_Dflt_NT *vi_st)
 	DWORD    *vi_val;
 	BYTE		*decal;
 	BYTE		*start = (BYTE *) vi_st;
-	UINT		szKeySize;
+	size_t		szKeySize;
 	INT		szSize = vi_st->wLength;
 	CString	temp;
 
@@ -369,7 +369,7 @@ VS_Dflt *CFileVersionInfo::ReadStringFI(VS_Dflt *vi_st)
 	char    *vi_string;
 	BYTE    *decal = (BYTE *) vi_st;
 	BYTE    *start = (BYTE *) vi_st;
-	UINT		szKeySize;
+	size_t		szKeySize;
 	INT		szSize = vi_st->wLength;
 	CString	temp;
 
@@ -433,7 +433,7 @@ VS_Dflt *CFileVersionInfo::ReadVarFI(VS_Dflt *vi_st)
 	DWORD    *vi_val;
 	BYTE		*decal;
 	BYTE		*start = (BYTE *) vi_st;
-	UINT		szKeySize;
+	size_t		szKeySize;
 	INT		szSize = vi_st->wLength;
 //	CString	temp;
 

@@ -35,14 +35,14 @@ static  jmp_buf jmpb;
 #define MAXARGSLEN  512
 
 static  char    *   argBuffNext;
-static  unsigned    argBuffFree;
+static  size_t      argBuffFree;
 
 /*****************************************************************************/
 static  int     outerClass;
 static  int     isTemplateName;
 static  int     CountTemplateName = 0;
 /*****************************************************************************/
-static  void    arg_type(char **src, char **dest, unsigned *avail, char *outer);
+static  void    arg_type(char **src, char **dest, size_t *avail, char *outer);
 
 /*****************************************************************************
  *  Convert operator identifier to symbol.
@@ -129,7 +129,7 @@ static  char    *  translate_op(char *src)
  *  Copy a class name into the specified buffer, returning the total
  *  class name length; the class could be both nested and template.
  */
-static  int copyClassName(char *    destPtr, char *    className, unsigned  avail)
+static  size_t copyClassName(char *  destPtr, char *    className, size_t    avail)
 {
     char    *  begOffs = (char *)destPtr;
     char    *  maxOffs = (char *)destPtr + avail;
@@ -179,7 +179,7 @@ static  int copyClassName(char *    destPtr, char *    className, unsigned  avai
 				else
                 {
                     char    *    destSave;
-                    unsigned    availSave;
+                    size_t      availSave;
 
                     // A value argument -- skip the type
                     destSave = destPtr;
@@ -340,18 +340,18 @@ static  void    class_name(char **src, unsigned *len)
 }
 
 // forward declaration 
-static  void    arg_list(char **src, char **dest, unsigned *avail);
+static  void    arg_list(char **src, char **dest, size_t *avail);
 
 
 /*****************************************************************************
  *  Interpret an isolated encoded argument type.
  */
-static  void    arg_type(char **src, char **dest, unsigned *avail, char *outer)
+static  void    arg_type(char **src, char **dest, size_t *avail, char *outer)
 {
     char    *   p;
     char    *   s = *src;
     char    *   d = *dest;
-    unsigned    len;
+    size_t      len;
     char    *   spec_ptr = 0;
 
     for (;;)                /* emit type qualifiers */
@@ -456,7 +456,7 @@ NOT_BUILT_IN:
 
         if  (*avail >= len)
         {
-            unsigned    len;
+            size_t      len;
 
             len = copyClassName(d, s, *avail);
             d += len;
@@ -469,10 +469,10 @@ NOT_BUILT_IN:
     }
     else if (*s == 'p' || *s == 'r' || *s == 'm' || *s == 'n')
     {
-        // ptr or ref to type 
+        // ptr or ref to type
         short       is_func;
         short       is_ref = 0;
-        unsigned    len;
+        size_t      len;
 
         char        cfunc;      // it is a const function 
         char        vfunc;      // it is a volatile function 
@@ -611,7 +611,7 @@ NOT_BUILT_IN:
                 }
                 else
                 {
-                    unsigned    len = strlen(outer);
+                    size_t      len = strlen(outer);
 
                     if  (*avail >= len+2)
                     {
@@ -632,7 +632,7 @@ NOT_BUILT_IN:
         arg_list(&s, &d, avail);
         if  (*s == '$')     /* flags the return type */
         {
-            unsigned    ret_len;
+            size_t      ret_len;
             char    *   ret_type;
 
             ++s;
@@ -719,13 +719,13 @@ DONE:
  *
  *  Process an argument list.
  */
-static  void    arg_list(char **srcPP, char **dstPP, unsigned *availP)
+static  void    arg_list(char **srcPP, char **dstPP, size_t *availP)
 {
     char    *   srcP;
     char    *   dstP;
-    unsigned    avail;
+    size_t      avail;
 
-    unsigned    len;            /* temp string length */
+    size_t      len;            /* temp string length */
     unsigned    i;          /* counter */
 
     /*
@@ -737,7 +737,7 @@ static  void    arg_list(char **srcPP, char **dstPP, unsigned *availP)
     unsigned    argcount;
     char    *   argtypes[36];
 
-    unsigned    argBuffFreeSave;
+    size_t      argBuffFreeSave;
     char    *   argBuffNextSave;
 
     /* Copy incoming parameters into local variables */
@@ -805,7 +805,7 @@ static  void    arg_list(char **srcPP, char **dstPP, unsigned *availP)
         else
         {
             char    *   dd;
-            unsigned    len;
+            size_t      len;
 
             dd = dstP;
             arg_type(&srcP, &dstP, &avail, 0);
@@ -895,8 +895,8 @@ umKind  unmangle(char   *   src,
 
     char    *   dstClass;
 
-    unsigned    len;
-    int     avail=0;				// chars left in dest
+    size_t      len;
+    size_t      avail=0;			// chars left in dest
 
     char        cfunc;          // it is a const function
     char        vfunc;          // it is a volatile function
@@ -1173,7 +1173,10 @@ COPYIT:
     // Setup destination pointer, and remaining dest. buffer length
     dstP  = dest;
 	dstP  += strlen( dest );
-    avail = maxlen - (dstP - dest) - 5;     // Leave some extra room at the end
+    {   // Leave some extra room at the end
+        size_t used = (size_t)(dstP - dest);
+        avail = (maxlen > used + 5) ? maxlen - used - 5 : 0;
+    }
 
     // Prepare the quick exit route
     if  (setjmp(jmpb))

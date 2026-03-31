@@ -229,7 +229,7 @@ CStringA DumpLibFile( LPVOID ptr )
 		while ( pArchHeader )
 		{
 			DWORD thisMemberSize;
-			str += DisplayArchiveMemberHeader( pArchHeader, (PBYTE)pArchHeader - (PBYTE) lpFileBase );
+			str += DisplayArchiveMemberHeader( pArchHeader, (DWORD)((PBYTE)pArchHeader - (PBYTE) lpFileBase) );
 			str += ("\n");
 
 			if ( !strncmp( 	(char *)pArchHeader->Name,

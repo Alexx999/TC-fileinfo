@@ -57,7 +57,7 @@ char *ctime2(const time_t *t)
 	char *time = ctime(t);
 	if (time)
 	{
-		UINT i = strlen(time);
+		size_t i = strlen(time);
 		time[i-1]=0;
 	}
 	return time;

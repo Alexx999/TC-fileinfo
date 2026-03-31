@@ -558,7 +558,7 @@ void CHyperLink::FollowLink()
 	INT_PTR result = (INT_PTR) GotoURL(m_strURL, SW_SHOWNORMAL);
     if (result <= HINSTANCE_ERROR) {
         MessageBeep(MB_ICONEXCLAMATION);	// Unable to follow link
-        ReportError(result);
+        ReportError((int)result);
     } else {
 		// Mark link as visited and repaint window
 		m_bVisited = TRUE;		

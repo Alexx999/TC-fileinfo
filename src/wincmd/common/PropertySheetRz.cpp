@@ -178,7 +178,7 @@ BOOL CPropertySheetRz::PreTranslateMessage(MSG* pMsg)
 //				if (pMsg->wParam == VK_TAB)
 //					return CPropertySheet::PreTranslateMessage(pMsg);
 				if ((pMsg->wParam >= '0') && (pMsg->wParam <= '9'))
-					SetActivePage( pMsg->wParam - '1' );
+					SetActivePage( (int)(pMsg->wParam - '1') );
 			}
 			if (pMsg->wParam == VK_DOWN
 				  || pMsg->wParam == VK_UP 

@@ -154,14 +154,14 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 			CString strBaseName(pszBaseName);  // ANSI to wide conversion
 			pTemp = LookupModule( strBaseName, FALSE );
 			findyet = (pTemp != NULL);
-			BOOL bResolved = m_pPathCache
-				? m_pPathCache->Resolve(strBaseName, szPath, MAX_PATH)
-				: ResolveDllPath(strBaseName, szPath, MAX_PATH);
-			if ( !findyet && !bResolved)
-				pTemp = pNew->m_pNext = new MODULE_FILE_INFO( strBaseName, pImportDir->Name, FALSE);
-			else
+			if ( !findyet )
 			{
-				if (!findyet)
+				BOOL bResolved = m_pPathCache
+					? m_pPathCache->Resolve(strBaseName, szPath, MAX_PATH)
+					: ResolveDllPath(strBaseName, szPath, MAX_PATH);
+				if ( !bResolved)
+					pTemp = pNew->m_pNext = new MODULE_FILE_INFO( strBaseName, pImportDir->Name, FALSE);
+				else
 				{
 					pTemp = pNew->m_pNext = new MODULE_FILE_INFO( szPath, pImportDir->Name, TRUE );
 					if (IsApiSetName(strBaseName))

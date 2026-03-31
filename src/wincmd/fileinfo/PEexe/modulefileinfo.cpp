@@ -68,59 +68,37 @@ BOOL MODULE_FILE_INFO::TestFunction( CDllHandleCache* pHandleCache )
 		POSITION pos = m_Flist.GetHeadPosition();
 		if (pos)
 		{
-			LPTSTR pszDontCare;
-			TCHAR szPath[MAX_PATH];
-			TCHAR szOriginalPath[MAX_PATH];
-
-			BOOL fHasPath = FALSE;
-			LPTSTR pszJustPath = _tcsdup( m_szFullName );
-			LPTSTR pszEnd = _tcsrchr( pszJustPath, _T('\\') );
-			if ( pszEnd )
+			// m_szFullName is already the fully resolved absolute path,
+			// so we can use it directly — no SearchPath or SetCurrentDirectory needed.
+			HINSTANCE h;
+			if (pHandleCache)
 			{
-				*pszEnd = 0;	 /// Strip off the filename
-				fHasPath = TRUE;
+				h = pHandleCache->GetHandle(m_szFullName, b_W95Protect);
 			}
-
-			if ( fHasPath )
+			else
 			{
-				GetCurrentDirectory(MAX_PATH, szOriginalPath);  // Save original dir
-				SetCurrentDirectory( pszJustPath  );				 // Switch to app's dir
-			}
-			free (pszJustPath  );
-
-			if (SearchPath(0, m_szFullName, 0, MAX_PATH, szPath, &pszDontCare))
-			{
-				HINSTANCE h;
-				if (pHandleCache)
-				{
-					h = pHandleCache->GetHandle(szPath, b_W95Protect);
-				}
+				if (b_W95Protect)
+					h = LoadLibraryEx(m_szFullName, NULL, LOAD_LIBRARY_AS_DATAFILE);
 				else
-				{
-					if (b_W95Protect)
-						h = LoadLibraryEx(szPath, NULL, LOAD_LIBRARY_AS_DATAFILE);
-					else
-						h = LoadLibraryEx(szPath, NULL, DONT_RESOLVE_DLL_REFERENCES);
-				}
-				if (h)
-				{
-					CString func;
-					do {
-						func = m_Flist.GetNext(pos);
-						if (_tcsncmp(func, _T("<invalid name>"), 14) == 0) continue;
-						if (_tcsncmp(_T("ordinal "), func, 8)==0)
-						{
-							if (!GetProcAddress( h, MAKEINTRESOURCEA(_ttoi((LPCTSTR) func + 8))))
-							{ pos = NULL; ret = FALSE; }
-						}
-						else if (!GetProcAddress( h, CT2A(func)))
-						{ ret = FALSE; pos = NULL; }
-					} while( pos );
-					if (!pHandleCache)
-						FreeLibrary( h );	// Only free if not cached
-				}
+					h = LoadLibraryEx(m_szFullName, NULL, DONT_RESOLVE_DLL_REFERENCES);
 			}
-			if ( fHasPath ) SetCurrentDirectory( szOriginalPath );
+			if (h)
+			{
+				CString func;
+				do {
+					func = m_Flist.GetNext(pos);
+					if (_tcsncmp(func, _T("<invalid name>"), 14) == 0) continue;
+					if (_tcsncmp(_T("ordinal "), func, 8)==0)
+					{
+						if (!GetProcAddress( h, MAKEINTRESOURCEA(_ttoi((LPCTSTR) func + 8))))
+						{ pos = NULL; ret = FALSE; }
+					}
+					else if (!GetProcAddress( h, CT2A(func)))
+					{ ret = FALSE; pos = NULL; }
+				} while( pos );
+				if (!pHandleCache)
+					FreeLibrary( h );	// Only free if not cached
+			}
 		}
 	}
 	return (m_bIFound = ret);

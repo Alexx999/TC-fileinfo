@@ -392,16 +392,23 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddForwardedExportModules()
 		if ( !pszForward )
 			continue;
 
-		// Parse "DLLName.FunctionName" — extract DLL name up to the dot
+		// Parse "DLLName.FunctionName" — extract DLL name and function
 		CString strForward( pszForward );
 		int dotPos = strForward.Find( _T('.') );
 		if ( dotPos <= 0 )
 			continue;
 		CString strDllName = strForward.Left( dotPos ) + _T(".dll");
+		CString strFuncName = strForward.Mid( dotPos + 1 );
 
-		// Skip if already in the dependency list
-		if ( LookupModule( strDllName, FALSE ) )
+		// Check if this target DLL is already in the dependency list
+		PMODULE_FILE_INFO pExisting = LookupModule( strDllName, FALSE );
+		if ( pExisting )
+		{
+			// Add the forwarded function to the existing entry
+			if ( !strFuncName.IsEmpty() )
+				pExisting->AddFunc( strFuncName );
 			continue;
+		}
 
 		TCHAR szPath[MAX_PATH];
 		BOOL found = ResolveDllPath( strDllName, szPath, MAX_PATH );
@@ -409,6 +416,8 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddForwardedExportModules()
 			found ? szPath : (LPCTSTR)strDllName, 0, found );
 		if ( found && IsApiSetName( strDllName ) )
 			pNew->SetApiSetName( strDllName );
+		if ( !strFuncName.IsEmpty() )
+			pNew->AddFunc( strFuncName );
 
 		// Append to the module list
 		if ( pTail )

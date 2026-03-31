@@ -306,7 +306,7 @@ BOOL CListExport::OnInitDialog()
 	}
 	m_list.SetHorizontalExtent( m_Hsize * 10 );
 	font = new(CFont);
-	font->CreateFont( -FontSize, 0, 0, 0, FW_THIN, 0, 0, 0, ANSI_CHARSET, OUT_DEVICE_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY, FF_MODERN, _T("Tahoma") ); // modern Courrier New
+	font->CreateFont( -FontSize, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FIXED_PITCH | FF_MODERN, _T("Consolas") );
 	m_list.SetFont( font );
 
     return TRUE;  // return TRUE unless you set the focus to a control
@@ -433,6 +433,27 @@ void CListExport::AddFunction(int sel)
 				// Compute export directory bounds for forwarder detection
 				DWORD exportsStartRVA = m_pe->GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_EXPORT);
 				DWORD exportsEndRVA = exportsStartRVA + m_pe->GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_EXPORT);
+
+				// First pass: find max export name length for arrow alignment
+				int maxExportLen = 0;
+				for(i=0; i < (int) exportDir->NumberOfNames; i++)
+				{
+					PSTR Name = (PSTR) m_pe->GetReadablePointerFromRVA( name[i] );
+					if (Name)
+					{
+						int len;
+						if ( m_undecorate )
+						{
+							char Textout[SIZEBUFFER];
+							len = (int)strlen(Undecorate(Name, Textout, SIZEBUFFER));
+						}
+						else len = (int)strlen(Name);
+						if (len > maxExportLen) maxExportLen = len;
+					}
+				}
+				int padTo = maxExportLen + 2;
+
+				// Second pass: display with aligned forwarding arrows
 				for(i=0; i < (int) exportDir->NumberOfFunctions; i++)
 				{
 					BOOL found = FALSE;
@@ -440,12 +461,12 @@ void CListExport::AddFunction(int sel)
 					if ( entryPointRVA == 0 ) continue; // Skip over gaps in exported function
 					// Check if this export is a forwarder
 					BOOL isForwarder = (entryPointRVA >= exportsStartRVA) && (entryPointRVA <= exportsEndRVA);
-					CString strForward;
+					CString strForwardTarget;
 					if (isForwarder)
 					{
 						PSTR pszForward = (PSTR)m_pe->GetReadablePointerFromRVA(entryPointRVA);
 						if (pszForward)
-							strForward.Format(_T("  ->  %S"), pszForward);
+							strForwardTarget = CString(pszForward);
 					}
 					for ( int j=0; j < (int) exportDir->NumberOfNames; j++ )
 						if ( ordinals[j] == i )
@@ -459,8 +480,14 @@ void CListExport::AddFunction(int sel)
 								displayName = CString(Undecorate(Name, Textout, SIZEBUFFER));
 							}
 							else displayName = CString(Name);
-							if (!strForward.IsEmpty())
-								displayName += strForward;
+							if (!strForwardTarget.IsEmpty())
+							{
+								int pad = padTo - displayName.GetLength();
+								if (pad < 2) pad = 2;
+								CString entry;
+								entry.Format(_T("%s%*s-> %s"), (LPCTSTR)displayName, pad, _T(""), (LPCTSTR)strForwardTarget);
+								displayName = entry;
+							}
 							m_list.AddString( displayName );
 							int size = displayName.GetLength();
 							if (m_Hsize < size) m_Hsize = size;
@@ -469,8 +496,14 @@ void CListExport::AddFunction(int sel)
 					{
 						CString displayName;
 						displayName.Format( _T("ordinal %d"), i );
-						if (!strForward.IsEmpty())
-							displayName += strForward;
+						if (!strForwardTarget.IsEmpty())
+						{
+							int pad = padTo - displayName.GetLength();
+							if (pad < 2) pad = 2;
+							CString entry;
+							entry.Format(_T("%s%*s-> %s"), (LPCTSTR)displayName, pad, _T(""), (LPCTSTR)strForwardTarget);
+							displayName = entry;
+						}
 						m_list.AddString( displayName );
 					}
 

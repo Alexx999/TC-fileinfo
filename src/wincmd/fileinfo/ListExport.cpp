@@ -99,7 +99,8 @@ BEGIN_MESSAGE_MAP(CListExport, CResizePage)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
-// Dark mode listbox subclass — custom paint, preserving original scrollbar/input
+// Dark mode listbox subclass — custom WM_PAINT with double-buffering,
+// all input/scroll messages wrapped in WM_SETREDRAW to suppress internal drawing
 
 static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -110,20 +111,26 @@ static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 	switch (msg)
 	{
 	case WM_ERASEBKGND:
-		return TRUE;  // handled in WM_PAINT
+		return TRUE;
 
-	// During mouse/keyboard tracking the listbox paints items directly with
-	// system colors, bypassing WM_PAINT. Suppress its drawing with WM_SETREDRAW
-	// while it processes the message, then force our dark WM_PAINT instead.
+	case WM_PRINTCLIENT:
+		return 0;  // suppress animation/scroll paint-through
+
+	// Suppress the listbox's internal direct-DC drawing for ALL messages
+	// that can change selection or scroll position.
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONDBLCLK:
 	case WM_KEYDOWN:
+	case WM_KEYUP:
+	case WM_CHAR:
+	case WM_MOUSEWHEEL:
+	case WM_VSCROLL:
+	case WM_HSCROLL:
 		{
 			::SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 			LRESULT result = ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
 			::SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-			::InvalidateRect(hWnd, NULL, FALSE);
-			::UpdateWindow(hWnd);
+			::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE);
 			return result;
 		}
 	case WM_MOUSEMOVE:
@@ -131,8 +138,7 @@ static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 			::SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 			LRESULT result = ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
 			::SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-			::InvalidateRect(hWnd, NULL, FALSE);
-			::UpdateWindow(hWnd);
+			::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE);
 			return result;
 		}
 		break;
@@ -148,12 +154,11 @@ static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 			int w = rcClient.right - rcClient.left;
 			int h = rcClient.bottom - rcClient.top;
 
-			// Double-buffer: draw to offscreen bitmap, then BitBlt once
+			// Double-buffer to offscreen bitmap
 			HDC hMemDC = ::CreateCompatibleDC(hDC);
 			HBITMAP hBmp = ::CreateCompatibleBitmap(hDC, w, h);
 			HBITMAP hOldBmp = (HBITMAP)::SelectObject(hMemDC, hBmp);
 
-			// Fill entire background
 			HBRUSH hBr = ::CreateSolidBrush(dc.crBackground);
 			::FillRect(hMemDC, &rcClient, hBr);
 			::DeleteObject(hBr);
@@ -195,7 +200,6 @@ static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 
 			if (hOldFont) ::SelectObject(hMemDC, hOldFont);
 
-			// Single
 			::BitBlt(hDC, 0, 0, w, h, hMemDC, 0, 0, SRCCOPY);
 			::SelectObject(hMemDC, hOldBmp);
 			::DeleteObject(hBmp);
@@ -320,7 +324,7 @@ void CListExport::OnToggleListStyle()
 	m_list.Create( m_ListStyle, rc, this, IDC_LIST2 );
 	m_list.ModifyStyleEx( 0, WS_EX_CLIENTEDGE, SWP_DRAWFRAME );
 	m_list.SetFont( fnt );
-	// Re-apply dark subclass + theme to the new HWND
+	// Re-apply dark theme + subclass to the new HWND
 	if (m_bDarkMode) {
 		DarkMode_AllowForWindow(m_list.m_hWnd, TRUE);
 		SetWindowTheme(m_list.m_hWnd, L"DarkMode_Explorer", NULL);

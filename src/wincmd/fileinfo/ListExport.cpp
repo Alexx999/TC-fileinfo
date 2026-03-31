@@ -70,7 +70,7 @@ void CListExport::CleanUp()
 	{
 		UpdateData(TRUE);	
 		TCHAR temp[50];
-		WritePrivateProfileString( _T("Options"), _T("Sort"), _itot(m_bsort, temp, 10), inifilename);
+		_itot_s(m_bsort, temp, 10); WritePrivateProfileString( _T("Options"), _T("Sort"), temp, inifilename);
 	}
 }
 

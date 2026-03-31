@@ -85,7 +85,7 @@ void LoadPlugin(CString inifilename)
 		TCHAR str[512]; //
 		ExpandEnvironmentStrings( buff, str, 510);
 #ifdef _WIN64
-		_tcscat(str, _T("64"));
+		_tcscat_s(str, _T("64"));
 #endif
 		(DecPlugin::pluglist).AddTail(str);
 		if (++i > 9) break;
@@ -449,14 +449,14 @@ void __stdcall ListSetDefaultParams(ListDefaultParamStruct* dps)
 //   dps->size;
 //   dps->PluginInterfaceVersionLow;
 //   dps->PluginInterfaceVersionHi;
-	_tcsncpy(iniPath, CString(dps->DefaultIniName), MAX_PATH-1);
+	_tcsncpy_s(iniPath, CString(dps->DefaultIniName), MAX_PATH-1);
 	GetPath(iniPath);
 
-	_tcscat(iniPath, inifilename);
-	_tcsncpy(inifilename, iniPath, MAX_PATH-1);
+	_tcscat_s(iniPath, inifilename);
+	_tcsncpy_s(inifilename, iniPath, MAX_PATH-1);
 
 	GetPath(iniPath);
-	_tcscat(iniPath, _T("wincmd.ini"));
+	_tcscat_s(iniPath, _T("wincmd.ini"));
 }
 
 int __stdcall ListSendCommand(HWND ListWin,int Command,int Parameter)
@@ -488,21 +488,21 @@ void __stdcall ListCloseWindow(HWND ListWin)
 	CFileinfoListWnd *pWin = ( CFileinfoListWnd *) CFileinfoListWnd::FromHandlePermanent(ListWin);
 //	op = ((CListSheet *) pWin->GetpSheet())->m_option.GetOptionDefault();
 	if(((CListSheet *)pWin->GetpSheet())->m_option.Update()) {
-		WritePrivateProfileString( _T("Options"), _T("RememberAP"), _itot(op.rememberAP, temp, 10), inifilename);
-		WritePrivateProfileString( _T("Options"), _T("Autosave"), _itot(op.autosave, temp, 10), inifilename);
-		WritePrivateProfileString( _T("Options"), _T("Undecorate"), _itot(op.undec, temp, 10), inifilename);
-		WritePrivateProfileString( _T("Options"), _T("ShowDebug"), _itot(op.debug, temp, 10), inifilename);
-		WritePrivateProfileString( _T("Options"), _T("Dump_res"), _itot(op.res, temp, 10), inifilename);
-		WritePrivateProfileString( _T("Options"), _T("MaxDepth"), _itot(op.MaxDepth, temp, 10), inifilename);
-		WritePrivateProfileString( _T("Options"), _T("Dump_Pdata"), _itot(op.pdata, temp, 10), inifilename);
-		WritePrivateProfileString( _T("Options"), _T("Dump_reloc"), _itot(op.reloc, temp, 10), inifilename);
+		_itot_s(op.rememberAP, temp, 10); WritePrivateProfileString( _T("Options"), _T("RememberAP"), temp, inifilename);
+		_itot_s(op.autosave, temp, 10);  WritePrivateProfileString( _T("Options"), _T("Autosave"), temp, inifilename);
+		_itot_s(op.undec, temp, 10);     WritePrivateProfileString( _T("Options"), _T("Undecorate"), temp, inifilename);
+		_itot_s(op.debug, temp, 10);     WritePrivateProfileString( _T("Options"), _T("ShowDebug"), temp, inifilename);
+		_itot_s(op.res, temp, 10);       WritePrivateProfileString( _T("Options"), _T("Dump_res"), temp, inifilename);
+		_itot_s(op.MaxDepth, temp, 10);  WritePrivateProfileString( _T("Options"), _T("MaxDepth"), temp, inifilename);
+		_itot_s(op.pdata, temp, 10);     WritePrivateProfileString( _T("Options"), _T("Dump_Pdata"), temp, inifilename);
+		_itot_s(op.reloc, temp, 10);     WritePrivateProfileString( _T("Options"), _T("Dump_reloc"), temp, inifilename);
 	}
 //	WritePrivateProfileString( _T("Options"), _T("Sort"), _itot(op.sort, temp, 10), inifilename);
 
 	if ( op.rememberAP )
 	{
 		UINT i = pWin->GetpSheet()->GetActiveIndex( );
-		WritePrivateProfileString( _T("Options"), _T("ActivePage"), _itot(i, temp, 10), inifilename);
+		_itot_s(i, temp, 10); WritePrivateProfileString( _T("Options"), _T("ActivePage"), temp, inifilename);
 	}
 	if (op.autosave)   
 	{

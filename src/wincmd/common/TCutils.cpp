@@ -100,7 +100,8 @@ void ConvertFont2String(CWnd *ParentWnd, FontOptions &fo, _TCHAR *st)
 		return;
 	CDC *pDC = ParentWnd->GetDC( );
 	int size = -MulDiv(fo.fontsize/20, pDC->GetDeviceCaps(LOGPIXELSX), 72);
-	text = (CString) fo.fontname + _T(",")+ _itot(size, temp, 10);
+	_itot_s(size, temp, 10);
+	text = (CString) fo.fontname + _T(",")+ temp;
 	if (fo.fontbold)
 		text += _T(",b");
 	if (fo.fontitalic)
@@ -120,7 +121,7 @@ FontOptions GetFontOptions(CWnd *ParentWnd, CString TCiniPath)
         {
            CString strRes(temp), size, type;
            AfxExtractSubString(fontname, strRes, 0, _T(','));
-		   _tcscpy(fo.fontname, fontname);
+		   _tcscpy_s(fo.fontname, fontname);
            AfxExtractSubString(size, strRes, 1, _T(','));
            fo.fontsize = _tstoi(( LPCTSTR )size);  // fontsize en Device Units
            CDC *pDC = ParentWnd->GetDC( );

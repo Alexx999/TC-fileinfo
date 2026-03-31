@@ -268,7 +268,7 @@ void CListOcx::UpdateFont( void )
    if (*m_fo.fontname)
    {
       cf.dwMask = cf.dwMask | CFM_FACE;
-      _tcscpy(cf.szFaceName,  m_fo.fontname);
+      _tcscpy_s(cf.szFaceName, m_fo.fontname);
       modif = TRUE;
    }
 

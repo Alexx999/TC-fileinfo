@@ -866,12 +866,12 @@ void HexDump(PBYTE ptr, DWORD length)
                 if ( value < 0x10 )
                 {
                     *buffPtr++ = '0';
-                    itoa( value, buffPtr++, 16);
+                    *buffPtr++ = "0123456789abcdef"[value];
                 }
                 else
                 {
-                    itoa( value, buffPtr, 16);
-                    buffPtr+=2;
+                    *buffPtr++ = "0123456789abcdef"[value >> 4];
+                    *buffPtr++ = "0123456789abcdef"[value & 0xF];
                 }
  
                 *buffPtr++ = ' ';

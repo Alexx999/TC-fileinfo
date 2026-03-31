@@ -678,9 +678,9 @@ UINT SearchCompressedEXE(PIMAGE_NT_HEADERS32 pNTHeader)
 	PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(pNTHeader);
 	for(int i=0; i < pNTHeader->FileHeader.NumberOfSections; i++, section++)
 	{
-		if (strnicmp((const char *)section->Name , "upx", 3) == 0)
+		if (_strnicmp((const char *)section->Name , "upx", 3) == 0)
 			return 1;
-		else if (strnicmp((const char *)section->Name , ".upx", 4) == 0)
+		else if (_strnicmp((const char *)section->Name , ".upx", 4) == 0)
 			return 1;
 		else if (strncmp((const char *)section->Name , ".aspack", 6) == 0)
 			return 2;

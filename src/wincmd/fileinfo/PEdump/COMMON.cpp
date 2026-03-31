@@ -129,22 +129,37 @@ CStringA DumpHeader(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER3
 }
 
 // #ifndef	IMAGE_DLLCHARACTERISTICS_WDM_DRIVER
-#define IMAGE_DLLCHARACTERISTICS_NO_BIND 0x0800 // Do not bind image
+#define IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA 0x0020 // Image can handle a high entropy 64-bit VA space
+#define IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE 0x0040    // DLL can be relocated at load time (ASLR)
+#define IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY 0x0080 // Code Integrity checks are enforced
+#define IMAGE_DLLCHARACTERISTICS_NX_COMPAT 0x0100       // Image is NX compatible (DEP)
+#define IMAGE_DLLCHARACTERISTICS_NO_ISOLATION 0x0200    // Isolation aware, but do not isolate the image
+#define IMAGE_DLLCHARACTERISTICS_NO_SEH 0x0400          // Does not use structured exception handling
+#define IMAGE_DLLCHARACTERISTICS_NO_BIND 0x0800         // Do not bind image
+#define IMAGE_DLLCHARACTERISTICS_APPCONTAINER 0x1000    // Image must execute in an AppContainer
 #define IMAGE_DLLCHARACTERISTICS_WDM_DRIVER  0x2000     // Driver uses WDM model
-#define IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE 0x8000 //Image is Terminal Server aware
+#define IMAGE_DLLCHARACTERISTICS_GUARD_CF 0x4000        // Image supports Control Flow Guard
+#define IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE 0x8000 // Image is Terminal Server aware
 // #endif
 
-// Marked as obsolete in MSDN CD 9
 // Bitfield values and names for the DllCharacteritics flags
-WORD_FLAG_DESCRIPTIONS DllCharacteristics[] = 
+WORD_FLAG_DESCRIPTIONS DllCharacteristics[] =
 {
 	{ 1, "Reserved" },
 	{ 2, "Reserved" },
 	{ 4, "Reserved" },
 	{ 8, "Reserved" },
+	{ IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA, "High Entropy VA (64-bit ASLR)" },
+	{ IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE, "Dynamic base (ASLR)" },
+	{ IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY, "Force code integrity checks" },
+	{ IMAGE_DLLCHARACTERISTICS_NX_COMPAT, "NX compatible (DEP)" },
+	{ IMAGE_DLLCHARACTERISTICS_NO_ISOLATION, "No isolation" },
+	{ IMAGE_DLLCHARACTERISTICS_NO_SEH, "No structured exception handling (SEH)" },
 	{ IMAGE_DLLCHARACTERISTICS_NO_BIND, "Do not bind image" },
+	{ IMAGE_DLLCHARACTERISTICS_APPCONTAINER, "AppContainer" },
 	{ IMAGE_DLLCHARACTERISTICS_WDM_DRIVER, "Driver uses a WDM model" },
-	{ IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE, "Image is Terminal Server aware"},
+	{ IMAGE_DLLCHARACTERISTICS_GUARD_CF, "Control Flow Guard (CFG)" },
+	{ IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE, "Terminal Server aware"},
 };
 #define NUMBER_DLL_CHARACTERISTICS \
     (sizeof(DllCharacteristics) / sizeof(WORD_FLAG_DESCRIPTIONS))
@@ -167,7 +182,7 @@ char *ImageDirectoryNames[] = {
     "Debug Directory", 
 	"Architecture Specific Data", "Global Pointer", "TLS Directory", "Load config table",
     "Bound Import table", "Import Address Table",  // These two entries added for NT 3.51
-	"Delay import descriptor", "COM descriptor" };		// This entry added in NT 5
+	"Delay import descriptor", "CLR Runtime Header" };		// a.k.a. COM descriptor, added in NT 5
 
 #define NUMBER_IMAGE_DIRECTORY_ENTRYS \
     (sizeof(ImageDirectoryNames)/sizeof(char *))
@@ -698,9 +713,12 @@ PIMAGE_SECTION_HEADER GetEnclosingSectionHeader(DWORD rva,
 
 
 char *SzDebugFormats[] = {
-"UNKNOWN/BORLAND","COFF","CODEVIEW","FPO","MISC","EXCEPTION","FIXUP",
-"OMAP_TO_SRC", "OMAP_FROM_SRC", "BORLAND", "RESERVED"};
-#define NBDEBUGTYPE 11
+"UNKNOWN","COFF","CODEVIEW","FPO","MISC","EXCEPTION","FIXUP",
+"OMAP_TO_SRC", "OMAP_FROM_SRC", "BORLAND", "RESERVED10",
+"CLSID", "VC_FEATURE", "POGO", "ILTCG", "MPX",
+"REPRO", "Embedded Portable PDB", "(18)", "(19)",
+"EX_DLLCHARACTERISTICS", "PERFMAP"};
+#define NBDEBUGTYPE 22
 //
 // Dump the debug directory array
 //

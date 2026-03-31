@@ -541,8 +541,15 @@ CStringA DumpRuntimeFunctions( PE_EXE &pe )
 }
 
 // The names of the available base relocations
-char *SzRelocTypes[] = {"ABSOLUTE","HIGH","LOW","HIGHLOW","HIGHADJ","MIPS_JMPADDR","SECTION","REL32", "unknown", "IA64_IMM64", "DIR64", "HIGH3ADJ" };
-#define NBRELOCTYPE 12
+char *SzRelocTypes[] = {
+"ABSOLUTE","HIGH","LOW","HIGHLOW","HIGHADJ",
+"MIPS_JMPADDR/ARM_MOV32",
+"Reserved",
+"THUMB_MOV32/RISCV_HIGH20",
+"RISCV_LOW12I/LOONGARCH32_MARK_LA",
+"IA64_IMM64", "DIR64", "HIGH3ADJ",
+"RISCV_LOW12S/LOONGARCH64_MARK_LA" };
+#define NBRELOCTYPE 13
 //
 // Dump the base relocation table of a PE file
 //CStringA DumpBaseRelocationsSection(DWORD base, PIMAGE_NT_HEADERS pNTHeader)

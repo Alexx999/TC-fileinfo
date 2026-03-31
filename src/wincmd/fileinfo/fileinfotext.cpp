@@ -396,14 +396,14 @@ static void CreateChildTreeCached( CTreeCtrl &tree, HTREEITEM &ParentItem,
 		{
 			if (pModInfo->IsModuleFound())
 			{
-				MODULE_DEPENDENCY_LIST *pDepChild = modCache.GetDepends(pModInfo->GetFullName(), &pathCache);
-
 				if (pModInfo->TestFunction(&handleCache))
 					ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 0, 0, ParentItem );
 				else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 4, 4, ParentItem );/**/
-				if ( pDepChild->IsValid() )
+				// Only load child dependencies when we'll actually recurse
+				if ( depth + 1 < MaxDepth )
 				{
-					if ( depth + 1 < MaxDepth )
+					MODULE_DEPENDENCY_LIST *pDepChild = modCache.GetDepends(pModInfo->GetFullName(), &pathCache);
+					if ( pDepChild->IsValid() )
 						CreateChildTreeCached(tree, ChidItem, pDepChild, depth + 1,
 							modCache, pathCache, handleCache);
 				}
@@ -417,13 +417,14 @@ static void CreateChildTreeCached( CTreeCtrl &tree, HTREEITEM &ParentItem,
 		{
 			if (pModInfo->IsModuleFound())
 			{
-				MODULE_DEPENDENCY_LIST *pDepChild = modCache.GetDepends(pModInfo->GetFullName(), &pathCache);
 				if (pModInfo->TestFunction(&handleCache))
 					ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 2, 2, ParentItem );
 				else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 5, 5, ParentItem );
-				if ( pDepChild->IsValid() )
+				// Only load child dependencies when we'll actually recurse
+				if (depth + 1 < MaxDepth)
 				{
-					if (depth + 1 < MaxDepth)
+					MODULE_DEPENDENCY_LIST *pDepChild = modCache.GetDepends(pModInfo->GetFullName(), &pathCache);
+					if ( pDepChild->IsValid() )
 						CreateChildTreeCached(tree, ChidItem, pDepChild, depth + 1,
 							modCache, pathCache, handleCache);
 				}
@@ -441,9 +442,6 @@ void CreateParentTree( PVOID ptr, CTreeCtrl &tree, CWait &wait)
     if (!tree.m_hWnd) return;
     wait.SetStatus("Analysing Modules...");
 
-	// Suppress redraws during tree population for performance
-	tree.SetRedraw(FALSE);
-
     HTREEITEM ParentItem = tree.InsertItem( pPE->GetName()); //>GetPath() + pPE->GetBaseName());
 	pPE->IsCoded();		//Test compressed and decompress
 
@@ -456,10 +454,6 @@ void CreateParentTree( PVOID ptr, CTreeCtrl &tree, CWait &wait)
     MODULE_DEPENDENCY_LIST *pDep = pPE->GetDepends();
     if (pDep->IsValid())
 		CreateChildTreeCached(tree, ParentItem, pDep, 0, modCache, pathCache, handleCache);
-
-	// Re-enable redraws and force a single repaint
-	tree.SetRedraw(TRUE);
-	tree.Invalidate();
 }
 
 

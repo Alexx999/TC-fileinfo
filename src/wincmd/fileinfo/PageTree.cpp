@@ -81,16 +81,18 @@ void CPageTree::Renew(PVOID pPE)
 {
 	CleanUp();
 	m_ptr = pPE;
-	if (m_tree.m_hWnd) 
-		if (FillTree) 
-		{	
+	if (m_tree.m_hWnd)
+		if (FillTree)
+		{
+			m_tree.SetRedraw(FALSE);
 			CWait wait(this);
 			((pfunc) FillTree) (m_ptr, m_tree, wait);
 
-	// Expand the first branch on W95/WNT/W2k  ( à TESTER )
 			VERSION ver = GetSystemVersion();
 			if (ver.ver >= WND_XP)
 				m_tree.Expand(m_tree.GetRootItem(), TVE_EXPAND);
+			m_tree.SetRedraw(TRUE);
+			m_tree.Invalidate();
 		}
 }
 
@@ -141,13 +143,15 @@ BOOL CPageTree::OnInitDialog()
 
 	if (FillTree)
 	{
+		m_tree.SetRedraw(FALSE);
 		CWait wait(this);
 		((pfunc) FillTree) (m_ptr, m_tree, wait);
 
-// Expand the first branch on W95/WNT/W2k  ( à TESTER )
 		VERSION ver = GetSystemVersion();
 		if (ver.ver >= WND_XP)
 			m_tree.Expand(m_tree.GetRootItem(), TVE_EXPAND);
+		m_tree.SetRedraw(TRUE);
+		m_tree.Invalidate();
 	}
 
 	return TRUE;  // return TRUE unless you set the focus to a control

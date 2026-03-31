@@ -333,11 +333,31 @@ CString CreateText3(PVOID ptr, CWait &wait)
 
 extern int MaxDepth;
 void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_LIST *pdep)
-{ // MaxDepth 2 
-// #define MaxDepth 1 
+{ // MaxDepth 2
+// #define MaxDepth 1
 	static int depth = 0;
 	HTREEITEM ChidItem;
+
+	// First pass: find longest base name among all siblings for alignment
+	int maxNameLen = 0;
 	PMODULE_FILE_INFO pModInfo = pdep->GetNextModule( (PMODULE_FILE_INFO) 0 );
+	if (pModInfo)
+		while ( pModInfo = pdep->GetNextModule( pModInfo ) )
+		{
+			int len = (int)_tcslen(pModInfo->GetBaseName());
+			if (len > maxNameLen) maxNameLen = len;
+		}
+	pModInfo = pdep->GetNextDelayedModule( (PMODULE_FILE_INFO) 0 );
+	if (pModInfo)
+		while ( pModInfo = pdep->GetNextDelayedModule( pModInfo ) )
+		{
+			int len = (int)_tcslen(pModInfo->GetBaseName());
+			if (len > maxNameLen) maxNameLen = len;
+		}
+	int padTo = maxNameLen + 2;  // 2 spaces after the longest name
+
+	// Second pass: insert into tree with aligned display names
+	pModInfo = pdep->GetNextModule( (PMODULE_FILE_INFO) 0 );
 	if (pModInfo )
 		while ( pModInfo = pdep->GetNextModule( pModInfo ) )
 		{
@@ -347,8 +367,8 @@ void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_
 			    MODULE_DEPENDENCY_LIST *pDepChild = pe.GetDepends();
 
 				if (pModInfo->TestFunction())
-					ChidItem = tree.InsertItem( pModInfo->GetFullName(), 0, 0, ParentItem );
-				else ChidItem = tree.InsertItem( pModInfo->GetFullName(), 4, 4, ParentItem );/**/
+					ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 0, 0, ParentItem );
+				else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 4, 4, ParentItem );/**/
 				if ( pDepChild->IsValid() )
 				{
 					if ( ++depth < MaxDepth )
@@ -356,7 +376,7 @@ void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_
 					depth--;
 				}
 			}
-			else ChidItem = tree.InsertItem( pModInfo->GetFullName(), 1, 1, ParentItem );/**/
+			else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 1, 1, ParentItem );/**/
 		}
 
 	pModInfo = pdep->GetNextDelayedModule( (PMODULE_FILE_INFO) 0 );
@@ -368,8 +388,8 @@ void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_
 				PE_EXE pe(pModInfo->GetFullName());
 				MODULE_DEPENDENCY_LIST *pDepChild = pe.GetDepends();
 				if (pModInfo->TestFunction())
-					ChidItem = tree.InsertItem( pModInfo->GetFullName(), 2, 2, ParentItem );
-				else ChidItem = tree.InsertItem( pModInfo->GetFullName(), 5, 5, ParentItem );
+					ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 2, 2, ParentItem );
+				else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 5, 5, ParentItem );
 				if ( pDepChild->IsValid() )
 				{
 //TRACE1("fileinfo : %s \n", pModInfo->GetFullName());
@@ -377,9 +397,9 @@ void CreateChildTree( CTreeCtrl &tree, HTREEITEM &ParentItem, MODULE_DEPENDENCY_
 						CreateChildTree(tree, ChidItem, pDepChild);
 					depth--;
 				}
-			} 
-			else 
-				ChidItem = tree.InsertItem( pModInfo->GetFullName(), 3, 3, ParentItem );
+			}
+			else
+				ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 3, 3, ParentItem );
 		}
 }
 

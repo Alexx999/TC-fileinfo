@@ -22,6 +22,7 @@ CPageTree::CPageTree() : CResizePage(CPageTree::IDD)
 //{{AFX_DATA_INIT(CPageTree)
 	FillTree = NULL;
 	pImageList = NULL;
+	m_pTreeFont = NULL;
 //}}AFX_DATA_INIT
 }
 
@@ -40,6 +41,8 @@ void CPageTree::OnDestroy()
 void CPageTree::CleanUp()
 {
 	TRACE0("CPageTree : CleanUp \n");
+	if (m_pTreeFont) delete m_pTreeFont;
+	m_pTreeFont = NULL;
 	if (pImageList) delete pImageList;
 	pImageList = NULL;
 }
@@ -128,6 +131,13 @@ BOOL CPageTree::OnInitDialog()
 	bitmap.DeleteObject();
 
 	m_tree.SetImageList(pImageList, TVSIL_NORMAL);
+
+	// Use a monospace font for aligned display of DLL names and paths
+	m_pTreeFont = new CFont();
+	m_pTreeFont->CreateFont(-12, 0, 0, 0, FW_NORMAL, 0, 0, 0,
+		DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+		DEFAULT_QUALITY, FIXED_PITCH | FF_MODERN, _T("Consolas"));
+	m_tree.SetFont(m_pTreeFont);
 
 	if (FillTree)
 	{

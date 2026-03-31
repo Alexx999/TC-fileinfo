@@ -10,6 +10,7 @@
 #pragma hdrstop
 #include "dependencylist.h"
 #include <delayimp.h>
+#include "apisetresolve.h"
 
 #include "..\..\..\common\ffile.h"
 
@@ -140,18 +141,21 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectModule()
 		} lastNameAdd = pImportDir->Name;
 // end
 		TCHAR szPath[MAX_PATH];
-		LPTSTR pszDontCare;
 		if ( pszBaseName )
 		{
 			CString strBaseName(pszBaseName);  // ANSI to wide conversion
 			pTemp = LookupModule( strBaseName, FALSE );
 			findyet = (pTemp != NULL);
-			if ( !findyet && !SearchPath(0, strBaseName, 0, MAX_PATH, szPath, &pszDontCare))
+			if ( !findyet && !ResolveDllPath(strBaseName, szPath, MAX_PATH))
 				pTemp = pNew->m_pNext = new MODULE_FILE_INFO( strBaseName, pImportDir->Name, FALSE);
 			else
 			{
 				if (!findyet)
+				{
 					pTemp = pNew->m_pNext = new MODULE_FILE_INFO( szPath, pImportDir->Name, TRUE );
+					if (IsApiSetName(strBaseName))
+						pTemp->SetApiSetName(strBaseName);
+				}
 			}
 			CString strTemp=_T("");
 
@@ -261,7 +265,6 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 	while( pDImportDesc->rvaDLLName )
 	{
 		TCHAR szPath[MAX_PATH];
-		LPTSTR pszDontCare;
 
 		bool bUsingRVA = pDImportDesc->grAttrs & 1;
 		PSTR pszDLLName = bUsingRVA
@@ -278,11 +281,13 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddDirectDelayedModule()
 		if (pszDLLName)
 		{
 			CString strDLLName(pszDLLName);  // ANSI to wide conversion
-			if ( !SearchPath(0, strDLLName, 0, MAX_PATH, szPath, &pszDontCare))
+			if ( !ResolveDllPath(strDLLName, szPath, MAX_PATH))
 				pNew->m_pNext = new MODULE_FILE_INFO( strDLLName, 0, FALSE );
 			else
 			{
 				pNew->m_pNext = new MODULE_FILE_INFO( szPath, 0, TRUE );
+				if (IsApiSetName(strDLLName))
+					pNew->m_pNext->SetApiSetName(strDLLName);
 			}
 			CString strTemp=_T("");
 // Add functions

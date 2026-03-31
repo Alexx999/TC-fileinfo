@@ -11,6 +11,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="apisetresolve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="decplug.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,6 +40,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="apisetresolve.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="decplug.h">
       <Filter>Header Files</Filter>
     </ClInclude>

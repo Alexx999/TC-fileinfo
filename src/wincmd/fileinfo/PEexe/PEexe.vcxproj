@@ -228,6 +228,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\MEMORYMAPPEDFILE.CPP" />
+    <ClCompile Include="apisetresolve.cpp" />
     <ClCompile Include="decplug.cpp" />
     <ClCompile Include="DEPENDENCYLIST.CPP" />
     <ClCompile Include="EXEFILE.CPP" />
@@ -237,6 +238,7 @@
     <ClCompile Include="VersionVXD.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="apisetresolve.h" />
     <ClInclude Include="decplug.h" />
     <ClInclude Include="DEPENDENCYLIST.H" />
     <ClInclude Include="EXEFILE.H" />

@@ -51,6 +51,7 @@ protected:
 
 // Implementation
 protected:
+   CFont       *m_pTreeFont;
    CImageList  *pImageList;
    // Generated message map functions
    //{{AFX_MSG(CPageTree)

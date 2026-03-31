@@ -7,6 +7,7 @@
 
 #include <windows.h>
 #include "modulefileinfo.h"
+#include "apisetresolve.h"
 
 #include "..\..\..\common\ffile.h"
 extern BOOL b_W95Protect;
@@ -16,10 +17,26 @@ MODULE_FILE_INFO::MODULE_FILE_INFO( LPCTSTR pszFileName, long address, BOOL foun
     m_pNext = NULL;
 	m_bFound = found;
 	m_Address = address;
+	m_szApiSetName[0] = _T('\0');
     // Initialize the new MODULE_FILE_INFO, and stick it at the head of the list.
     lstrcpyn( m_szFullName, pszFileName, _countof(m_szFullName) );
 	if (found) m_szBaseName = (TCHAR *) ::GetBaseName(m_szFullName);
 	else m_szBaseName = m_szFullName;
+}
+
+CString MODULE_FILE_INFO::GetDisplayName( int padTo )
+{
+	LPCTSTR displayBase = m_szApiSetName[0] ? m_szApiSetName : m_szBaseName;
+	// Show "name (resolved path)" when they differ
+	if (m_bFound && _tcsicmp(displayBase, m_szFullName) != 0)
+	{
+		CString name;
+		int len = (int)_tcslen(displayBase);
+		int pad = (padTo > len) ? (padTo - len) : 2;  // At least 2 spaces
+		name.Format(_T("%s%*s%s"), displayBase, pad, _T(""), m_szFullName);
+		return name;
+	}
+	return displayBase;
 }
 
 BOOL MODULE_FILE_INFO::TestFunction( )
@@ -27,6 +44,21 @@ BOOL MODULE_FILE_INFO::TestFunction( )
 	BOOL ret=TRUE;
 	if ( m_bFound )
 	{
+		// If this is an unresolved API Set name (no physical file found,
+		// but marked as found because it's a valid virtual DLL), try to
+		// resolve it now. If still unresolvable, assume functions are present.
+		if (IsApiSetName(m_szBaseName))
+		{
+			TCHAR szResolved[MAX_PATH];
+			if (ResolveApiSetDll(m_szFullName, szResolved, MAX_PATH))
+				lstrcpyn(m_szFullName, szResolved, _countof(m_szFullName));
+			else
+			{
+				m_Tested = TRUE;
+				return (m_bIFound = TRUE);
+			}
+		}
+
 		m_Tested = TRUE;
 		POSITION pos = m_Flist.GetHeadPosition();
 		if (pos)

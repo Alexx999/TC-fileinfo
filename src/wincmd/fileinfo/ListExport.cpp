@@ -343,31 +343,50 @@ void CListExport::AddFunction(int sel)
 			{
 				PDWORD functions = ( PDWORD ) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfFunctions );
 				PWORD ordinals = (PWORD) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfNameOrdinals );
-				PDWORD name = ( PDWORD ) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfNames);			
+				PDWORD name = ( PDWORD ) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfNames);
 				m_nbfunc =exportDir->NumberOfNames;
+				// Compute export directory bounds for forwarder detection
+				DWORD exportsStartRVA = m_pe->GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_EXPORT);
+				DWORD exportsEndRVA = exportsStartRVA + m_pe->GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_EXPORT);
 				for(i=0; i < (int) exportDir->NumberOfFunctions; i++)
 				{
 					BOOL found = FALSE;
 					DWORD entryPointRVA = functions[i];
 					if ( entryPointRVA == 0 ) continue; // Skip over gaps in exported function
+					// Check if this export is a forwarder
+					BOOL isForwarder = (entryPointRVA >= exportsStartRVA) && (entryPointRVA <= exportsEndRVA);
+					CString strForward;
+					if (isForwarder)
+					{
+						PSTR pszForward = (PSTR)m_pe->GetReadablePointerFromRVA(entryPointRVA);
+						if (pszForward)
+							strForward.Format(_T("  ->  %S"), pszForward);
+					}
 					for ( int j=0; j < (int) exportDir->NumberOfNames; j++ )
 						if ( ordinals[j] == i )
 						{
 							found = TRUE;
 							PSTR Name = (PSTR) m_pe->GetReadablePointerFromRVA( name[j] );
+							CString displayName;
 							if ( m_undecorate ) 	// Undecorate Name
 							{
 								char Textout[SIZEBUFFER];
-								m_list.AddString( CString(Undecorate(Name, Textout, SIZEBUFFER)) );
+								displayName = CString(Undecorate(Name, Textout, SIZEBUFFER));
 							}
-							else m_list.AddString( CString(Name) );
-							int size = (int)strlen(Name);
+							else displayName = CString(Name);
+							if (!strForward.IsEmpty())
+								displayName += strForward;
+							m_list.AddString( displayName );
+							int size = displayName.GetLength();
 							if (m_Hsize < size) m_Hsize = size;
 						}
 					if (!found)
 					{
-						strTemp.Format( _T("ordinal %d"), i );
-						m_list.AddString( strTemp );
+						CString displayName;
+						displayName.Format( _T("ordinal %d"), i );
+						if (!strForward.IsEmpty())
+							displayName += strForward;
+						m_list.AddString( displayName );
 					}
 
 				}

@@ -405,6 +405,7 @@ CStringA DumpOptionalHeader(PIMAGE_OPTIONAL_HEADER32 optionalHeader)
 #define IMAGE_FILE_MACHINE_SH5               0x01a8  // SH5
 #define IMAGE_FILE_MACHINE_ARM               0x01c0  // ARM Little-Endian
 #define IMAGE_FILE_MACHINE_THUMB             0x01c2
+#define IMAGE_FILE_MACHINE_ARMNT             0x01c4  // ARM Thumb-2 Little-Endian
 #define IMAGE_FILE_MACHINE_AM33              0x01d3
 #define IMAGE_FILE_MACHINE_POWERPC           0x01F0  // IBM PowerPC Little-Endian
 #define IMAGE_FILE_MACHINE_POWERPCFP         0x01f1
@@ -420,11 +421,19 @@ CStringA DumpOptionalHeader(PIMAGE_OPTIONAL_HEADER32 optionalHeader)
 #define IMAGE_FILE_MACHINE_MIPSFPU16         0x0466  // MIPS
 
 #define IMAGE_FILE_MACHINE_TRICORE           0x0520  // Infineon
+#define IMAGE_FILE_MACHINE_RISCV32           0x5032  // RISC-V 32-bit address space
+#define IMAGE_FILE_MACHINE_RISCV64           0x5064  // RISC-V 64-bit address space
+#define IMAGE_FILE_MACHINE_RISCV128          0x5128  // RISC-V 128-bit address space
+#define IMAGE_FILE_MACHINE_LOONGARCH32       0x6232  // LoongArch 32-bit
+#define IMAGE_FILE_MACHINE_LOONGARCH64       0x6264  // LoongArch 64-bit
 #define IMAGE_FILE_MACHINE_EBC               0x0EBC  // EFI Byte Code
-#define IMAGE_FILE_MACHINE_AMD64_ARM64EC     0x8664  // AMD64 (K8) or ARM64EC depending on Subsystem 
+#define IMAGE_FILE_MACHINE_CHPE_X86          0x3A64  // Hybrid PE
+#define IMAGE_FILE_MACHINE_AMD64             0x8664  // AMD64 (x64)
 #define IMAGE_FILE_MACHINE_M32R              0x9041  // M32R little-endian
 
 #define IMAGE_FILE_MACHINE_ARM64             0xAA64  // ARM64
+#define IMAGE_FILE_MACHINE_ARM64EC           0xA641  // ARM64EC
+#define IMAGE_FILE_MACHINE_ARM64X            0xA64E  // ARM64X
 
 #define IMAGE_FILE_MACHINE_CEE               0xC0EE
 #define IMAGE_FILE_MACHINE_CEF               0x0CEF
@@ -452,6 +461,7 @@ PSTR GetMachineTypeName( WORD wMachineType, WORD MajorSubsystemVersion,WORD Mino
 		case IMAGE_FILE_MACHINE_M68K	:return "Motorola 68000 series";
 		case IMAGE_FILE_MACHINE_THUMB   :
 		case IMAGE_FILE_MACHINE_ARM		:return "ARM or compatible";
+		case IMAGE_FILE_MACHINE_ARMNT   :return "ARM Thumb-2 (ARMNT)";
 		case IMAGE_FILE_MACHINE_SH3DSP  :
 		case IMAGE_FILE_MACHINE_SH3E    :
 		case IMAGE_FILE_MACHINE_SH3     :return "Hitachi SH3 type processor";
@@ -462,18 +472,18 @@ PSTR GetMachineTypeName( WORD wMachineType, WORD MajorSubsystemVersion,WORD Mino
 		case IMAGE_FILE_MACHINE_AM33    :return "AM33";
 		case IMAGE_FILE_MACHINE_TRICORE :return "Infineon";// Infineon
 		case IMAGE_FILE_MACHINE_EBC     :return "EFI Byte Code";
-		case IMAGE_FILE_MACHINE_AMD64_ARM64EC:
-		{
-			if (
-				(MajorSubsystemVersion == 5) && (MinorSubsystemVersion == 2)
-				|| (MajorSubsystemVersion == 6) && (MinorSubsystemVersion == 2)
-				)
-				return "ARM64EC";
-			return "AMD64 (K8)";
-		}
+		case IMAGE_FILE_MACHINE_RISCV32  :return "RISC-V 32-bit";
+		case IMAGE_FILE_MACHINE_RISCV64  :return "RISC-V 64-bit";
+		case IMAGE_FILE_MACHINE_RISCV128 :return "RISC-V 128-bit";
+		case IMAGE_FILE_MACHINE_LOONGARCH32:return "LoongArch 32-bit";
+		case IMAGE_FILE_MACHINE_LOONGARCH64:return "LoongArch 64-bit";
+		case IMAGE_FILE_MACHINE_CHPE_X86:return "Hybrid PE (CHPE x86)";
+		case IMAGE_FILE_MACHINE_AMD64   :return "AMD64 (x64)";
 
 		case IMAGE_FILE_MACHINE_M32R    :return "M32R little-endian";
 		case IMAGE_FILE_MACHINE_ARM64	:return "ARM64";
+		case IMAGE_FILE_MACHINE_ARM64EC :return "ARM64EC";
+		case IMAGE_FILE_MACHINE_ARM64X  :return "ARM64X";
 		case IMAGE_FILE_MACHINE_CEE     :return "CEE";
 		case IMAGE_FILE_MACHINE_CEF     :return "CEF"; // ?
 

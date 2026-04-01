@@ -122,31 +122,7 @@ CStringA DumpNEHeader( PIMAGE_DOS_HEADER dosHeader )
     if ( pNEHeader->ne_magic != IMAGE_OS2_SIGNATURE )
       return (CStringA) "Not a New Executable (NE) File"+ rtfReturn;
 
-   str += (CStringA) ("File Characteristics : ")+ rtfReturn;
-   if (pNEHeader->ne_flags & NESOLO) 
-      str += (CStringA) ("\t\tFile is a dynamic-link library (DLL) (SINGLEDATA)")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEINST) 
-      str += (CStringA) ("\t\tFile is a Windows application (MULTIPLEDATA)")+ rtfReturn;
-   if (!(pNEHeader->ne_flags & 3))
-      str += (CStringA) ("\t\tNOAUTODATA")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEPPLI) str += (CStringA) ("\t\tFile uses Per-process library initialization")+ rtfReturn; // Per-process library initialization
-   if (pNEHeader->ne_flags & NEPROT) str += (CStringA) ("\t\tFile uses Protected mode only")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEI086) str += (CStringA) ("\t\tFile uses 8086 instructions")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEI286) str += (CStringA) ("\t\tFile uses 286 instructions")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEI386) str += (CStringA) ("\t\tFile uses 386 instructions")+ rtfReturn;
-   if (pNEHeader->ne_flags & NEFLTP) str += (CStringA) ("\t\tFile uses Floating-point instructions")+ rtfReturn;
-   if ((pNEHeader->ne_flags & NEAPPTYP) == 0) str += (CStringA) ("\t\tFull screen (not aware of Windows/P.M. API)")+ rtfReturn;
-   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NEWINAPI) str += (CStringA) ("\t\tFile uses P.M. Windowing API")+ rtfReturn;
-   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NEWINCOMPAT) str += (CStringA) ("\t\tFile is compatible with P.M. Windowing")+ rtfReturn;
-   if ((pNEHeader->ne_flags & NEAPPTYP) ==  NENOTWINCOMPAT) str += (CStringA) ("\t\tFile is not compatible with P.M. Windowing")+ rtfReturn;
-   if (pNEHeader->ne_flags & (1 << 11)) str += (CStringA) ("\t\tBound as family app")+ rtfReturn;
-   // (pNEHeader->ne_flags & (1 << 12)) str += (CStringA) ("\t\tUnused"+ rtfReturn);
-   if (pNEHeader->ne_flags & NEIERR) str += (CStringA) ("\t\tFile has errors in image")+ rtfReturn;
-   // (pNEHeader->ne_flags & (1 << 14)) str += (CStringA) ("\t\tUnused"+ rtfReturn);
-   if (pNEHeader->ne_flags & (1 << 15)) str += (CStringA) ("\t\tFile is a Library Module ")+ rtfReturn;
-   if (pNEHeader->ne_flags & NENOTP) str += (CStringA) ("\t\tFile is not a process ")+ rtfReturn;
-
-    str += (CStringA) ("Header Information :")+ rtfReturn+ rtfReturn;
+    str += (CStringA) ("Header Information :")+ rtfReturn;
 
    char szModuleName[300];
    lstrcpynA(szModuleName,
@@ -219,14 +195,31 @@ CStringA DumpNEHeader( PIMAGE_DOS_HEADER dosHeader )
    str += strTemp + rtfReturn;
     strTemp.Format("\tCount of movable entries :\t%x ", pNEHeader->ne_cres);
    str += strTemp + rtfReturn;
-    strTemp.Format("\tSegment alignment shift count :\t%x ", pNEHeader->ne_align);
+    strTemp.Format("\tSegment align shift count :\t%x ", pNEHeader->ne_align);
    str += strTemp + rtfReturn;
     strTemp.Format("\tAlignment :\t%u bytes", 1 << pNEHeader->ne_align );
    str += strTemp + rtfReturn;
 
    str += rtfReturn;
-   strTemp.Format(" \tFlag word :\t%x ", pNEHeader->ne_flags);
-   str += strTemp;str += rtfReturn;
+   strTemp.Format(" \tFlag word :\t%04xh ", pNEHeader->ne_flags);
+   str += strTemp + rtfReturn;
+   if (pNEHeader->ne_flags & NESOLO)         str += (CStringA) ("\t\tDLL (SINGLEDATA)")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEINST)         str += (CStringA) ("\t\tApplication (MULTIPLEDATA)")+ rtfReturn;
+   if (!(pNEHeader->ne_flags & 3))           str += (CStringA) ("\t\tNOAUTODATA")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEPPLI)         str += (CStringA) ("\t\tPer-process library initialization")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEPROT)         str += (CStringA) ("\t\tProtected mode only")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEI086)         str += (CStringA) ("\t\t8086 instructions")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEI286)         str += (CStringA) ("\t\t286 instructions")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEI386)         str += (CStringA) ("\t\t386 instructions")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEFLTP)         str += (CStringA) ("\t\tFloating-point instructions")+ rtfReturn;
+   if ((pNEHeader->ne_flags & NEAPPTYP) == 0)              str += (CStringA) ("\t\tFull screen (not aware of PM API)")+ rtfReturn;
+   if ((pNEHeader->ne_flags & NEAPPTYP) == NEWINAPI)       str += (CStringA) ("\t\tPM Windowing API")+ rtfReturn;
+   if ((pNEHeader->ne_flags & NEAPPTYP) == NEWINCOMPAT)    str += (CStringA) ("\t\tPM Windowing compatible")+ rtfReturn;
+   if ((pNEHeader->ne_flags & NEAPPTYP) == NENOTWINCOMPAT) str += (CStringA) ("\t\tPM Windowing incompatible")+ rtfReturn;
+   if (pNEHeader->ne_flags & (1 << 11))     str += (CStringA) ("\t\tBound as family app")+ rtfReturn;
+   if (pNEHeader->ne_flags & NEIERR)        str += (CStringA) ("\t\tErrors in image")+ rtfReturn;
+   if (pNEHeader->ne_flags & (1 << 15))     str += (CStringA) ("\t\tLibrary module")+ rtfReturn;
+   if (pNEHeader->ne_flags & NENOTP)        str += (CStringA) ("\t\tNot a process")+ rtfReturn;
 
    strTemp.Format("\tOther .EXE flags :\t%x ", pNEHeader->ne_flagsothers);
    str += strTemp + rtfReturn;

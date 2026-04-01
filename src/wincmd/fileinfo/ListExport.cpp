@@ -163,9 +163,22 @@ void CVirtualListBox::DrawItem(LPDRAWITEMSTRUCT lpDIS)
 	rcText.left += 2;
 	dc.DrawText(text, &rcText, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
 
-	// Focus rectangle
-	if (lpDIS->itemState & ODS_FOCUS)
-		dc.DrawFocusRect(&lpDIS->rcItem);
+	// Focus rectangle — skip default DrawFocusRect in dark mode because it
+	// uses XOR drawing which produces a bright pink outline on dark backgrounds.
+	if (lpDIS->itemState & ODS_FOCUS) {
+		if (m_pOwner->IsDarkMode()) {
+			HPEN hPen = ::CreatePen(PS_DOT, 1, RGB(160, 160, 160));
+			HPEN hOld = (HPEN)::SelectObject(lpDIS->hDC, hPen);
+			HBRUSH hOldBr = (HBRUSH)::SelectObject(lpDIS->hDC, ::GetStockObject(NULL_BRUSH));
+			::Rectangle(lpDIS->hDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
+				lpDIS->rcItem.right, lpDIS->rcItem.bottom);
+			::SelectObject(lpDIS->hDC, hOldBr);
+			::SelectObject(lpDIS->hDC, hOld);
+			::DeleteObject(hPen);
+		} else {
+			dc.DrawFocusRect(&lpDIS->rcItem);
+		}
+	}
 
 	dc.Detach();
 }
@@ -819,14 +832,17 @@ void CListExport::SetDarkMode(bool bDark)
 {
 	CResizePage::SetDarkMode(bDark);
 	SubclassListBoxForDark(m_listmodule, bDark);
-	// m_list (CVirtualListBox) paints itself via DrawItem — just invalidate
+	// m_list (CVirtualListBox) paints itself via DrawItem — strip border in dark
 	if (m_list.m_hWnd) {
 		if (bDark) {
 			DarkMode_AllowForWindow(m_list.m_hWnd, TRUE);
 			SetWindowTheme(m_list.m_hWnd, L"DarkMode_Explorer", NULL);
+			m_list.ModifyStyleEx(WS_EX_CLIENTEDGE | WS_EX_STATICEDGE, 0, SWP_FRAMECHANGED);
+			m_list.ModifyStyle(WS_BORDER, 0, SWP_FRAMECHANGED);
 		} else {
 			DarkMode_AllowForWindow(m_list.m_hWnd, FALSE);
 			SetWindowTheme(m_list.m_hWnd, NULL, NULL);
+			m_list.ModifyStyleEx(0, WS_EX_CLIENTEDGE, SWP_FRAMECHANGED);
 		}
 		m_list.Invalidate();
 	}

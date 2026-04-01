@@ -105,6 +105,20 @@ PMODULE_FILE_INFO MODULE_DEPENDENCY_LIST::LookupModule( LPCTSTR pszFileName, BOO
 	return 0;
 }
 
+PMODULE_FILE_INFO MODULE_DEPENDENCY_LIST::LookupDelayedModule( LPCTSTR pszFileName )
+{
+	PMODULE_FILE_INFO p = m_pListDelayed;
+	while ( p )
+	{
+		if ( 0 == lstrcmpi( pszFileName, p->m_szBaseName ) )
+			return p;
+		if ( p->m_szApiSetName[0] && 0 == lstrcmpi( pszFileName, p->m_szApiSetName ) )
+			return p;
+		p = p->m_pNext;
+	}
+	return 0;
+}
+
 PSTR MODULE_DEPENDENCY_LIST::GetErrorString( void )
 {
 	switch ( m_errorType )
@@ -427,6 +441,10 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddForwardedExportModules()
 
 		// Check if this target DLL is already in the dependency list
 		PMODULE_FILE_INFO pExisting = LookupModule( strDllName, FALSE );
+		// Also check delayed imports to avoid duplicates when a DLL
+		// is both a forwarded export target and a delayed import.
+		if (!pExisting)
+			pExisting = LookupDelayedModule( strDllName );
 		if ( pExisting )
 		{
 			// Add the forwarded function to the existing entry

@@ -31,13 +31,18 @@ BOOL ResolveApiSetDll(LPCTSTR pszApiSetName, LPTSTR szResolvedPath, DWORD cchRes
 
 BOOL ResolveDllPath(LPCTSTR pszDllName, LPTSTR szResolvedPath, DWORD cchResolvedPath)
 {
-	// For API Set names, always use loader-based resolution to get
-	// the real host DLL. SearchPath would find physical forwarder stubs
-	// sitting on PATH, which is not what we want.
+	// For API Set names, prefer loader-based resolution to get the real
+	// host DLL rather than a physical forwarder stub on PATH.
 	if (IsApiSetName(pszDllName))
-		return ResolveApiSetDll(pszDllName, szResolvedPath, cchResolvedPath);
+	{
+		if (ResolveApiSetDll(pszDllName, szResolvedPath, cchResolvedPath))
+			return TRUE;
+		// API Set schema has no mapping for this name on this Windows edition.
+		// Fall through to SearchPath — some API sets have physical forwarder
+		// stubs in System32 that can still be loaded for function testing.
+	}
 
-	// Standard DLLs: use SearchPath
+	// Standard DLLs (or API set fallback): use SearchPath
 	LPTSTR pszDontCare;
 	if (SearchPath(0, pszDllName, 0, cchResolvedPath, szResolvedPath, &pszDontCare))
 		return TRUE;

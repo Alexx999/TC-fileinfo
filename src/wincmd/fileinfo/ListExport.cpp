@@ -6,6 +6,7 @@
 #include <imagehlp.h>
 #include <afxole.h> // for clipboard
 #include <afxadv.h> // shared file
+#include <vector>
 #include <uxtheme.h>
 #pragma comment(lib, "uxtheme.lib")
 
@@ -267,6 +268,7 @@ void CListExport::Load()
 		wait.SetStatus(_T("Listing Modules..."));
 
 		m_pe->IsCoded();		//Test compressed and decompress
+		m_listmodule.SetRedraw(FALSE);
 		str.Format(_T("%s  ( Exported functions )"), m_pe->GetBaseName() );
 		m_listmodule.AddString( str );
 		MODULE_DEPENDENCY_LIST *pDep = m_pe->GetDepends();
@@ -287,6 +289,8 @@ void CListExport::Load()
 					m_listmodule.AddString( str );
 				}
 		}
+		m_listmodule.SetRedraw(TRUE);
+		m_listmodule.Invalidate();
 		wait.SetStatus(_T("Listing Functions..."));
 		AddFunction(0);
 		m_listmodule.SetCurSel( 0 );
@@ -338,6 +342,7 @@ void CListExport::OnToggleListStyle()
 extern PSTR Undecorate(PSTR Textin, PSTR Textout, int len);
 void CListExport::AddFunction(int sel)
 {
+	m_list.SetRedraw(FALSE);
 	m_list.ResetContent( );
 	CString strTemp=_T("");
 	int i;
@@ -446,29 +451,37 @@ void CListExport::AddFunction(int sel)
 				DWORD exportsStartRVA = m_pe->GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_EXPORT);
 				DWORD exportsEndRVA = exportsStartRVA + m_pe->GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_EXPORT);
 
-				// First pass: find max export name length for arrow alignment
+				// Single pass over names: resolve display names and compute max length
+				struct ExportName { CString displayName; int funcIndex; };
+				std::vector<ExportName> namedExports;
+				namedExports.reserve(exportDir->NumberOfNames);
 				int maxExportLen = 0;
+
 				for(i=0; i < (int) exportDir->NumberOfNames; i++)
 				{
 					PSTR Name = (PSTR) m_pe->GetReadablePointerFromRVA( name[i] );
-					if (Name)
+					if (!Name) continue;
+					CString dn;
+					if ( m_undecorate )
 					{
-						int len;
-						if ( m_undecorate )
-						{
-							char Textout[SIZEBUFFER];
-							len = (int)strlen(Undecorate(Name, Textout, SIZEBUFFER));
-						}
-						else len = (int)strlen(Name);
-						if (len > maxExportLen) maxExportLen = len;
+						char Textout[SIZEBUFFER];
+						dn = CA2T(Undecorate(Name, Textout, SIZEBUFFER));
 					}
+					else dn = CString(Name);
+					if (dn.GetLength() > maxExportLen) maxExportLen = dn.GetLength();
+					ExportName en = { dn, (int)ordinals[i] };
+					namedExports.push_back(en);
 				}
 				int padTo = maxExportLen + 2;
 
-				// Second pass: display with aligned forwarding arrows
+				// Build reverse map: function index → namedExports index (O(n) instead of O(n*m))
+				std::vector<int> nameForFunc(exportDir->NumberOfFunctions, -1);
+				for (int j = 0; j < (int)namedExports.size(); j++)
+					nameForFunc[namedExports[j].funcIndex] = j;
+
+				// Display pass: iterate functions with O(1) name lookup
 				for(i=0; i < (int) exportDir->NumberOfFunctions; i++)
 				{
-					BOOL found = FALSE;
 					DWORD entryPointRVA = functions[i];
 					if ( entryPointRVA == 0 ) continue; // Skip over gaps in exported function
 					// Check if this export is a forwarder
@@ -480,31 +493,23 @@ void CListExport::AddFunction(int sel)
 						if (pszForward)
 							strForwardTarget = CString(pszForward);
 					}
-					for ( int j=0; j < (int) exportDir->NumberOfNames; j++ )
-						if ( ordinals[j] == i )
+					int nameIdx = nameForFunc[i];
+					if (nameIdx >= 0)
+					{
+						CString displayName = namedExports[nameIdx].displayName;
+						if (!strForwardTarget.IsEmpty())
 						{
-							found = TRUE;
-							PSTR Name = (PSTR) m_pe->GetReadablePointerFromRVA( name[j] );
-							CString displayName;
-							if ( m_undecorate ) 	// Undecorate Name
-							{
-								char Textout[SIZEBUFFER];
-								displayName = CString(Undecorate(Name, Textout, SIZEBUFFER));
-							}
-							else displayName = CString(Name);
-							if (!strForwardTarget.IsEmpty())
-							{
-								int pad = padTo - displayName.GetLength();
-								if (pad < 2) pad = 2;
-								CString entry;
-								entry.Format(_T("%s%*s-> %s"), (LPCTSTR)displayName, pad, _T(""), (LPCTSTR)strForwardTarget);
-								displayName = entry;
-							}
-							m_list.AddString( displayName );
-							int size = displayName.GetLength();
-							if (m_Hsize < size) m_Hsize = size;
+							int pad = padTo - displayName.GetLength();
+							if (pad < 2) pad = 2;
+							CString entry;
+							entry.Format(_T("%s%*s-> %s"), (LPCTSTR)displayName, pad, _T(""), (LPCTSTR)strForwardTarget);
+							displayName = entry;
 						}
-					if (!found)
+						m_list.AddString( displayName );
+						int size = displayName.GetLength();
+						if (m_Hsize < size) m_Hsize = size;
+					}
+					else
 					{
 						CString displayName;
 						displayName.Format( _T("ordinal %d"), i );
@@ -518,11 +523,12 @@ void CListExport::AddFunction(int sel)
 						}
 						m_list.AddString( displayName );
 					}
-
 				}
 			}
 		}
 	}
+	m_list.SetRedraw(TRUE);
+	m_list.Invalidate();
 	UpdateData(FALSE);
 
 	// Update the test status label

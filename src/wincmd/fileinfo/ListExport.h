@@ -10,6 +10,34 @@
 #include "..\common\ResizePage.h"
 #include "peexe\peexe.h"
 #include "peexe\apisetresolve.h"
+#include <vector>
+#include <map>
+
+// Cached result of AddFunction() for a given module selection
+struct FuncListCache {
+	std::vector<CString> items;	// listbox strings
+	int hsize;					// max horizontal extent
+	DWORD nbfunc;				// function count
+	CString statusText;			// test status label
+	COLORREF statusColor;		// test status color
+};
+
+class CListExport;  // forward declaration
+
+/////////////////////////////////////////////////////////////////////////////
+// CVirtualListBox — owner-draw, no-data listbox that reads items from
+// CListExport's cache via DrawItem(). Requires LBS_OWNERDRAWFIXED | LBS_NODATA.
+class CVirtualListBox : public CListBox
+{
+public:
+	CListExport* m_pOwner;
+	CVirtualListBox() : m_pOwner(NULL) {}
+
+	virtual void DrawItem(LPDRAWITEMSTRUCT lpDIS);
+	virtual void MeasureItem(LPMEASUREITEMSTRUCT lpMIS);
+	virtual int CompareItem(LPCOMPAREITEMSTRUCT) { return 0; }
+};
+
 /////////////////////////////////////////////////////////////////////////////
 // CListExport dialog
 
@@ -34,10 +62,11 @@ public:
 //	CStringList m_Mlist, m_Flist;
 	int		m_NbIF; //, m_NbDIF;
 	int		m_Hsize;
-	int		m_lastSel;
 	CFont *font;
 	CDllHandleCache m_handleCache;
 	COLORREF m_crTestStatus;
+	std::map<int, FuncListCache> m_funcCache;
+	int		m_activeSel;		// which cache entry is currently displayed (public for subclass)
 
 //	CListBox	*m_plist;
 	DWORD		m_ListStyle;
@@ -46,7 +75,7 @@ public:
 	//{{AFX_DATA(CListExport)
 	enum { IDD = IDD_Export };
 	CListBox	m_listmodule;
-	CListBox	m_list;
+	CVirtualListBox	m_list;
 	BOOL	m_undecorate;
 	BOOL	m_bsort;
 	DWORD	m_nbfunc;
@@ -57,6 +86,7 @@ protected:
 private:
 	void OnToggleListStyle();
 	void Load();
+	void RestoreFromCache(int sel);
 
 // Overrides
 	// ClassWizard generate virtual function overrides

@@ -8,6 +8,7 @@
 #include <afxadv.h> // shared file
 #include <vector>
 #include <map>
+#include <algorithm>
 #include <uxtheme.h>
 #pragma comment(lib, "uxtheme.lib")
 
@@ -37,7 +38,7 @@ CListExport::CListExport() : CResizePage(CListExport::IDD)
 	m_pe = NULL;
 	font = NULL;
 	m_NbIF = 0;
-	m_lastSel = -1;
+	m_activeSel = -1;
 	m_bsort = FALSE;
 	m_crTestStatus = RGB(0, 0, 0);
 }
@@ -58,6 +59,8 @@ void CListExport::Renew(PE_EXE *pPE)
 {
 	m_pe=pPE;
 	m_handleCache.Clear();
+	m_funcCache.clear();
+	m_activeSel = -1;
 	if (m_listmodule.m_hWnd) {
 		m_listmodule.ResetContent();
 		if (m_pe->IsValid())
@@ -103,9 +106,72 @@ BEGIN_MESSAGE_MAP(CListExport, CResizePage)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
-// Dark mode listbox subclass — custom WM_PAINT with double-buffering,
-// all input/scroll messages wrapped in WM_SETREDRAW to suppress internal drawing
+// CVirtualListBox — owner-draw no-data listbox implementation.
+// DrawItem reads item text from CListExport's cache vector.
 
+void CVirtualListBox::MeasureItem(LPMEASUREITEMSTRUCT lpMIS)
+{
+	// Default height — will be overridden by SetItemHeight after font is set
+	lpMIS->itemHeight = 16;
+}
+
+void CVirtualListBox::DrawItem(LPDRAWITEMSTRUCT lpDIS)
+{
+	if ((int)lpDIS->itemID < 0 || !m_pOwner)
+		return;
+
+	// Get the text from the cache vector
+	CString text;
+	auto it = m_pOwner->m_funcCache.find(m_pOwner->m_activeSel);
+	if (it != m_pOwner->m_funcCache.end() && (int)lpDIS->itemID < (int)it->second.items.size())
+		text = it->second.items[lpDIS->itemID];
+
+	CDC dc;
+	dc.Attach(lpDIS->hDC);
+
+	// Determine colors based on selection state and dark mode
+	COLORREF crBg, crText;
+	if (lpDIS->itemState & ODS_SELECTED)
+	{
+		if (m_pOwner->IsDarkMode()) {
+			crBg = RGB(0, 90, 158);
+			crText = RGB(255, 255, 255);
+		} else {
+			crBg = ::GetSysColor(COLOR_HIGHLIGHT);
+			crText = ::GetSysColor(COLOR_HIGHLIGHTTEXT);
+		}
+	}
+	else
+	{
+		if (m_pOwner->IsDarkMode()) {
+			DarkModeColors dmc = GetDarkColors();
+			crBg = dmc.crBackground;
+			crText = dmc.crText;
+		} else {
+			crBg = ::GetSysColor(COLOR_WINDOW);
+			crText = ::GetSysColor(COLOR_WINDOWTEXT);
+		}
+	}
+
+	// Draw background
+	dc.FillSolidRect(&lpDIS->rcItem, crBg);
+	dc.SetBkMode(TRANSPARENT);
+	dc.SetTextColor(crText);
+
+	// Draw text
+	CRect rcText = lpDIS->rcItem;
+	rcText.left += 2;
+	dc.DrawText(text, &rcText, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+
+	// Focus rectangle
+	if (lpDIS->itemState & ODS_FOCUS)
+		dc.DrawFocusRect(&lpDIS->rcItem);
+
+	dc.Detach();
+}
+
+// Dark-mode paint proc for normal (string-based) listboxes like the module list.
+// Reads text via LB_GETTEXT (not from cache).
 static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	WNDPROC pfnOrig = (WNDPROC)::GetProp(hWnd, _T("DarkLBOrig"));
@@ -116,103 +182,69 @@ static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 	{
 	case WM_ERASEBKGND:
 		return TRUE;
-
 	case WM_PRINTCLIENT:
-		return 0;  // suppress animation/scroll paint-through
-
-	// Suppress the listbox's internal direct-DC drawing for ALL messages
-	// that can change selection or scroll position.
-	case WM_LBUTTONDOWN:
-	case WM_LBUTTONDBLCLK:
-	case WM_KEYDOWN:
-	case WM_KEYUP:
-	case WM_CHAR:
-	case WM_MOUSEWHEEL:
-	case WM_VSCROLL:
-	case WM_HSCROLL:
+		return 0;
+	case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
+	case WM_KEYDOWN: case WM_KEYUP: case WM_CHAR:
+	case WM_MOUSEWHEEL: case WM_VSCROLL: case WM_HSCROLL:
 		{
 			::SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-			LRESULT result = ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
+			LRESULT r = ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
 			::SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
 			::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE | RDW_FRAME);
-			return result;
+			return r;
 		}
 	case WM_MOUSEMOVE:
 		if (::GetCapture() == hWnd) {
 			::SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-			LRESULT result = ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
+			LRESULT r = ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
 			::SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
 			::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE | RDW_FRAME);
-			return result;
+			return r;
 		}
 		break;
-
 	case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
 			HDC hDC = ::BeginPaint(hWnd, &ps);
 			DarkModeColors dc = GetDarkColors();
-
-			RECT rcClient;
-			::GetClientRect(hWnd, &rcClient);
-			int w = rcClient.right - rcClient.left;
-			int h = rcClient.bottom - rcClient.top;
-
-			// Double-buffer to offscreen bitmap
+			RECT rcClient; ::GetClientRect(hWnd, &rcClient);
+			int w = rcClient.right, h = rcClient.bottom;
 			HDC hMemDC = ::CreateCompatibleDC(hDC);
 			HBITMAP hBmp = ::CreateCompatibleBitmap(hDC, w, h);
 			HBITMAP hOldBmp = (HBITMAP)::SelectObject(hMemDC, hBmp);
-
 			HBRUSH hBr = ::CreateSolidBrush(dc.crBackground);
-			::FillRect(hMemDC, &rcClient, hBr);
-			::DeleteObject(hBr);
-
+			::FillRect(hMemDC, &rcClient, hBr); ::DeleteObject(hBr);
 			int topIndex = (int)::SendMessage(hWnd, LB_GETTOPINDEX, 0, 0);
 			int count = (int)::SendMessage(hWnd, LB_GETCOUNT, 0, 0);
-			int itemHeight = (int)::SendMessage(hWnd, LB_GETITEMHEIGHT, 0, 0);
-			if (itemHeight <= 0) itemHeight = 16;
-
+			int itemH = (int)::SendMessage(hWnd, LB_GETITEMHEIGHT, 0, 0);
+			if (itemH <= 0) itemH = 16;
 			HFONT hFont = (HFONT)::SendMessage(hWnd, WM_GETFONT, 0, 0);
 			HFONT hOldFont = hFont ? (HFONT)::SelectObject(hMemDC, hFont) : NULL;
-
+			::SetBkMode(hMemDC, TRANSPARENT);
 			int y = 0;
-			for (int i = topIndex; i < count && y < rcClient.bottom; i++) {
-				RECT rcItem = { rcClient.left, y, rcClient.right, y + itemHeight };
-
+			for (int i = topIndex; i < count && y < h; i++) {
+				RECT rcItem = { 0, y, rcClient.right, y + itemH };
 				BOOL bSel = (BOOL)::SendMessage(hWnd, LB_GETSEL, i, 0);
-				COLORREF crBg = bSel ? RGB(0, 90, 158) : dc.crBackground;
-				COLORREF crText = bSel ? RGB(255, 255, 255) : dc.crText;
-
-				HBRUSH hItemBr = ::CreateSolidBrush(crBg);
-				::FillRect(hMemDC, &rcItem, hItemBr);
-				::DeleteObject(hItemBr);
-
+				HBRUSH hIBr = ::CreateSolidBrush(bSel ? RGB(0,90,158) : dc.crBackground);
+				::FillRect(hMemDC, &rcItem, hIBr); ::DeleteObject(hIBr);
 				int len = (int)::SendMessage(hWnd, LB_GETTEXTLEN, i, 0);
 				if (len > 0 && len != LB_ERR) {
 					TCHAR* text = new TCHAR[len + 1];
 					::SendMessage(hWnd, LB_GETTEXT, i, (LPARAM)text);
-					::SetBkMode(hMemDC, TRANSPARENT);
-					::SetTextColor(hMemDC, crText);
-					RECT rcText = rcItem;
-					rcText.left += 2;
-					::DrawText(hMemDC, text, -1, &rcText,
-						DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+					::SetTextColor(hMemDC, bSel ? RGB(255,255,255) : dc.crText);
+					RECT rcT = rcItem; rcT.left += 2;
+					::DrawText(hMemDC, text, -1, &rcT, DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX);
 					delete[] text;
 				}
-				y += itemHeight;
+				y += itemH;
 			}
-
 			if (hOldFont) ::SelectObject(hMemDC, hOldFont);
-
 			::BitBlt(hDC, 0, 0, w, h, hMemDC, 0, 0, SRCCOPY);
-			::SelectObject(hMemDC, hOldBmp);
-			::DeleteObject(hBmp);
-			::DeleteDC(hMemDC);
-
+			::SelectObject(hMemDC, hOldBmp); ::DeleteObject(hBmp); ::DeleteDC(hMemDC);
 			::EndPaint(hWnd, &ps);
 			return 0;
 		}
-
 	case WM_NCDESTROY:
 		{
 			WNDPROC orig = pfnOrig;
@@ -220,7 +252,6 @@ static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 			return ::CallWindowProc(orig, hWnd, msg, wParam, lParam);
 		}
 	}
-
 	return ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
 }
 
@@ -296,26 +327,53 @@ void CListExport::Load()
 		wait.SetStatus(_T("Listing Functions..."));
 		AddFunction(0);
 		m_listmodule.SetCurSel( 0 );
-		m_lastSel = 0;
 }
 
 BOOL CListExport::OnInitDialog()
 {
 	CResizePage::OnInitDialog();
 
+	// Create the font first — needed for MeasureItem during listbox recreation
+	font = new(CFont);
+	font->CreateFont( -FontSize, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FIXED_PITCH | FF_MODERN, _T("Consolas") );
+
+	// Recreate the function listbox as virtual (owner-data).
+	// LBS_NODATA + LBS_OWNERDRAWFIXED must be present at creation time.
+	// CVirtualListBox::DrawItem() handles all painting via MFC message reflection.
+	{
+		CRect rc;
+		m_list.GetWindowRect(&rc);
+		ScreenToClient(&rc);
+		DWORD dwExStyle = m_list.GetExStyle();
+		HWND hOld = m_list.UnsubclassWindow();
+		::DestroyWindow(hOld);
+		m_list.m_pOwner = this;
+		m_list.CreateEx(dwExStyle, _T("LISTBOX"), NULL,
+			WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP |
+			LBS_NOINTEGRALHEIGHT | LBS_OWNERDRAWFIXED | LBS_NODATA | LBS_NOTIFY,
+			rc, this, IDC_LIST2);
+		m_list.SetFont(font);
+		// Set item height explicitly for scrollbar calculation
+		CDC* pDC = m_list.GetDC();
+		if (pDC) {
+			CFont* pOld = pDC->SelectObject(font);
+			TEXTMETRIC tm;
+			pDC->GetTextMetrics(&tm);
+			m_list.SetItemHeight(0, tm.tmHeight + tm.tmExternalLeading + 1);
+			pDC->SelectObject(pOld);
+			m_list.ReleaseDC(pDC);
+		}
+	}
+
 	// Apply dark mode early, before content is loaded
 	if (m_bDarkMode)
 		SetDarkMode(true);
 
-	if (m_bsort) OnToggleListStyle();
 	if (m_pe->IsValid())
 	{
 		Load();
 	}
 	m_list.SetHorizontalExtent( m_Hsize * 10 );
-	font = new(CFont);
-	font->CreateFont( -FontSize, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, FIXED_PITCH | FF_MODERN, _T("Consolas") );
-	m_list.SetFont( font );
 
     return TRUE;  // return TRUE unless you set the focus to a control
                  // EXCEPTION: OCX Property Pages should return FALSE
@@ -323,42 +381,53 @@ BOOL CListExport::OnInitDialog()
 
 void CListExport::OnToggleListStyle()
 {
-	CRect rc;
-	CFont *fnt = m_list.GetFont();
-	m_list.GetWindowRect(&rc);
-	ScreenToClient(&rc);
-	m_ListStyle = m_list.GetStyle() ^ LBS_SORT | WS_VSCROLL | WS_HSCROLL;
-	m_list.DestroyWindow();
-	m_list.Create( m_ListStyle, rc, this, IDC_LIST2 );
-	m_list.ModifyStyleEx( 0, WS_EX_CLIENTEDGE, SWP_DRAWFRAME );
-	m_list.SetFont( fnt );
-	// Re-apply dark theme + subclass to the new HWND
-	if (m_bDarkMode) {
-		DarkMode_AllowForWindow(m_list.m_hWnd, TRUE);
-		SetWindowTheme(m_list.m_hWnd, L"DarkMode_Explorer", NULL);
-		SubclassListBoxForDark(m_list, true);
-	}
-	UpdateData(FALSE);
+	m_funcCache.clear();
 }
 
 #define SIZEBUFFER 1024
 extern PSTR Undecorate(PSTR Textin, PSTR Textout, int len);
+
+// Restore a cached function list — virtual listbox, just set the count
+void CListExport::RestoreFromCache(int sel)
+{
+	m_activeSel = sel;
+	const FuncListCache& c = m_funcCache[sel];
+	::SendMessage(m_list.m_hWnd, LB_SETCOUNT, (WPARAM)c.items.size(), 0);
+	m_list.Invalidate();
+	m_Hsize = c.hsize;
+	m_list.SetHorizontalExtent( m_Hsize * 10 );
+	m_nbfunc = c.nbfunc;
+	m_crTestStatus = c.statusColor;
+	UpdateData(FALSE);
+	CWnd* pStatus = GetDlgItem(IDC_TESTSTATUS);
+	if (pStatus) {
+		pStatus->SetWindowText(c.statusText);
+		pStatus->Invalidate();
+	}
+}
+
 void CListExport::AddFunction(int sel)
 {
-	m_list.SetRedraw(FALSE);
-	m_list.ResetContent( );
+	// Check cache first
+	if (m_funcCache.count(sel)) {
+		RestoreFromCache(sel);
+		return;
+	}
+
+	// Build results into cache vector (no listbox interaction yet)
+	FuncListCache cache;
 	CString strTemp=_T("");
 	int i;
-	m_Hsize =0;
+	int hsize = 0;
 	int missingCount = 0;
 	HINSTANCE hTestDll = NULL;
 	PMODULE_FILE_INFO pModInfo = NULL;
+	DWORD nbfunc = 0;
 	if (sel)
 	{
 // Import Section
 		MODULE_DEPENDENCY_LIST *pDep = m_pe->GetDepends();
 		m_listmodule.GetText( sel, strTemp );
-		m_nbfunc = 0;
 		if (pDep)
 		{
 			if ( sel <= m_NbIF )
@@ -417,6 +486,7 @@ void CListExport::AddFunction(int sel)
 			CStringList *pFlist = pModInfo->GetFList();
 			POSITION pos = pFlist->GetHeadPosition();
 			if (!pos) return;
+			cache.items.reserve(pFlist->GetCount());
 			CString func;
 			do {
 				func = pFlist->GetNext(pos);
@@ -464,9 +534,9 @@ void CListExport::AddFunction(int sel)
 					strTemp = _T("(Missing) ") + strTemp;
 				}
 
-				if (m_Hsize < strTemp.GetLength()) m_Hsize = strTemp.GetLength();
-				m_list.AddString( strTemp );
-				m_nbfunc ++;
+				if (hsize < strTemp.GetLength()) hsize = strTemp.GetLength();
+				cache.items.push_back(strTemp);
+				nbfunc++;
 			} while( pos );
 		}
 	}
@@ -474,7 +544,6 @@ void CListExport::AddFunction(int sel)
 	{
 // Export Section
 		PIMAGE_EXPORT_DIRECTORY exportDir = m_pe->GetExportsDesc();
-		m_nbfunc = 0;
 		if ( exportDir  && m_pe->IsValidPtr(( ULONG_PTR) exportDir ))
 		{
 			PSTR	filename = (PSTR)m_pe->GetReadablePointerFromRVA( exportDir->Name );
@@ -483,7 +552,7 @@ void CListExport::AddFunction(int sel)
 				PDWORD functions = ( PDWORD ) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfFunctions );
 				PWORD ordinals = (PWORD) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfNameOrdinals );
 				PDWORD name = ( PDWORD ) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfNames);
-				m_nbfunc =exportDir->NumberOfNames;
+				nbfunc = exportDir->NumberOfNames;
 				// Compute export directory bounds for forwarder detection
 				DWORD exportsStartRVA = m_pe->GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_EXPORT);
 				DWORD exportsEndRVA = exportsStartRVA + m_pe->GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_EXPORT);
@@ -516,7 +585,8 @@ void CListExport::AddFunction(int sel)
 				for (int j = 0; j < (int)namedExports.size(); j++)
 					nameForFunc[namedExports[j].funcIndex] = j;
 
-				// Display pass: iterate functions with O(1) name lookup
+				// Build items into cache vector
+				cache.items.reserve(exportDir->NumberOfFunctions);
 				for(i=0; i < (int) exportDir->NumberOfFunctions; i++)
 				{
 					DWORD entryPointRVA = functions[i];
@@ -542,9 +612,9 @@ void CListExport::AddFunction(int sel)
 							entry.Format(_T("%s%*s-> %s"), (LPCTSTR)displayName, pad, _T(""), (LPCTSTR)strForwardTarget);
 							displayName = entry;
 						}
-						m_list.AddString( displayName );
 						int size = displayName.GetLength();
-						if (m_Hsize < size) m_Hsize = size;
+						if (hsize < size) hsize = size;
+						cache.items.push_back(displayName);
 					}
 					else
 					{
@@ -558,56 +628,63 @@ void CListExport::AddFunction(int sel)
 							entry.Format(_T("%s%*s-> %s"), (LPCTSTR)displayName, pad, _T(""), (LPCTSTR)strForwardTarget);
 							displayName = entry;
 						}
-						m_list.AddString( displayName );
+						cache.items.push_back(displayName);
 					}
 				}
 			}
 		}
 	}
-	m_list.SetRedraw(TRUE);
-	m_list.Invalidate();
-	UpdateData(FALSE);
 
-	// Update the test status label
-	CWnd* pStatus = GetDlgItem(IDC_TESTSTATUS);
-	if (pStatus)
+	// Compute status text and color
+	cache.hsize = hsize;
+	cache.nbfunc = nbfunc;
+	if (sel == 0)
 	{
-		if (sel == 0)
-		{
-			// Export section: no testing
-			pStatus->SetWindowText(_T(""));
-		}
-		else if (!pModInfo || !pModInfo->IsModuleFound())
-		{
-			m_crTestStatus = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
-			pStatus->SetWindowText(_T("DLL not found"));
-		}
-		else if (hTestDll == NULL)
-		{
-			m_crTestStatus = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
-			pStatus->SetWindowText(_T("DLL load failed"));
-		}
-		else if (missingCount == 0)
-		{
-			m_crTestStatus = m_bDarkMode ? RGB(80, 200, 80) : RGB(0, 140, 0);
-			pStatus->SetWindowText(_T("All OK"));
-		}
-		else
-		{
-			m_crTestStatus = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
-			CString status;
-			status.Format(_T("%d Missing"), missingCount);
-			pStatus->SetWindowText(status);
-		}
-		pStatus->Invalidate();
+		cache.statusText = _T("");
+		cache.statusColor = RGB(0, 0, 0);
 	}
+	else if (!pModInfo || !pModInfo->IsModuleFound())
+	{
+		cache.statusColor = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
+		cache.statusText = _T("DLL not found");
+	}
+	else if (hTestDll == NULL)
+	{
+		cache.statusColor = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
+		cache.statusText = _T("DLL load failed");
+	}
+	else if (missingCount == 0)
+	{
+		cache.statusColor = m_bDarkMode ? RGB(80, 200, 80) : RGB(0, 140, 0);
+		cache.statusText = _T("All OK");
+	}
+	else
+	{
+		cache.statusColor = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
+		cache.statusText.Format(_T("%d Missing"), missingCount);
+	}
+	// Sort the items if sort mode is active
+	if (m_bsort)
+		std::sort(cache.items.begin(), cache.items.end(),
+			[](const CString& a, const CString& b) { return a.CompareNoCase(b) < 0; });
+
+	m_funcCache[sel] = cache;
+
+	// Populate listbox from cache using the optimized path
+	RestoreFromCache(sel);
 }
 
 void CListExport::OnSelchangeModules()
 {
 	int sel = m_listmodule.GetCurSel( );
-	if (sel == -1 || sel == m_lastSel) return;
-	m_lastSel = sel;
+	if (sel == -1) return;
+	// Skip if cached (instant restore, no wait dialog needed)
+	if (m_funcCache.count(sel)) {
+		RestoreFromCache(sel);
+		m_list.SetHorizontalExtent( m_Hsize * 10 );
+		m_listmodule.SetFocus();
+		return;
+	}
 	CWait wait(this);
 	wait.SetStatus(_T("Listing Functions..."));
 	AddFunction(sel);
@@ -615,10 +692,11 @@ void CListExport::OnSelchangeModules()
 	m_listmodule.SetFocus();
 }
 
-void CListExport::Onundecorate() 
+void CListExport::Onundecorate()
 {
 	// UpdateData(TRUE);
 	m_undecorate = !m_undecorate;
+	m_funcCache.clear();
 	int sel = m_list.GetCurSel( );
 	AddFunction(m_listmodule.GetCurSel( ));
 	m_list.SetHorizontalExtent( m_Hsize * 10 );
@@ -634,15 +712,20 @@ HBRUSH CListExport::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	return hbr;
 }
 
-void CListExport::OnSelchangeFunc() 
+void CListExport::OnSelchangeFunc()
 {
 	int sel = m_list.GetCurSel( );
 	if (sel == -1) return;
 	COleDataSource* pData = new COleDataSource;
-  
+
 	CSharedFile sf(GMEM_MOVEABLE|GMEM_DDESHARE|GMEM_ZEROINIT);
 	CString	func;
-	m_list.GetText( sel, func);
+	// Read from cache vector (LBS_NODATA listbox has no string storage)
+	auto it = m_funcCache.find(m_activeSel);
+	if (it != m_funcCache.end() && sel < (int)it->second.items.size())
+		func = it->second.items[sel];
+	else
+		return;
 	sf.Write(func, func.GetLength()); // you can write to the clipboard as you would to any cfile
 
 	HGLOBAL  hmem = sf.Detach();
@@ -734,6 +817,16 @@ void CListExport::SetDarkMode(bool bDark)
 {
 	CResizePage::SetDarkMode(bDark);
 	SubclassListBoxForDark(m_listmodule, bDark);
-	SubclassListBoxForDark(m_list, bDark);
+	// m_list (CVirtualListBox) paints itself via DrawItem — just invalidate
+	if (m_list.m_hWnd) {
+		if (bDark) {
+			DarkMode_AllowForWindow(m_list.m_hWnd, TRUE);
+			SetWindowTheme(m_list.m_hWnd, L"DarkMode_Explorer", NULL);
+		} else {
+			DarkMode_AllowForWindow(m_list.m_hWnd, FALSE);
+			SetWindowTheme(m_list.m_hWnd, NULL, NULL);
+		}
+		m_list.Invalidate();
+	}
 }
 

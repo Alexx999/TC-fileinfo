@@ -254,7 +254,15 @@ void CListpagePty::UpdateFont( void )
    }
 
    if (modif)
+   {
       m_Redit.SetDefaultCharFormat( cf );
+      // Also apply to any existing text
+      long s0, s1;
+      m_Redit.GetSel(s0, s1);
+      m_Redit.SetSel(0, -1);
+      m_Redit.SetSelectionCharFormat(cf);
+      m_Redit.SetSel(s0, s1);
+   }
 }
 
 void CListpagePty::UpdateTab( void )

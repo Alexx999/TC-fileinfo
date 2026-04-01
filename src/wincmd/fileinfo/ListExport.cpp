@@ -365,6 +365,8 @@ BOOL CListExport::OnInitDialog()
 		}
 	}
 
+	m_listmodule.SetFont(font);
+
 	// Apply dark mode early, before content is loaded
 	if (m_bDarkMode)
 		SetDarkMode(true);

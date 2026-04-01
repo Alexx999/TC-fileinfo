@@ -296,6 +296,7 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 //************     Fin Charge Config      ***************/
 		if (GetPrivateProfileInt( _T("Options"), _T("UserFont"), 1, inifilename)==1)
 			fo = GetFontOptions(ParentWnd, iniPath);
+		_tcscpy_s(fo.fontname, _T("Consolas"));
 
 		AFX_MANAGE_STATE(AfxGetStaticModuleState());
 		RECT r;

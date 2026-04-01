@@ -7,6 +7,7 @@
 #include <afxole.h> // for clipboard
 #include <afxadv.h> // shared file
 #include <vector>
+#include <map>
 #include <uxtheme.h>
 #pragma comment(lib, "uxtheme.lib")
 
@@ -384,6 +385,33 @@ void CListExport::AddFunction(int sel)
 			if (pModInfo->IsModuleFound())
 				hTestDll = m_handleCache.GetHandle(pModInfo->GetFullName(), b_W95Protect);
 
+			// Build ordinal→name map from the target DLL's export table
+			std::map<int, CString> ordinalNames;
+			if (pModInfo->IsModuleFound())
+			{
+				PE_EXE peTarget(pModInfo->GetFullName());
+				if (peTarget.IsValid())
+				{
+					PIMAGE_EXPORT_DIRECTORY expDir = peTarget.GetExportsDesc();
+					if (expDir && peTarget.IsValidPtr((ULONG_PTR)expDir))
+					{
+						PDWORD expFunctions = (PDWORD)peTarget.GetReadablePointerFromRVA(expDir->AddressOfFunctions);
+						PWORD  expOrdinals  = (PWORD)peTarget.GetReadablePointerFromRVA(expDir->AddressOfNameOrdinals);
+						PDWORD expNames     = (PDWORD)peTarget.GetReadablePointerFromRVA(expDir->AddressOfNames);
+						if (expFunctions && expOrdinals && expNames)
+						{
+							for (int j = 0; j < (int)expDir->NumberOfNames; j++)
+							{
+								int ord = expOrdinals[j] + expDir->Base;
+								PSTR eName = (PSTR)peTarget.GetReadablePointerFromRVA(expNames[j]);
+								if (eName)
+									ordinalNames[ord] = CString(eName);
+							}
+						}
+					}
+				}
+			}
+
 			CStringList *pFlist = pModInfo->GetFList();
 			POSITION pos = pFlist->GetHeadPosition();
 			if (!pos) return;
@@ -409,7 +437,14 @@ void CListExport::AddFunction(int sel)
 
 				// Format display name
 				if (_tcsncmp(_T("ordinal "), func, 8)==0)
-					strTemp = func;
+				{
+					int ord = _ttoi((LPCTSTR) func + 8);
+					auto it = ordinalNames.find(ord);
+					if (it != ordinalNames.end())
+						strTemp.Format(_T("ordinal %d  (%s)"), ord, (LPCTSTR)it->second);
+					else
+						strTemp = func;
+				}
 				else
 				{
 					if ( m_undecorate ) // Undecorate Name

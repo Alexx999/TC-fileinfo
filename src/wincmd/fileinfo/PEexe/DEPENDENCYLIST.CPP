@@ -417,6 +417,13 @@ errModuleDependencyList MODULE_DEPENDENCY_LIST::AddForwardedExportModules()
 			continue;
 		CString strDllName = strForward.Left( dotPos ) + _T(".dll");
 		CString strFuncName = strForward.Mid( dotPos + 1 );
+		// Forwarded exports may use "#N" syntax for ordinal references
+		// (e.g., "ext-ms-win-dx-d3dkmt-dxcore-l1-1-5.#36").
+		// Normalize to "ordinal N" so downstream code handles them uniformly.
+		if (!strFuncName.IsEmpty() && strFuncName[0] == _T('#'))
+		{
+			strFuncName.Format(_T("ordinal %d"), _ttoi((LPCTSTR)strFuncName + 1));
+		}
 
 		// Check if this target DLL is already in the dependency list
 		PMODULE_FILE_INFO pExisting = LookupModule( strDllName, FALSE );

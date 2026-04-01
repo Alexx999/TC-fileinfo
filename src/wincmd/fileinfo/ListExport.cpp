@@ -551,7 +551,6 @@ void CListExport::AddFunction(int sel)
 				PDWORD functions = ( PDWORD ) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfFunctions );
 				PWORD ordinals = (PWORD) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfNameOrdinals );
 				PDWORD name = ( PDWORD ) m_pe->GetReadablePointerFromRVA( exportDir->AddressOfNames);
-				nbfunc = exportDir->NumberOfNames;
 				// Compute export directory bounds for forwarder detection
 				DWORD exportsStartRVA = m_pe->GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_EXPORT);
 				DWORD exportsEndRVA = exportsStartRVA + m_pe->GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_EXPORT);
@@ -614,11 +613,12 @@ void CListExport::AddFunction(int sel)
 						int size = displayName.GetLength();
 						if (hsize < size) hsize = size;
 						cache.items.push_back(displayName);
+						nbfunc++;
 					}
 					else
 					{
 						CString displayName;
-						displayName.Format( _T("ordinal %d"), i );
+						displayName.Format( _T("ordinal %d"), i + exportDir->Base );
 						if (!strForwardTarget.IsEmpty())
 						{
 							int pad = padTo - displayName.GetLength();
@@ -628,6 +628,7 @@ void CListExport::AddFunction(int sel)
 							displayName = entry;
 						}
 						cache.items.push_back(displayName);
+						nbfunc++;
 					}
 				}
 			}

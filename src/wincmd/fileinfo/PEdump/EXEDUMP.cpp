@@ -457,9 +457,6 @@ CStringA DumpExportsSection(PE_EXE &pe)
 	DWORD j;
 	DWORD entryPointRVA;
 	DWORD nbfunc = exportDir->NumberOfFunctions;
-	if ( exportDir->NumberOfFunctions > 3000)
-		if (AfxMessageBox(_T("More than 3000 exported functions\n May take a long time \n Dump All (OK) or None (Cancel)"), MB_OKCANCEL|MB_ICONQUESTION ) == IDCANCEL)
-			nbfunc = 0;
 	for ( i=0; i < nbfunc; i++ )
 	{
 		entryPointRVA = functions[i];

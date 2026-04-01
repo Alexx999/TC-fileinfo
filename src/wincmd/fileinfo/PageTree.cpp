@@ -149,6 +149,9 @@ BOOL CPageTree::OnInitDialog()
 
 	m_tree.SetImageList(pImageList, TVSIL_NORMAL);
 
+	// Enable double-buffering to reduce flicker when hovering over icons
+	TreeView_SetExtendedStyle(m_tree.m_hWnd, TVS_EX_DOUBLEBUFFER, TVS_EX_DOUBLEBUFFER);
+
 	// Use a monospace font for aligned display of DLL names and paths
 	m_pTreeFont = new CFont();
 	m_pTreeFont->CreateFont(-12, 0, 0, 0, FW_NORMAL, 0, 0, 0,

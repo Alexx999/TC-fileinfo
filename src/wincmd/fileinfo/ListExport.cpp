@@ -130,7 +130,7 @@ static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 			::SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 			LRESULT result = ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
 			::SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-			::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE);
+			::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE | RDW_FRAME);
 			return result;
 		}
 	case WM_MOUSEMOVE:
@@ -138,7 +138,7 @@ static LRESULT CALLBACK DarkListBoxProc(HWND hWnd, UINT msg, WPARAM wParam, LPAR
 			::SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 			LRESULT result = ::CallWindowProc(pfnOrig, hWnd, msg, wParam, lParam);
 			::SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-			::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE);
+			::RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOERASE | RDW_FRAME);
 			return result;
 		}
 		break;

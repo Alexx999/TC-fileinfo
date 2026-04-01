@@ -34,6 +34,7 @@ public:
 //	CStringList m_Mlist, m_Flist;
 	int		m_NbIF; //, m_NbDIF;
 	int		m_Hsize;
+	int		m_lastSel;
 	CFont *font;
 	CDllHandleCache m_handleCache;
 	COLORREF m_crTestStatus;

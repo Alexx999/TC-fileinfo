@@ -37,6 +37,7 @@ CListExport::CListExport() : CResizePage(CListExport::IDD)
 	m_pe = NULL;
 	font = NULL;
 	m_NbIF = 0;
+	m_lastSel = -1;
 	m_bsort = FALSE;
 	m_crTestStatus = RGB(0, 0, 0);
 }
@@ -295,6 +296,7 @@ void CListExport::Load()
 		wait.SetStatus(_T("Listing Functions..."));
 		AddFunction(0);
 		m_listmodule.SetCurSel( 0 );
+		m_lastSel = 0;
 }
 
 BOOL CListExport::OnInitDialog()
@@ -603,10 +605,11 @@ void CListExport::AddFunction(int sel)
 
 void CListExport::OnSelchangeModules()
 {
+	int sel = m_listmodule.GetCurSel( );
+	if (sel == -1 || sel == m_lastSel) return;
+	m_lastSel = sel;
 	CWait wait(this);
 	wait.SetStatus(_T("Listing Functions..."));
-	int sel = m_listmodule.GetCurSel( );
-	if (sel == -1) return;
 	AddFunction(sel);
 	m_list.SetHorizontalExtent( m_Hsize *10 );
 	m_listmodule.SetFocus();

@@ -551,10 +551,10 @@ DWORD_FLAG_DESCRIPTIONS SectionCharacteristics[] =
 { IMAGE_SCN_TYPE_OVER, "OVER" },
 { IMAGE_SCN_LNK_REMOVE, "REMOVE" },
 { IMAGE_SCN_LNK_COMDAT, "COMDAT" },
-{ IMAGE_SCN_MEM_PROTECTED, "PROTECTED" },
+{ IMAGE_SCN_MEM_PROTECTED, "NO_DEFER_SPEC_EXC" },
 #define IMAGE_SCN_NO_DEFER_SPEC_EXC          0x00004000  // Reset speculative exceptions handling bits in the TLB entries for this section.
 #define IMAGE_SCN_GPREL                      0x00008000  // Section content can be accessed relative to GP
-{ IMAGE_SCN_MEM_FARDATA, "FARDATA" },
+{ IMAGE_SCN_MEM_FARDATA, "GPREL" },
 { IMAGE_SCN_MEM_SYSHEAP, "SYSHEAP" },
 { IMAGE_SCN_MEM_PURGEABLE, "PURGEABLE" },
 { IMAGE_SCN_MEM_LOCKED, "LOCKED" },
@@ -720,7 +720,7 @@ char *SzDebugFormats[] = {
 "UNKNOWN","COFF","CODEVIEW","FPO","MISC","EXCEPTION","FIXUP",
 "OMAP_TO_SRC", "OMAP_FROM_SRC", "BORLAND", "RESERVED10",
 "CLSID", "VC_FEATURE", "POGO", "ILTCG", "MPX",
-"REPRO", "Embedded Portable PDB", "(18)", "(19)",
+"REPRO", "Embedded Portable PDB", "SPGO", "(19)",
 "EX_DLLCHARACTERISTICS", "PERFMAP"};
 #define NBDEBUGTYPE 22
 //

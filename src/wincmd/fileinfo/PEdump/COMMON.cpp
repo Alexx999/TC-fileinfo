@@ -46,21 +46,21 @@ typedef struct
 // Bitfield values and names for the IMAGE_FILE_HEADER flags
 WORD_FLAG_DESCRIPTIONS ImageFileHeaderCharacteristics[] = 
 {
-{ IMAGE_FILE_RELOCS_STRIPPED, "Relocation info stripped from file" },
-{ IMAGE_FILE_EXECUTABLE_IMAGE, "File is executable  (i.e. no unresolved external references)" },
-{ IMAGE_FILE_LINE_NUMS_STRIPPED, "COFF line numbers have been removed" },
-{ IMAGE_FILE_LOCAL_SYMS_STRIPPED, "COFF symbol table entries for local symbols have been removed" },
-{ IMAGE_FILE_AGGRESIVE_WS_TRIM, "Agressively trim working set" },
-{ IMAGE_FILE_LARGE_ADDRESS_AWARE, "LARGE_ADDRESS_AWARE (can handle >2Gb Addresses)" },
-{ IMAGE_FILE_BYTES_REVERSED_LO, "Little endian: LSB precedes MSB in memory" },
-{ IMAGE_FILE_32BIT_MACHINE, "Machine based on 32-bit-word architecture" },
-{ IMAGE_FILE_DEBUG_STRIPPED, "Debugging info stripped from file in .DBG file" },
-{ IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP, "If Image is on removable media, copy and run from the swap file" },
-{ IMAGE_FILE_NET_RUN_FROM_SWAP, "If Image is on Net, copy and run from the swap file" },
-{ IMAGE_FILE_SYSTEM, "The image file is a system file, not a user program" },
-{ IMAGE_FILE_DLL, "File is a DLL" },
-{ IMAGE_FILE_UP_SYSTEM_ONLY, "File should only be run on a UP machine" },
-{ IMAGE_FILE_BYTES_REVERSED_HI, "Big endian: MSB precedes LSB in memory" }
+{ IMAGE_FILE_RELOCS_STRIPPED, "Relocations stripped" },
+{ IMAGE_FILE_EXECUTABLE_IMAGE, "Executable image" },
+{ IMAGE_FILE_LINE_NUMS_STRIPPED, "COFF line numbers stripped" },
+{ IMAGE_FILE_LOCAL_SYMS_STRIPPED, "COFF local symbols stripped" },
+{ IMAGE_FILE_AGGRESIVE_WS_TRIM, "Aggressively trim working set" },
+{ IMAGE_FILE_LARGE_ADDRESS_AWARE, "Large address aware (>2GB)" },
+{ IMAGE_FILE_BYTES_REVERSED_LO, "Little endian (deprecated)" },
+{ IMAGE_FILE_32BIT_MACHINE, "32-bit machine" },
+{ IMAGE_FILE_DEBUG_STRIPPED, "Debug info stripped" },
+{ IMAGE_FILE_REMOVABLE_RUN_FROM_SWAP, "Run from swap if on removable media" },
+{ IMAGE_FILE_NET_RUN_FROM_SWAP, "Run from swap if on network" },
+{ IMAGE_FILE_SYSTEM, "System file" },
+{ IMAGE_FILE_DLL, "DLL" },
+{ IMAGE_FILE_UP_SYSTEM_ONLY, "Uniprocessor machine only" },
+{ IMAGE_FILE_BYTES_REVERSED_HI, "Big endian (deprecated)" }
 // { IMAGE_FILE_MINIMAL_OBJECT, "MINIMAL_OBJECT" }, // Removed in NT 3.5
 // { IMAGE_FILE_UPDATE_OBJECT, "UPDATE_OBJECT" },   // Removed in NT 3.5
 // { IMAGE_FILE_16BIT_MACHINE, "16BIT_MACHINE" },   // Removed in NT 3.5
@@ -78,17 +78,7 @@ CStringA DumpHeader(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER3
     CStringA str="", strTemp="";
     UINT headerFieldWidth = 30;
     UINT i;
-	str += ("FILE CHARACTERISTICS : \r\n");
-    for ( i=0; i < NUMBER_IMAGE_HEADER_FLAGS; i++ )
-    {
-        if ( pImageFileHeader->Characteristics & ImageFileHeaderCharacteristics[i].flag )
-		{
-            strTemp.Format( "\t\t%s\r\n", ImageFileHeaderCharacteristics[i].name );
-			str += strTemp;
-		}
-    }
-
-    str += ("FILE HEADER :\r\n\r\n");
+    str += ("FILE HEADER :\r\n");
 
 	WORD MajorSubsystemVersion = 0;
 	WORD MinorSubsystemVersion = 0;
@@ -125,6 +115,14 @@ CStringA DumpHeader(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER3
     strTemp.Format("\t%-*s\t%04Xh\r\n", headerFieldWidth, "Flags:",
                 pImageFileHeader->Characteristics);
 	str += strTemp;
+    for ( i=0; i < NUMBER_IMAGE_HEADER_FLAGS; i++ )
+    {
+        if ( pImageFileHeader->Characteristics & ImageFileHeaderCharacteristics[i].flag )
+        {
+            strTemp.Format( "\t%-*s\t%s\r\n", headerFieldWidth, " ", ImageFileHeaderCharacteristics[i].name );
+            str += strTemp;
+        }
+    }
 	return str;
 }
 

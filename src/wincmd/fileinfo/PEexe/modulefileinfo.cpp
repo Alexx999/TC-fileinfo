@@ -65,8 +65,7 @@ BOOL MODULE_FILE_INFO::TestFunction( CDllHandleCache* pHandleCache )
 		}
 
 		m_Tested = TRUE;
-		POSITION pos = m_Flist.GetHeadPosition();
-		if (pos)
+		if (!m_Flist.empty())
 		{
 			// m_szFullName is already the fully resolved absolute path,
 			// so we can use it directly — no SearchPath or SetCurrentDirectory needed.
@@ -84,18 +83,17 @@ BOOL MODULE_FILE_INFO::TestFunction( CDllHandleCache* pHandleCache )
 			}
 			if (h)
 			{
-				CString func;
-				do {
-					func = m_Flist.GetNext(pos);
+				for (const auto& func : m_Flist)
+				{
 					if (_tcsncmp(func, _T("<invalid name>"), 14) == 0) continue;
 					if (_tcsncmp(_T("ordinal "), func, 8)==0)
 					{
 						if (!GetProcAddress( h, MAKEINTRESOURCEA(_ttoi((LPCTSTR) func + 8))))
-						{ pos = NULL; ret = FALSE; }
+						{ ret = FALSE; break; }
 					}
 					else if (!GetProcAddress( h, CT2A(func)))
-					{ ret = FALSE; pos = NULL; }
-				} while( pos );
+					{ ret = FALSE; break; }
+				}
 				if (!pHandleCache)
 					FreeLibrary( h );	// Only free if not cached
 			}

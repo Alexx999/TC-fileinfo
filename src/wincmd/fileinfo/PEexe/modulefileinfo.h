@@ -6,6 +6,8 @@
 #ifndef __MODULEFILEINFO_H__
 #define __MODULEFILEINFO_H__
 
+#include <vector>
+
 class MODULE_DEPENDENCY_LIST;
 class CDllHandleCache;
 //
@@ -16,7 +18,7 @@ class MODULE_FILE_INFO
 private:
     MODULE_FILE_INFO * m_pNext;
 	long	m_Address;
-	CStringList m_Flist;
+	std::vector<CString> m_Flist;
 	TCHAR	*m_szBaseName;
 	TCHAR	m_szFullName[MAX_PATH];
 	TCHAR	m_szApiSetName[MAX_PATH];	// Original API Set contract name, if any
@@ -34,12 +36,12 @@ public:
 	void SetApiSetName(LPCTSTR pszName) { lstrcpyn(m_szApiSetName, pszName, _countof(m_szApiSetName)); }
 	void SetImportedFPresent(BOOL pres) { m_bIFound = pres; };
 	BOOL TestFunction( CDllHandleCache* pHandleCache );
-	CStringList *GetFList() { return &m_Flist; }
+	const std::vector<CString>& GetFList() { return m_Flist; }
 
 // *** FG
 	BOOL IsIFPresent() { return m_bIFound; };
 	BOOL IsModuleFound() { return m_bFound; };
-	void AddFunc(CString str) { m_Flist.AddTail(str); }
+	void AddFunc(const CString& str) { m_Flist.push_back(str); }
 };
 
 typedef MODULE_FILE_INFO * PMODULE_FILE_INFO;

@@ -42,4 +42,12 @@ OBJ_FILE_TYPE DisplayObjectFile( MEMORY_MAPPED_FILE *pmmf );
 void CreateParentTree(PVOID ptr, CTreeCtrl &tree, CWait &wait);
 // void CreateOcxList(PVOID ptr, CListCtrl &list, CRichEditCtrl &edit);
 
+// Opaque context for lazy child population in the DLL Dependency tree.
+// Created by CreateParentTree, stored on the root tree item, cleaned up by CPageTree.
+struct DllTreeContext;
+void DeleteDllTreeContext(DllTreeContext* p);
+// Lazily populates children of hParent when expanded for the first time.
+// Returns TRUE if children were populated, FALSE if already populated or nothing to do.
+BOOL DllTreeContext_ExpandNode(DllTreeContext* pCtx, CTreeCtrl& tree, HTREEITEM hParent);
+
 #endif

@@ -95,6 +95,11 @@ PMODULE_FILE_INFO MODULE_DEPENDENCY_LIST::LookupModule( LPCTSTR pszFileName, BOO
 		LPCTSTR pszCompName = fFullName ? p->m_szFullName : p->m_szBaseName;
 		if ( 0 == lstrcmpi( pszFileName, pszCompName ) )
 			return p;
+		// Also match against the API Set contract name when searching by base name.
+		// A module added via resolved path (m_szBaseName = "dxcore.dll") must still
+		// be found when searched by its API Set name ("ext-ms-win-dx-...-l1-1-5.dll").
+		if ( !fFullName && p->m_szApiSetName[0] && 0 == lstrcmpi( pszFileName, p->m_szApiSetName ) )
+			return p;
 		p = p->m_pNext;
 	}
 	return 0;

@@ -483,14 +483,13 @@ void CListExport::AddFunction(int sel)
 				}
 			}
 
-			CStringList *pFlist = pModInfo->GetFList();
-			POSITION pos = pFlist->GetHeadPosition();
-			if (!pos) return;
-			cache.items.reserve(pFlist->GetCount());
-			CString func;
-			do {
-				func = pFlist->GetNext(pos);
-				BOOL bMissing = FALSE;
+			const auto& flist = pModInfo->GetFList();
+			if (flist.empty()) return;
+			cache.items.reserve(flist.size());
+			BOOL bMissing;
+			for (const auto& func : flist)
+			{
+				bMissing = FALSE;
 
 				// Test this function against the loaded DLL
 				if (hTestDll)
@@ -537,7 +536,7 @@ void CListExport::AddFunction(int sel)
 				if (hsize < strTemp.GetLength()) hsize = strTemp.GetLength();
 				cache.items.push_back(strTemp);
 				nbfunc++;
-			} while( pos );
+			}
 		}
 	}
 	else

@@ -14,6 +14,7 @@
 #include "peexe\dependencylist.h"
 #include "peexe\apisetresolve.h"
 #include <map>
+#include <vector>
 #include "pedump\exedump.h"
 #include "pedump\objdump.h"
 #include "pedump\libdump.h"
@@ -365,20 +366,45 @@ public:
 	}
 };
 
-static void CreateChildTreeCached( CTreeCtrl &tree, HTREEITEM &ParentItem,
-	MODULE_DEPENDENCY_LIST *pdep, int depth,
-	CModuleCache &modCache, CDllPathCache &pathCache, CDllHandleCache &handleCache)
+//------------------------------------------------------------------
+// DllTreeContext: heap-allocated context that survives tree construction
+// so the OnItemExpanding handler can lazily populate child nodes.
+//------------------------------------------------------------------
+// Sentinel value stored via SetItemData on dummy child items that indicate
+// "children not yet loaded — populate on expand".
+#define DUMMY_CHILD_MARKER ((DWORD_PTR)1)
+
+struct DllTreeContext
+{
+	CDllPathCache   pathCache;
+	CModuleCache    modCache;
+	CDllHandleCache handleCache;
+	int             maxDepth;
+};
+
+// Populates one level of the dependency tree under ParentItem.
+// Called both during initial tree construction (depth 0) and lazily on expand.
+static void PopulateTreeLevel( CTreeCtrl &tree, HTREEITEM ParentItem,
+	MODULE_DEPENDENCY_LIST *pdep, int depth, DllTreeContext &ctx)
 {
 	HTREEITEM ChidItem;
 
-	// First pass: find longest base name among all siblings for alignment
+	// Single pass: collect all modules (regular + delayed) while computing
+	// the maximum base-name length for display alignment.
+	struct ModEntry {
+		PMODULE_FILE_INFO pMod;
+		bool bDelayed;
+	};
+	std::vector<ModEntry> modules;
 	int maxNameLen = 0;
+
 	PMODULE_FILE_INFO pModInfo = pdep->GetNextModule( (PMODULE_FILE_INFO) 0 );
 	if (pModInfo)
 		while ( pModInfo = pdep->GetNextModule( pModInfo ) )
 		{
 			int len = (int)_tcslen(pModInfo->GetBaseName());
 			if (len > maxNameLen) maxNameLen = len;
+			modules.push_back({ pModInfo, false });
 		}
 	pModInfo = pdep->GetNextDelayedModule( (PMODULE_FILE_INFO) 0 );
 	if (pModInfo)
@@ -386,52 +412,40 @@ static void CreateChildTreeCached( CTreeCtrl &tree, HTREEITEM &ParentItem,
 		{
 			int len = (int)_tcslen(pModInfo->GetBaseName());
 			if (len > maxNameLen) maxNameLen = len;
+			modules.push_back({ pModInfo, true });
 		}
+
 	int padTo = maxNameLen + 2;  // 2 spaces after the longest name
 
-	// Second pass: insert into tree with aligned display names
-	pModInfo = pdep->GetNextModule( (PMODULE_FILE_INFO) 0 );
-	if (pModInfo )
-		while ( pModInfo = pdep->GetNextModule( pModInfo ) )
-		{
-			if (pModInfo->IsModuleFound())
-			{
-				if (pModInfo->TestFunction(&handleCache))
-					ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 0, 0, ParentItem );
-				else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 4, 4, ParentItem );/**/
-				// Only load child dependencies when we'll actually recurse
-				if ( depth + 1 < MaxDepth )
-				{
-					MODULE_DEPENDENCY_LIST *pDepChild = modCache.GetDepends(pModInfo->GetFullName(), &pathCache);
-					if ( pDepChild->IsValid() )
-						CreateChildTreeCached(tree, ChidItem, pDepChild, depth + 1,
-							modCache, pathCache, handleCache);
-				}
-			}
-			else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 1, 1, ParentItem );/**/
-		}
+	// Insert into tree with aligned display names
+	for (const auto& entry : modules)
+	{
+		PMODULE_FILE_INFO pMod = entry.pMod;
+		// Icon indices: regular  0=found, 1=notfound, 4=missing-func
+		//               delayed  2=found, 3=notfound, 5=missing-func
+		int icoFound    = entry.bDelayed ? 2 : 0;
+		int icoNotFound = entry.bDelayed ? 3 : 1;
+		int icoMissing  = entry.bDelayed ? 5 : 4;
 
-	pModInfo = pdep->GetNextDelayedModule( (PMODULE_FILE_INFO) 0 );
-	if (pModInfo )
-		while ( pModInfo = pdep->GetNextDelayedModule( pModInfo ) )
+		if (pMod->IsModuleFound())
 		{
-			if (pModInfo->IsModuleFound())
+			// Run TestFunction to determine icon (found vs missing-func)
+			int ico = pMod->TestFunction(&ctx.handleCache) ? icoFound : icoMissing;
+			ChidItem = tree.InsertItem( pMod->GetDisplayName(padTo), ico, ico, ParentItem );
+			// Store MODULE_FILE_INFO* for lazy child population via GetFullName()
+			tree.SetItemData( ChidItem, (DWORD_PTR) pMod );
+
+			// Insert a dummy child to show the expand arrow.
+			// Real children will be populated lazily when the user expands.
+			if ( depth + 1 < ctx.maxDepth )
 			{
-				if (pModInfo->TestFunction(&handleCache))
-					ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 2, 2, ParentItem );
-				else ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 5, 5, ParentItem );
-				// Only load child dependencies when we'll actually recurse
-				if (depth + 1 < MaxDepth)
-				{
-					MODULE_DEPENDENCY_LIST *pDepChild = modCache.GetDepends(pModInfo->GetFullName(), &pathCache);
-					if ( pDepChild->IsValid() )
-						CreateChildTreeCached(tree, ChidItem, pDepChild, depth + 1,
-							modCache, pathCache, handleCache);
-				}
+				HTREEITEM hDummy = tree.InsertItem( _T(""), 0, 0, ChidItem );
+				tree.SetItemData( hDummy, DUMMY_CHILD_MARKER );
 			}
-			else
-				ChidItem = tree.InsertItem( pModInfo->GetDisplayName(padTo), 3, 3, ParentItem );
 		}
+		else
+			ChidItem = tree.InsertItem( pMod->GetDisplayName(padTo), icoNotFound, icoNotFound, ParentItem );
+	}
 }
 
 void CreateParentTree( PVOID ptr, CTreeCtrl &tree, CWait &wait)
@@ -445,15 +459,53 @@ void CreateParentTree( PVOID ptr, CTreeCtrl &tree, CWait &wait)
     HTREEITEM ParentItem = tree.InsertItem( pPE->GetName()); //>GetPath() + pPE->GetBaseName());
 	pPE->IsCoded();		//Test compressed and decompress
 
-	// Create per-analysis caches (auto-destroyed when scope exits)
-	CDllPathCache pathCache;
-	CModuleCache modCache;
-	CDllHandleCache handleCache;
+	// Create heap-allocated context that survives tree construction,
+	// allowing the OnItemExpanding handler to populate children lazily.
+	DllTreeContext *pCtx = new DllTreeContext;
+	pCtx->maxDepth = MaxDepth;
 
-	pPE->SetPathCache(&pathCache);
+	pPE->SetPathCache(&pCtx->pathCache);
     MODULE_DEPENDENCY_LIST *pDep = pPE->GetDepends();
     if (pDep->IsValid())
-		CreateChildTreeCached(tree, ParentItem, pDep, 0, modCache, pathCache, handleCache);
+		PopulateTreeLevel(tree, ParentItem, pDep, 0, *pCtx);
+
+	// Store context pointer on the root tree item so CPageTree can
+	// retrieve it for lazy child population and clean it up later.
+	tree.SetItemData( ParentItem, (DWORD_PTR) pCtx );
+}
+
+void DeleteDllTreeContext(DllTreeContext* p) { delete p; }
+
+BOOL DllTreeContext_ExpandNode(DllTreeContext* pCtx, CTreeCtrl& tree, HTREEITEM hParent)
+{
+	// Check if the first child is the dummy marker (lazy placeholder)
+	HTREEITEM hFirstChild = tree.GetChildItem(hParent);
+	if (!hFirstChild) return FALSE;
+	if (tree.GetItemData(hFirstChild) != DUMMY_CHILD_MARKER)
+		return FALSE;  // Already populated
+
+	// Delete the dummy child
+	tree.DeleteItem(hFirstChild);
+
+	// Get the MODULE_FILE_INFO* stored on the parent item
+	DWORD_PTR dwData = tree.GetItemData(hParent);
+	if (!dwData || dwData == DUMMY_CHILD_MARKER) return FALSE;
+	MODULE_FILE_INFO* pParentMod = (MODULE_FILE_INFO*) dwData;
+
+	// Resolve dependencies for this module (cached if already seen)
+	MODULE_DEPENDENCY_LIST* pdep = pCtx->modCache.GetDepends(
+		pParentMod->GetFullName(), &pCtx->pathCache);
+	if (!pdep || !pdep->IsValid()) return TRUE;
+
+	// Count depth from root to determine MaxDepth constraint
+	int depth = 0;
+	HTREEITEM hWalk = hParent;
+	while ((hWalk = tree.GetParentItem(hWalk)) != NULL)
+		depth++;
+
+	// Populate one level of children (with TestFunction + dummy children)
+	PopulateTreeLevel(tree, hParent, pdep, depth, *pCtx);
+	return TRUE;
 }
 
 

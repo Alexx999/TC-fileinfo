@@ -23,6 +23,7 @@ CPageTree::CPageTree() : CResizePage(CPageTree::IDD)
 	FillTree = NULL;
 	pImageList = NULL;
 	m_pTreeFont = NULL;
+	m_pDllCtx = NULL;
 //}}AFX_DATA_INIT
 }
 
@@ -41,6 +42,11 @@ void CPageTree::OnDestroy()
 void CPageTree::CleanUp()
 {
 	TRACE0("CPageTree : CleanUp \n");
+	// Clear tree items first — they may hold MODULE_FILE_INFO* pointers
+	// into the DllTreeContext that we're about to delete.
+	if (m_tree.m_hWnd) m_tree.DeleteAllItems();
+	if (m_pDllCtx) DeleteDllTreeContext(m_pDllCtx);
+	m_pDllCtx = NULL;
 	if (m_pTreeFont) delete m_pTreeFont;
 	m_pTreeFont = NULL;
 	if (pImageList) delete pImageList;
@@ -59,6 +65,7 @@ void CPageTree::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CPageTree, CResizePage)
 	//{{AFX_MSG_MAP(CPageTree)
 	ON_WM_DESTROY()
+	ON_NOTIFY(TVN_ITEMEXPANDING, IDC_TREE1, OnItemExpanding)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -77,7 +84,7 @@ void CPageTree::Resize(CRect &rectPage)
 //	m_Redit.SetSel( 0, 0);
 }
 
-void CPageTree::Renew(PVOID pPE) 
+void CPageTree::Renew(PVOID pPE)
 {
 	CleanUp();
 	m_ptr = pPE;
@@ -87,6 +94,14 @@ void CPageTree::Renew(PVOID pPE)
 			m_tree.SetRedraw(FALSE);
 			CWait wait(this);
 			((pfunc) FillTree) (m_ptr, m_tree, wait);
+
+			// Capture the DllTreeContext from the root item (set by CreateParentTree)
+			HTREEITEM hRoot = m_tree.GetRootItem();
+			if (hRoot)
+			{
+				m_pDllCtx = (DllTreeContext*) m_tree.GetItemData(hRoot);
+				m_tree.SetItemData(hRoot, 0);  // root item no longer owns it
+			}
 
 			VERSION ver = GetSystemVersion();
 			if (ver.ver >= WND_XP)
@@ -147,6 +162,14 @@ BOOL CPageTree::OnInitDialog()
 		CWait wait(this);
 		((pfunc) FillTree) (m_ptr, m_tree, wait);
 
+		// Capture the DllTreeContext from the root item (set by CreateParentTree)
+		HTREEITEM hRoot = m_tree.GetRootItem();
+		if (hRoot)
+		{
+			m_pDllCtx = (DllTreeContext*) m_tree.GetItemData(hRoot);
+			m_tree.SetItemData(hRoot, 0);  // root item no longer owns it
+		}
+
 		VERSION ver = GetSystemVersion();
 		if (ver.ver >= WND_XP)
 			m_tree.Expand(m_tree.GetRootItem(), TVE_EXPAND);
@@ -193,6 +216,21 @@ BOOL CPageTree::PreTranslateMessage(MSG* pMsg)
 		}
 	}
 	return CResizePage::PreTranslateMessage(pMsg);
+}
+
+void CPageTree::OnItemExpanding(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	NM_TREEVIEW* pNMTV = (NM_TREEVIEW*)pNMHDR;
+	*pResult = 0;
+
+	if (pNMTV->action != TVE_EXPAND || !m_pDllCtx)
+		return;
+
+	// Lazily populate children when expanding for the first time.
+	// DllTreeContext_ExpandNode checks for a dummy placeholder child,
+	// replaces it with real dependency entries (including TestFunction
+	// and their own dummy children for further lazy expansion).
+	DllTreeContext_ExpandNode(m_pDllCtx, m_tree, pNMTV->itemNew.hItem);
 }
 
 void CPageTree::SetDarkMode(bool bDark)

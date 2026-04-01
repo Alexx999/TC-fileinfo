@@ -9,6 +9,7 @@
 #include "resource.h"
 #include "..\common\ResizePage.h"
 #include "..\common\wait.h"
+#include "fileinfotext.h"
 
 typedef void ( * pfunc )(PVOID ptr, CTreeCtrl &tree, CWait &wait );
 /////////////////////////////////////////////////////////////////////////////
@@ -37,6 +38,7 @@ public:
    CRect   m_rectTree;
    PVOID		m_ptr;
    pfunc FillTree;			//   void (* FillTree )(const char *FileToLoad, CTreeCtrl &tree );
+   DllTreeContext *m_pDllCtx;	// Heap-allocated context for lazy TestFunction on expand
 
 protected:
 	void CleanUp();
@@ -57,6 +59,7 @@ protected:
    //{{AFX_MSG(CPageTree)
 	   virtual BOOL OnInitDialog();
 	   	afx_msg void OnDestroy( );
+		afx_msg void OnItemExpanding(NMHDR* pNMHDR, LRESULT* pResult);
    //}}AFX_MSG
    DECLARE_MESSAGE_MAP()
 

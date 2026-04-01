@@ -45,6 +45,8 @@ class CDllHandleCache {
 	std::map<CString, HINSTANCE, CStringNoCaseLess> m_cache;
 public:
 	~CDllHandleCache();
+	// Releases all cached handles and clears the cache.
+	void Clear();
 	// Returns a cached HINSTANCE, or loads the DLL and caches it.
 	// Returns NULL if the DLL cannot be loaded.
 	HINSTANCE GetHandle(LPCTSTR pszFullPath, BOOL bAsDataFile);

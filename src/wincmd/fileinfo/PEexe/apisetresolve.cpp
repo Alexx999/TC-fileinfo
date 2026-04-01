@@ -69,9 +69,15 @@ BOOL CDllPathCache::Resolve(LPCTSTR pszDllName, LPTSTR szResolvedPath, DWORD cch
 //------------------------------------------------------------------
 CDllHandleCache::~CDllHandleCache()
 {
+	Clear();
+}
+
+void CDllHandleCache::Clear()
+{
 	for (auto& pair : m_cache)
 		if (pair.second)
 			FreeLibrary(pair.second);
+	m_cache.clear();
 }
 
 HINSTANCE CDllHandleCache::GetHandle(LPCTSTR pszFullPath, BOOL bAsDataFile)

@@ -73,7 +73,7 @@
 #define IDC_followme                    1045
 #define IDC_LIST2                       1046
 #define IDC_undecorate                  1047
-#define IDC_BUTTON1                     1048
+#define IDC_TESTSTATUS                  1048
 #define IDC_status                      1050
 #define IDC_RicheditFI                  1051
 #define IDC_RegServer                   1052

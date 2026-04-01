@@ -9,6 +9,7 @@
 #include "resource.h"
 #include "..\common\ResizePage.h"
 #include "peexe\peexe.h"
+#include "peexe\apisetresolve.h"
 /////////////////////////////////////////////////////////////////////////////
 // CListExport dialog
 
@@ -34,6 +35,8 @@ public:
 	int		m_NbIF; //, m_NbDIF;
 	int		m_Hsize;
 	CFont *font;
+	CDllHandleCache m_handleCache;
+	COLORREF m_crTestStatus;
 
 //	CListBox	*m_plist;
 	DWORD		m_ListStyle;
@@ -71,9 +74,9 @@ protected:
    virtual BOOL OnInitDialog();
 	afx_msg void OnSelchangeModules();
 	afx_msg void Onundecorate();
-	afx_msg void OnTestImport();
 	afx_msg void OnSelchangeFunc();
 	afx_msg void OnSort();
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

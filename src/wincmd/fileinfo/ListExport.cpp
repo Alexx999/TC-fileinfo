@@ -3,7 +3,6 @@
 
 #include "stdafx.h"
 #include "ListExport.h"
-#include "ListDlg.h"
 #include <imagehlp.h>
 #include <afxole.h> // for clipboard
 #include <afxadv.h> // shared file
@@ -37,6 +36,7 @@ CListExport::CListExport() : CResizePage(CListExport::IDD)
 	font = NULL;
 	m_NbIF = 0;
 	m_bsort = FALSE;
+	m_crTestStatus = RGB(0, 0, 0);
 }
 
 extern TCHAR inifilename[MAX_PATH];
@@ -54,6 +54,7 @@ void CListExport::OnDestroy()
 void CListExport::Renew(PE_EXE *pPE)
 {
 	m_pe=pPE;
+	m_handleCache.Clear();
 	if (m_listmodule.m_hWnd) {
 		m_listmodule.ResetContent();
 		if (m_pe->IsValid())
@@ -91,10 +92,10 @@ BEGIN_MESSAGE_MAP(CListExport, CResizePage)
 	//{{AFX_MSG_MAP(CListExport)
 	ON_LBN_SELCHANGE(IDC_LIST1, OnSelchangeModules)
 	ON_BN_CLICKED(IDC_undecorate, Onundecorate)
-	ON_BN_CLICKED(IDC_BUTTON1, OnTestImport)
 	ON_LBN_SELCHANGE(IDC_LIST2, OnSelchangeFunc)
 	ON_BN_CLICKED(IDC_CHECK1, OnSort)
 	ON_WM_DESTROY()
+	ON_WM_CTLCOLOR()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -341,11 +342,13 @@ void CListExport::AddFunction(int sel)
 	CString strTemp=_T("");
 	int i;
 	m_Hsize =0;
+	int missingCount = 0;
+	HINSTANCE hTestDll = NULL;
+	PMODULE_FILE_INFO pModInfo = NULL;
 	if (sel)
 	{
 // Import Section
 		MODULE_DEPENDENCY_LIST *pDep = m_pe->GetDepends();
-		PMODULE_FILE_INFO pModInfo;
 		m_listmodule.GetText( sel, strTemp );
 		m_nbfunc = 0;
 		if (pDep)
@@ -359,27 +362,6 @@ void CListExport::AddFunction(int sel)
 					pModInfo = pDep->GetNextModule( pModInfo );
 					if (!pModInfo) return;
 				}
-				CStringList *pFlist = pModInfo->GetFList();
-				POSITION pos = pFlist->GetHeadPosition();
-				if (!pos) return;
-				CString func;
-				do {
-					func = pFlist->GetNext(pos);
-					if (_tcsncmp(_T("ordinal "), func, 8)==0)
-						strTemp = func;
-					else
-					{
-						if ( m_undecorate ) // Undecorate Name
-						{
-				 			char Textout[SIZEBUFFER];
-							strTemp = CA2T(Undecorate(CT2A(func), Textout, SIZEBUFFER));
-						}
-						else strTemp.Format(_T("%s"), (LPCTSTR)func);
-					}
-					if (m_Hsize < strTemp.GetLength()) m_Hsize = strTemp.GetLength();
-					m_list.AddString( strTemp );
-					m_nbfunc ++;
-				} while( pos );
 			}
 			else
 			{
@@ -391,29 +373,59 @@ void CListExport::AddFunction(int sel)
 					pModInfo = pDep->GetNextDelayedModule( pModInfo );
 					if (!pModInfo) return;
 				}
-
-				CStringList *pFlist = pModInfo->GetFList();
-				POSITION pos = pFlist->GetHeadPosition();
-				if (!pos) return;
-				CString func;
-				do {
-					func = pFlist->GetNext(pos);
-					if (_tcsncmp(_T("ordinal "), func, 8)==0)
-						strTemp = func;
-					else
-					{
-						if ( m_undecorate ) // Undecorate Name
-						{
-				 			char Textout[SIZEBUFFER];
-							strTemp = CA2T(Undecorate(CT2A(func), Textout, SIZEBUFFER));
-						}
-						else strTemp.Format(_T("%s"), (LPCTSTR)func);
-					}
-					if (m_Hsize < strTemp.GetLength()) m_Hsize = strTemp.GetLength();
-					m_list.AddString( strTemp );
-					m_nbfunc ++;
-				} while( pos );
 			}
+
+			// Load the DLL for testing imported functions
+			if (pModInfo->IsModuleFound())
+				hTestDll = m_handleCache.GetHandle(pModInfo->GetFullName(), b_W95Protect);
+
+			CStringList *pFlist = pModInfo->GetFList();
+			POSITION pos = pFlist->GetHeadPosition();
+			if (!pos) return;
+			CString func;
+			do {
+				func = pFlist->GetNext(pos);
+				BOOL bMissing = FALSE;
+
+				// Test this function against the loaded DLL
+				if (hTestDll)
+				{
+					if (_tcsncmp(_T("ordinal "), func, 8)==0)
+					{
+						if (!GetProcAddress( hTestDll, MAKEINTRESOURCEA(_ttoi((LPCTSTR) func + 8))))
+							bMissing = TRUE;
+					}
+					else if (_tcsncmp(func, _T("<invalid name>"), 14) != 0)
+					{
+						if (!GetProcAddress( hTestDll, CT2A(func) ))
+							bMissing = TRUE;
+					}
+				}
+
+				// Format display name
+				if (_tcsncmp(_T("ordinal "), func, 8)==0)
+					strTemp = func;
+				else
+				{
+					if ( m_undecorate ) // Undecorate Name
+					{
+			 			char Textout[SIZEBUFFER];
+						strTemp = CA2T(Undecorate(CT2A(func), Textout, SIZEBUFFER));
+					}
+					else strTemp.Format(_T("%s"), (LPCTSTR)func);
+				}
+
+				// Prepend "(Missing) " if function was not found
+				if (bMissing)
+				{
+					missingCount++;
+					strTemp = _T("(Missing) ") + strTemp;
+				}
+
+				if (m_Hsize < strTemp.GetLength()) m_Hsize = strTemp.GetLength();
+				m_list.AddString( strTemp );
+				m_nbfunc ++;
+			} while( pos );
 		}
 	}
 	else
@@ -512,9 +524,43 @@ void CListExport::AddFunction(int sel)
 		}
 	}
 	UpdateData(FALSE);
+
+	// Update the test status label
+	CWnd* pStatus = GetDlgItem(IDC_TESTSTATUS);
+	if (pStatus)
+	{
+		if (sel == 0)
+		{
+			// Export section: no testing
+			pStatus->SetWindowText(_T(""));
+		}
+		else if (!pModInfo || !pModInfo->IsModuleFound())
+		{
+			m_crTestStatus = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
+			pStatus->SetWindowText(_T("DLL not found"));
+		}
+		else if (hTestDll == NULL)
+		{
+			m_crTestStatus = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
+			pStatus->SetWindowText(_T("DLL load failed"));
+		}
+		else if (missingCount == 0)
+		{
+			m_crTestStatus = m_bDarkMode ? RGB(80, 200, 80) : RGB(0, 140, 0);
+			pStatus->SetWindowText(_T("All OK"));
+		}
+		else
+		{
+			m_crTestStatus = m_bDarkMode ? RGB(255, 80, 80) : RGB(200, 0, 0);
+			CString status;
+			status.Format(_T("%d Missing"), missingCount);
+			pStatus->SetWindowText(status);
+		}
+		pStatus->Invalidate();
+	}
 }
 
-void CListExport::OnSelchangeModules() 
+void CListExport::OnSelchangeModules()
 {
 	CWait wait(this);
 	wait.SetStatus(_T("Listing Functions..."));
@@ -536,79 +582,12 @@ void CListExport::Onundecorate()
 	UpdateData(TRUE);
 }
 
-void CListExport::OnTestImport() 
+HBRUSH CListExport::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
-	int sel = m_listmodule.GetCurSel( );
-	if (sel)
-	{
-		MODULE_DEPENDENCY_LIST *pDep = m_pe->GetDepends();
-		if (pDep)
-		{
-			PMODULE_FILE_INFO pModInfo;
-			CString Module; int decal = 0; //BOOL bdelay=FALSE;
-
-			m_listmodule.GetText( sel, Module );
-			if ( sel <= m_NbIF ) // import
-				pModInfo = pDep->GetNextModule( (PMODULE_FILE_INFO) 0 );
-			else 
-			{
-				decal = 20;
-				pModInfo = pDep->GetNextDelayedModule( (PMODULE_FILE_INFO) 0 );
-			}
-
-			if (!pModInfo) return;
-			while(_tcsncmp(Module, pModInfo->GetBaseName(), Module.GetLength()-decal))
-			{
-				if (decal) pModInfo = pDep->GetNextDelayedModule( pModInfo );
-				else pModInfo = pDep->GetNextModule( pModInfo );
-				if (!pModInfo) return;
-			}
-			if (decal) Module.SetAt( Module.GetLength()-decal, _T('\0'));
-			CStringList *pFlist = pModInfo->GetFList();
-			POSITION pos = pFlist->GetHeadPosition();
-
-			int error=0;
-			TCHAR szPath[MAX_PATH];
-			TCHAR szOriginalPath[MAX_PATH];
-			GetCurrentDirectory(MAX_PATH, szOriginalPath);  // Save original dir
-			SetCurrentDirectory( m_pe->GetPath() );				 // Switch to app's dir
-
-			LPTSTR pszDontCare;
-			if ((pos) && SearchPath(0, Module, 0, MAX_PATH, szPath, &pszDontCare))
-			{
-				HINSTANCE h;
-				if (b_W95Protect)
-					h = LoadLibraryEx(szPath, NULL, LOAD_LIBRARY_AS_DATAFILE);
-				else
-					h = LoadLibraryEx(szPath, NULL, DONT_RESOLVE_DLL_REFERENCES);
-				if (h)
-				{
-					CStringList StrL;
-					CString func;
-					do {
-						func = pFlist->GetNext(pos);
-						if (_tcsncmp(_T("ordinal "), func, 8)==0)
-						{
-							if (!GetProcAddress( h, MAKEINTRESOURCEA(_ttoi((LPCTSTR) func + 8))))
-								error ++;
-						}
-						else if (!GetProcAddress( h, CT2A(func) ))
-						{
-							error ++;
-							StrL.AddTail(func);
-						}
-					} while( pos );
-					if (!error) AfxMessageBox(_T("Module and all imported functions loaded"));
-					else {
-						ListDlg ldlg(&StrL);
-						ldlg.DoModal();
-					}
-					FreeLibrary( h );
-				} else AfxMessageBox(_T("Cannot load Module "));
-			} else AfxMessageBox(_T("Cannot find Module "));
-			SetCurrentDirectory( szOriginalPath );
-		}/**/
-	}
+	HBRUSH hbr = CResizePage::OnCtlColor(pDC, pWnd, nCtlColor);
+	if (pWnd->GetDlgCtrlID() == IDC_TESTSTATUS)
+		pDC->SetTextColor(m_crTestStatus);
+	return hbr;
 }
 
 void CListExport::OnSelchangeFunc() 

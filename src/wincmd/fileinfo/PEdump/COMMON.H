@@ -14,6 +14,15 @@
 // parameter is used to typecast the result to the appropriate pointer type.
 #define MakePtr( cast, ptr, addValue ) (cast)( (ULONG_PTR)(ptr) + (ULONG_PTR)(addValue))
 
+// Returns TRUE if [ptr, ptr + count*elemSize) fits entirely within [0, maxAddr).
+// Uses subtraction to avoid integer overflow.
+inline BOOL IsRangeValid(ULONG_PTR ptr, ULONG_PTR count, ULONG_PTR elemSize, ULONG_PTR maxAddr)
+{
+    if (ptr >= maxAddr) return FALSE;
+    ULONG_PTR avail = maxAddr - ptr;
+    return (elemSize == 0) || (count <= avail / elemSize);
+}
+
 CStringA DumpHeader(PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader);
 CStringA DumpOptionalHeader(PIMAGE_OPTIONAL_HEADER32 pImageOptionalHeader);
 CStringA DumpSectionTable(PIMAGE_SECTION_HEADER section,
@@ -24,6 +33,9 @@ LPVOID GetPtrFromRVA( DWORD rva, PIMAGE_NT_HEADERS32 pNTHeader, ULONG_PTR imageB
 PIMAGE_SECTION_HEADER GetSectionHeader(PSTR name, PIMAGE_NT_HEADERS32 pNTHeader);
 PIMAGE_SECTION_HEADER GetEnclosingSectionHeader(DWORD rva,
                                                 PIMAGE_NT_HEADERS32 pNTHeader);
+CStringA DumpRawSectionData(PIMAGE_SECTION_HEADER section,
+                        PVOID base,
+                        unsigned cSections, ULONG_PTR maxAddr);
 CStringA DumpRawSectionData(PIMAGE_SECTION_HEADER section,
                         PVOID base,
                         unsigned cSections);

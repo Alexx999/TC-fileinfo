@@ -20,7 +20,7 @@ int fShowUndecorated=1;
 
 // #include "common.h"
 //#include "objdump.h"
-CStringA  DumpObjFile( PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader);
+CStringA  DumpObjFile( PIMAGE_FILE_HEADER pImageFileHeader, PIMAGE_OPTIONAL_HEADER32 optionalHeader, ULONG_PTR maxAddr);
 // #include "libdump.h"
 #include "extrnvar.h"
 
@@ -256,7 +256,7 @@ CStringA DumpLibFile( LPVOID ptr )
 			}
 			else    // It's an OBJ file
 			{
-				str += DumpObjFile( (PIMAGE_FILE_HEADER)(pArchHeader + 1), (PIMAGE_OPTIONAL_HEADER32)(pArchHeader + 2));
+				str += DumpObjFile( (PIMAGE_FILE_HEADER)(pArchHeader + 1), (PIMAGE_OPTIONAL_HEADER32)(pArchHeader + 2), libFile->GetBase()+libFile->GetFileSize());
 			}
 
 			// Calculate how big this member is (it's originally stored as as ASCII string.

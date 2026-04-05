@@ -559,7 +559,7 @@ CString CreateText2(PVOID ptr, CWait &wait)
 		{
 			PIMAGE_FILE_HEADER pImgFileHdr = (PIMAGE_FILE_HEADER)libFile->GetBase();
 			PIMAGE_OPTIONAL_HEADER32 pImgOptHdr = (PIMAGE_OPTIONAL_HEADER32)(pImgFileHdr + 1);
-			str += DumpObjFile(pImgFileHdr, pImgOptHdr);
+			str += DumpObjFile(pImgFileHdr, pImgOptHdr, libFile->GetBase()+libFile->GetFileSize());
 			break;
 		}
         case OBJ_COFF_LIB: //        DumpCOFFObjFile( (LPVOID) libFile->GetBase() );

@@ -799,12 +799,19 @@ CStringA DumpRawSectionData(PIMAGE_SECTION_HEADER section,
                         PVOID base,
                         unsigned cSections)
 {
+    return DumpRawSectionData(section, base, cSections, 0);
+}
+
+CStringA DumpRawSectionData(PIMAGE_SECTION_HEADER section,
+                        PVOID base,
+                        unsigned cSections, ULONG_PTR maxAddr)
+{
     CStringA str="", strTemp="";
     unsigned i;
     char name[IMAGE_SIZEOF_SHORT_NAME + 1];
 
     str += ("SECTION HEX Dumps\r\n");
-    
+
     for ( i=1; i <= cSections; i++, section++ )
     {
         // Make a copy of the section name so that we can ensure that
@@ -815,13 +822,16 @@ CStringA DumpRawSectionData(PIMAGE_SECTION_HEADER section,
         // Don't dump sections that don't exist in the file!
         if ( section->PointerToRawData == 0 )
             continue;
-        
+
+        PBYTE pRawData = MakePtr(PBYTE, base, section->PointerToRawData);
+        if ( maxAddr && !IsRangeValid((ULONG_PTR)pRawData, section->SizeOfRawData, 1, maxAddr) )
+            continue;
+
         strTemp.Format( "section %02Xh (%s)  size: %08Xh  file offs: %08Xh\r\n",
                 i, name, section->SizeOfRawData, section->PointerToRawData);
 		str += strTemp;
 
-        HexDump( MakePtr(PBYTE, base, section->PointerToRawData),
-                 section->SizeOfRawData );
+        HexDump( pRawData, section->SizeOfRawData );
         str += ("\r\n");
     }
 	return str;

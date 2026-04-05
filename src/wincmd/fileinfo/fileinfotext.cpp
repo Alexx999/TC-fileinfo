@@ -517,7 +517,18 @@ OBJ_FILE_TYPE DisplayObjectFile( MEMORY_MAPPED_FILE *pmmf )
     if ( !pFileBase )
         return OBJ_UNKNOWN;
     if ( 0 == strncmp((PSTR)pFileBase, IMAGE_ARCHIVE_START, IMAGE_ARCHIVE_START_SIZE) )
-        return OBJ_COFF_LIB;
+    {
+        // Verify it's a COFF library, not just any ar archive (e.g. .deb packages).
+        // COFF libraries always start with a linker member named "/".
+        if ( pmmf->GetFileSize() > IMAGE_ARCHIVE_START_SIZE + IMAGE_SIZEOF_ARCHIVE_MEMBER_HDR )
+        {
+            PIMAGE_ARCHIVE_MEMBER_HEADER pFirstMember =
+                (PIMAGE_ARCHIVE_MEMBER_HEADER)(pFileBase + IMAGE_ARCHIVE_START_SIZE);
+            if ( pFirstMember->Name[0] == '/' )
+                return OBJ_COFF_LIB;
+        }
+        return OBJ_UNKNOWN;
+    }
     if ( IMAGE_FILE_MACHINE_I386 == *(PWORD)pFileBase )
         return OBJ_COFF_OBJ;
     if ( (0xF0 == *(PBYTE)pFileBase) || (0x80 == *(PBYTE)pFileBase) )

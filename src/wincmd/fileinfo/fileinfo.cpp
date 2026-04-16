@@ -186,7 +186,7 @@ int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlag
 			}
 			else
 			{
-				sheet->SetPageTitle (1, _T("Library Header"));
+				sheet->SetPageTitle (1, (FileType == OBJ_ELF) ? _T("ELF Header") : _T("Library Header"));
 				sheet->m_fi2.SetFillEdit(CreateText2);			// Dynamic Fill RichEdit
 			}
 		}
@@ -269,7 +269,7 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 			CTypeLib::IsTypeLib(FileToLoad, lpTypeLib);
 		else if (FileType == OBJ_TL)
 			CTypeLib::IsTypeLib(FileToLoad, lpTypeLib); /**/
-		else if ((FileType != OBJ_COFF_OBJ) && (FileType != OBJ_COFF_LIB))
+		else if ((FileType != OBJ_COFF_OBJ) && (FileType != OBJ_COFF_LIB) && (FileType != OBJ_ELF))
 			FileType = OBJ_UNKNOWN;
 	}
 
@@ -381,7 +381,7 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 				}
 				else
 				{
-					sheet->SetPageTitle (1, _T("Library Header"));
+					sheet->SetPageTitle (1, (FileType == OBJ_ELF) ? _T("ELF Header") : _T("Library Header"));
 					sheet->m_fi2.SetFillEdit(CreateText2);			// Dynamic Fill RichEdit
 				}
 			}

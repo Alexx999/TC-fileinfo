@@ -227,6 +227,8 @@
     <ClCompile Include="coffsymboltable.cpp" />
     <ClCompile Include="COMMON.cpp" />
     <ClCompile Include="DBGDUMP.cpp" />
+    <ClCompile Include="elfdump.cpp" />
+    <ClCompile Include="elfdump_relocs.cpp" />
     <ClCompile Include="EXEDUMP.cpp" />
     <ClCompile Include="LIBDUMP2.cpp" />
     <ClCompile Include="OBJDUMP.cpp" />

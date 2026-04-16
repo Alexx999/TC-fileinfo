@@ -22,7 +22,7 @@ CString CreateText0(LPCTSTR);
 CString CreateText1(PVOID ptr, CWait &wait);
 CString CreateManifest(PVOID ptr, CWait &wait);
 
-enum OBJ_FILE_TYPE 
+enum OBJ_FILE_TYPE
 {
     OBJ_UNKNOWN = 0,
     OBJ_COFF_OBJ,
@@ -30,7 +30,8 @@ enum OBJ_FILE_TYPE
     OBJ_OMF_OBJ,
     OBJ_OMF_LIB,
     OBJ_OMF_IMPLIB,
-	OBJ_TL
+	OBJ_TL,
+	OBJ_ELF
 };
 
 CString CreateText2(PVOID ptr, CWait &wait);

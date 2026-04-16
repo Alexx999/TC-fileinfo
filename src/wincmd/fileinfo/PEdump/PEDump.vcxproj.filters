@@ -23,6 +23,12 @@
     <ClCompile Include="EXEDUMP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="elfdump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="elfdump_relocs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="LIBDUMP2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -74,6 +80,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\PEexe\upxdec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="elfdump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="elfdump_relocs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="elf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -18,6 +18,7 @@
 #include "pedump\exedump.h"
 #include "pedump\objdump.h"
 #include "pedump\libdump.h"
+#include "pedump\elfdump.h"
 #include "dosdump.h"
 	
 /*
@@ -142,7 +143,13 @@ CString CreateText0(LPCTSTR FileToLoad )
 			}
 		} else /**/
 			str += m_info.GetAll();
-   } else str += "No file version information available\r\n\r\n	";
+   } else {
+		CStringA elfInfo = GetElfVersionInfo(FileToLoad);
+		if (!elfInfo.IsEmpty())
+			str += CString(elfInfo);
+		else
+			str += "No file version information available\r\n\r\n	";
+	}
    str +="\r\n";
 
 	FILETIME   ft;
@@ -516,6 +523,9 @@ OBJ_FILE_TYPE DisplayObjectFile( MEMORY_MAPPED_FILE *pmmf )
     PBYTE pFileBase = (PBYTE)pmmf->GetBase();
     if ( !pFileBase )
         return OBJ_UNKNOWN;
+    if ( pmmf->GetFileSize() >= 4 &&
+         0 == memcmp(pFileBase, "\x7F" "ELF", 4) )
+        return OBJ_ELF;
     if ( 0 == strncmp((PSTR)pFileBase, IMAGE_ARCHIVE_START, IMAGE_ARCHIVE_START_SIZE) )
     {
         // Verify it's a COFF library, not just any ar archive (e.g. .deb packages).
@@ -551,11 +561,9 @@ OBJ_FILE_TYPE DisplayObjectFile( MEMORY_MAPPED_FILE *pmmf )
 */
 
 CString CreateText2(PVOID ptr, CWait &wait)
-{	
+{
 	CString str, sBuff, sFormat;
 	MEMORY_MAPPED_FILE *libFile = ( MEMORY_MAPPED_FILE *) ptr;
-
-	str.Format( _T("LIBRARY: %s\n\n"), libFile->GetName());	
 
     if( FALSE == libFile->IsValid() )
     {
@@ -564,7 +572,11 @@ CString CreateText2(PVOID ptr, CWait &wait)
         return str;
     }
 
-    switch ( DisplayObjectFile( libFile ) )
+    OBJ_FILE_TYPE ft = DisplayObjectFile( libFile );
+    LPCTSTR label = (ft == OBJ_ELF) ? _T("ELF") : _T("FILE");
+    str.Format( _T("%s: %s\n\n"), label, libFile->GetName());
+
+    switch ( ft )
     {
 	case OBJ_COFF_OBJ:
 		{
@@ -579,7 +591,10 @@ CString CreateText2(PVOID ptr, CWait &wait)
 //        case OBJ_OMF_OBJ: pszFileType = "OMF OBJ"; break; // DumpIntelOMFFile( (LPVOID) libFile->GetBase());
 //        case OBJ_OMF_LIB: pszFileType = "OMF LIB"; break;
 //        case OBJ_OMF_IMPLIB: pszFileType = "OMF IMPORT LIB"; break;
-        default: str += "Not a valid COFF LIB file.";
+        case OBJ_ELF:
+            str += DumpElfFile( (const BYTE *)libFile->GetBase(), libFile->GetFileSize() );
+            break;
+        default: str += "Not a recognized object file.";
     }
 	return str;
 }

@@ -105,6 +105,8 @@ void CListSheet::PreSetDarkMode(bool bDark)
 	m_manifest.CResizePage::SetDarkMode(bDark);
 	m_dll.CResizePage::SetDarkMode(bDark);
 	m_export.CResizePage::SetDarkMode(bDark);
+	m_clr.CResizePage::SetDarkMode(bDark);
+	m_clr_deps.CResizePage::SetDarkMode(bDark);
 	m_ocx.CResizePage::SetDarkMode(bDark);
 	m_about.CResizePage::SetDarkMode(bDark);
 	m_option.CResizePage::SetDarkMode(bDark);
@@ -203,9 +205,11 @@ void CListSheet::ApplyDarkMode()
 	m_fi2.SetDarkMode(m_bDarkMode);
 	m_disass.SetDarkMode(m_bDarkMode);
 	m_manifest.SetDarkMode(m_bDarkMode);
+	m_clr.SetDarkMode(m_bDarkMode);
 
 	// 3. Apply to tree page
 	m_dll.SetDarkMode(m_bDarkMode);
+	m_clr_deps.SetDarkMode(m_bDarkMode);
 
 	// 4. Apply to export page
 	m_export.SetDarkMode(m_bDarkMode);

@@ -19,6 +19,7 @@
 #include "pedump\objdump.h"
 #include "pedump\libdump.h"
 #include "pedump\elfdump.h"
+#include "pedump\clrdump.h"
 #include "dosdump.h"
 	
 /*
@@ -617,4 +618,34 @@ CString CreateManifest(PVOID ptr, CWait &wait)
     }
 	return DumpManifest(*pPE, (ULONG_PTR) GetResDir(*pPE), pMFTResEntries, cMFTResEntries );
 
+}
+
+/*********************** CLR Header (m_clr) *****************************/
+CStringW CreateClrHeader(PVOID ptr, CWait &wait)
+{
+	CStringW wstr;
+	PE_EXE *pPE = (PE_EXE *) ptr;
+	if (!pPE || !pPE->IsValid() || !pPE->HasClrHeader())
+		return wstr;
+	wait.SetStatus("Parsing CLR header...");
+	// DumpClrHeader returns UTF-8 bytes in a CStringA — convert once here so
+	// the RichEdit receives UTF-16 and renders non-ASCII identifiers correctly.
+	CStringA utf8 = DumpClrHeader(*pPE);
+	int wlen = MultiByteToWideChar(CP_UTF8, 0, utf8, utf8.GetLength(), NULL, 0);
+	if (wlen > 0) {
+		wchar_t* buf = wstr.GetBuffer(wlen);
+		MultiByteToWideChar(CP_UTF8, 0, utf8, utf8.GetLength(), buf, wlen);
+		wstr.ReleaseBuffer(wlen);
+	}
+	return wstr;
+}
+
+/*********************** CLR Dependencies (m_clr_deps) ******************/
+void CreateClrDepsTree(PVOID ptr, CTreeCtrl &tree, CWait &wait)
+{
+	PE_EXE *pPE = (PE_EXE *) ptr;
+	if (!pPE || !pPE->IsValid() || !pPE->HasClrHeader()) return;
+	if (!tree.m_hWnd) return;
+	wait.SetStatus("Reading Assembly References...");
+	BuildAssemblyRefTree(*pPE, tree);
 }

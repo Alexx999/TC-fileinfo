@@ -23,6 +23,7 @@ CListpagePty::CListpagePty() : CResizePage(CListpagePty::IDD)
    //}}AFX_DATA_INIT
    m_text = _T("");
    FillEdit = NULL;
+   FillEditW = NULL;
 //   m_exist = FALSE;
    m_fo.fontsize = 0;
    *m_fo.fontname = '\0';
@@ -47,14 +48,22 @@ void CListpagePty::Renew(PVOID pPE)
 	m_text = _T("");
 	m_ptr = pPE;
 	if ( m_Redit.m_hWnd) {
-	   if (FillEdit)
+	   if (FillEditW)
 	   {
 			CWait wait(this);
 			wait.SetStatus("Dumping...");
-			//m_text = ((pfuncRE) FillEdit) ((LPCTSTR) m_file, wait);
-			m_text = ((pfuncRE) FillEdit) ( m_ptr, wait);
+			CStringW wtext = FillEditW(m_ptr, wait);
+			::SetWindowTextW(m_Redit.m_hWnd, wtext);
 	   }
-		m_Redit.SetWindowText( m_text );
+	   else {
+		   if (FillEdit)
+		   {
+				CWait wait(this);
+				wait.SetStatus("Dumping...");
+				m_text = ((pfuncRE) FillEdit) ( m_ptr, wait);
+		   }
+			m_Redit.SetWindowText( m_text );
+	   }
 		UpdateTab( );
 		m_Redit.SetOptions(ECOOP_OR, ECO_SAVESEL);
 		ApplyDarkTextFormat(m_Redit, m_bDarkMode);
@@ -159,14 +168,22 @@ BOOL CListpagePty::OnInitDialog()
 		SetDarkMode(true);
 
    UpdateFont();
-   if (FillEdit)
+   if (FillEditW)
    {
 		CWait wait(this);
 		wait.SetStatus("Dumping...");
-		//m_text = ((pfuncRE) FillEdit) ((LPCTSTR) m_file, wait);
-		m_text = ((pfuncRE) FillEdit) ( m_ptr, wait);
+		CStringW wtext = FillEditW(m_ptr, wait);
+		::SetWindowTextW(m_Redit.m_hWnd, wtext);
    }
-   m_Redit.SetWindowText( m_text );
+   else {
+	   if (FillEdit)
+	   {
+			CWait wait(this);
+			wait.SetStatus("Dumping...");
+			m_text = ((pfuncRE) FillEdit) ( m_ptr, wait);
+	   }
+	   m_Redit.SetWindowText( m_text );
+   }
    UpdateTab( );
    m_Redit.SetOptions(ECOOP_OR, ECO_SAVESEL);
    ApplyDarkTextFormat(m_Redit, m_bDarkMode);

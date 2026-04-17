@@ -11,6 +11,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="clrdump.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="clrmeta.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="coffsymboltable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -89,6 +95,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="elf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clrdump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="clrmeta.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

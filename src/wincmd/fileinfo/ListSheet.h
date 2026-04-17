@@ -37,6 +37,8 @@ public:
 	CListpagePty	m_fi2;
 	CPageTree		m_dll;
 	CListExport		m_export;
+	CListpagePty	m_clr;
+	CPageTree		m_clr_deps;
 	CListOcx		m_ocx;
 	CListpagePty	m_disass;
     COption			m_option;

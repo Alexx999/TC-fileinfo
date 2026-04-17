@@ -133,7 +133,8 @@ int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlag
 	}
 
 	bool b_TLib = (lpTypeLib != NULL);
-	if ( pEXE->IsValid() || (FileType != OBJ_UNKNOWN) || lpTypeLib) 
+	bool b_clr = (bool) pPE->HasClrHeader();
+	if ( pEXE->IsValid() || (FileType != OBJ_UNKNOWN) || lpTypeLib)
 	{
 		UINT page = pFIWnd->GetpSheet()->GetActiveIndex( );
 		pFIWnd->Renew( pPE );
@@ -141,10 +142,24 @@ int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlag
 		{
 			sheet->m_dll.Renew(pPE);
 			sheet->AddPage( &(sheet->m_dll));
-			
+
 			sheet->m_export.Renew(pPE);
 			sheet->m_export.SetSortOption(op.sort);
 			sheet->AddPage( &(sheet->m_export));
+
+			if (b_clr)
+			{
+				sheet->m_clr.SetFillEditW(CreateClrHeader);
+				sheet->m_clr.Renew(pPE);
+				sheet->AddPage( &(sheet->m_clr));
+				sheet->SetPageTitle (4, _T("CLR Header"));
+				sheet->m_clr.SetFontPpty( fo );
+
+				sheet->m_clr_deps.SetFillTree(CreateClrDepsTree);
+				sheet->m_clr_deps.Renew(pPE);
+				sheet->AddPage( &(sheet->m_clr_deps));
+				sheet->SetPageTitle (5, _T("Assembly References"));
+			}
 // is OCX file
 			if ( lpTypeLib ) // com interface exist
 			{
@@ -197,7 +212,7 @@ int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlag
 			sheet->m_manifest.SetFillEdit(CreateManifest);
 			sheet->m_manifest.Renew(pPE);
 			sheet->AddPage( &(sheet->m_manifest));
-			sheet->SetPageTitle (4 + b_TLib, _T("Manifest"));
+			sheet->SetPageTitle (4 + b_TLib + 2*b_clr, _T("Manifest"));
 			sheet->m_manifest.SetFontPpty( fo );
 
 			int tab0[]={(fo.fontsize<200)?400:fo.fontsize*3, (fo.fontsize<200)?3200:fo.fontsize*25, (fo.fontsize<200)?5500:fo.fontsize*43, (fo.fontsize<200)?6000:fo.fontsize*45};
@@ -209,7 +224,7 @@ int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlag
 			FontOptions fo={_T("courier"),160,FALSE,FALSE};
 
 			sheet->AddPage( &(sheet->m_disass));
-			sheet->SetPageTitle (4 + b_TLib + b_manifest, _T("Disassembly"));
+			sheet->SetPageTitle (4 + b_TLib + b_manifest + 2*b_clr, _T("Disassembly"));
 			sheet->m_disass.SetFontPpty( fo );
 
 			sheet->m_disass.SetPtr( pPE );
@@ -321,12 +336,13 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 		if (prec->Create(NULL, NULL, WS_CHILD | WS_VISIBLE | ES_READONLY | ES_NOHIDESEL, r, ParentWnd, AFX_IDW_PANE_FIRST))
 		{
 			bool b_TLib = (lpTypeLib != NULL);
+			bool b_clr = (bool) pPE->HasClrHeader();
 // Setup Page
 			CListSheet *sheet = (CListSheet *)prec->GetpSheet();
 			if ( calledbyQV ) sheet->EnableWindow();
 // Add Page
 			if (pEXE->IsValid())
-			{ 
+			{
 // is PE file ?
 				sheet->SetPageTitle (1, _T("Image File Header"));
 
@@ -334,7 +350,21 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 				{
 					sheet->AddPage( &(sheet->m_dll));
 					sheet->m_export.SetSortOption(op.sort);
-					sheet->AddPage( &(sheet->m_export));					
+					sheet->AddPage( &(sheet->m_export));
+
+					if (b_clr)
+					{
+						sheet->AddPage( &(sheet->m_clr));
+						sheet->m_clr.SetPtr( pPE );
+						sheet->SetPageTitle (4, _T("CLR Header"));
+						sheet->m_clr.SetFontPpty( fo );
+						sheet->m_clr.SetFillEditW(CreateClrHeader);
+
+						sheet->AddPage( &(sheet->m_clr_deps));
+						sheet->m_clr_deps.SetPtr( pPE );
+						sheet->SetPageTitle (5, _T("Assembly References"));
+						sheet->m_clr_deps.SetFillTree(CreateClrDepsTree);
+					}
 // is OCX file
 					if ( lpTypeLib ) // com interface exist
 					{
@@ -393,7 +423,7 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 			if (b_manifest) {
 				sheet->AddPage( &(sheet->m_manifest));
 				sheet->m_manifest.SetPtr( pPE );
-				sheet->SetPageTitle (4 + b_TLib, _T("Manifest"));
+				sheet->SetPageTitle (4 + b_TLib + 2*b_clr, _T("Manifest"));
 				sheet->m_manifest.SetFontPpty( fo );
 	//			int tab0[]={(fo.fontsize<200)?400:fo.fontsize*3, (fo.fontsize<200)?3200:fo.fontsize*25, (fo.fontsize<200)?5500:fo.fontsize*43, (fo.fontsize<200)?6000:fo.fontsize*45};
 	//			sheet->m_fi.SetTab(4, tab0);
@@ -404,7 +434,7 @@ HWND __stdcall ListLoadW(HWND ParentWin,WCHAR* File,int ShowFlags)
 			{
 				FontOptions fo={_T("courier"),160,FALSE,FALSE};
 				sheet->AddPage( &(sheet->m_disass));
-				sheet->SetPageTitle (4 + b_TLib + b_manifest, _T("Disassembly"));
+				sheet->SetPageTitle (4 + b_TLib + b_manifest + 2*b_clr, _T("Disassembly"));
 				sheet->m_disass.SetFontPpty( fo );
 
 				sheet->m_disass.SetPtr( pPE );

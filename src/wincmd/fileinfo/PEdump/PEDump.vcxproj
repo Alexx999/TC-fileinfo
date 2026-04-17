@@ -224,6 +224,8 @@
   <ItemGroup>
     <ClCompile Include="..\UM.C" />
     <ClCompile Include="..\unmangle.cpp" />
+    <ClCompile Include="clrdump.cpp" />
+    <ClCompile Include="clrmeta.cpp" />
     <ClCompile Include="coffsymboltable.cpp" />
     <ClCompile Include="COMMON.cpp" />
     <ClCompile Include="DBGDUMP.cpp" />
@@ -247,6 +249,8 @@
     <ClInclude Include="..\PEexe\upxdec.h" />
     <ClInclude Include="..\UM.H" />
     <ClInclude Include="..\unmangle.h" />
+    <ClInclude Include="clrdump.h" />
+    <ClInclude Include="clrmeta.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

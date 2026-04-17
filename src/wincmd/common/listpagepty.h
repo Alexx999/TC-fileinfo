@@ -15,7 +15,8 @@
 #include "..\..\wincmd\common\TCutils.h"
 #include "wait.h"
 
-typedef CString ( *pfuncRE )( PVOID ptr, CWait &wait );
+typedef CString  ( *pfuncRE   )( PVOID ptr, CWait &wait );
+typedef CStringW ( *pfuncRE_W )( PVOID ptr, CWait &wait );
 /////////////////////////////////////////////////////////////////////////////
 // CListpagePty dialog
 
@@ -47,6 +48,12 @@ public:
    void SetFontPpty( FontOptions fo) { m_fo = fo; if (!m_first) UpdateFont();}
    CString GetText() { return m_text; }
    void SetFillEdit(pfuncRE FE) { FillEdit = FE; }
+   // Wide-string variant. When set, takes precedence over FillEdit so the page
+   // can display text containing characters outside the system ANSI codepage
+   // (UTF-8 metadata from CLR #Strings, etc.). Wide text is pushed to the
+   // RichEdit via SetWindowTextW, which works regardless of the project's
+   // _UNICODE build mode because RichEdit controls are Unicode internally.
+   void SetFillEditW(pfuncRE_W FE) { FillEditW = FE; }
    void SetPtr(PVOID ptr) { m_ptr = ptr; }
 	void Renew(PVOID pPE);
 	void SetWrap(bool wrap)
@@ -76,7 +83,8 @@ protected:
    int			fontplus;
    int			m_NbTab;
    int			*m_pTab;
-   pfuncRE		FillEdit;   
+   pfuncRE		FillEdit;
+   pfuncRE_W	FillEditW;
 	PVOID		m_ptr;
 	bool		m_bwrap;
 	bool		m_bcenter;

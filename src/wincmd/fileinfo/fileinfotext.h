@@ -36,11 +36,15 @@ enum OBJ_FILE_TYPE
 
 CString CreateText2(PVOID ptr, CWait &wait);
 CString CreateText3(PVOID ptr, CWait &wait);
+// Wide-string fill: the CLR header renders UTF-8 metadata that can contain
+// chars outside the system ANSI codepage. See Utf8ToWide in clrdump.cpp.
+CStringW CreateClrHeader(PVOID ptr, CWait &wait);
 
 OBJ_FILE_TYPE DisplayObjectFile( MEMORY_MAPPED_FILE *pmmf );
 
 
 void CreateParentTree(PVOID ptr, CTreeCtrl &tree, CWait &wait);
+void CreateClrDepsTree(PVOID ptr, CTreeCtrl &tree, CWait &wait);
 // void CreateOcxList(PVOID ptr, CListCtrl &list, CRichEditCtrl &edit);
 
 // Opaque context for lazy child population in the DLL Dependency tree.

@@ -26,6 +26,16 @@ public:
 	PE_EXE( LPCTSTR pszFileName );
 	~PE_EXE( );
 	BOOL IsValid() { return m_pNtHdr ? TRUE : FALSE; }
+	// True iff data-directory 14 (COM header) is populated and large enough to contain
+	// a full IMAGE_COR20_HEADER, and resolves to a readable pointer. Gates the CLR tabs.
+	BOOL HasClrHeader()
+	{
+		if (!m_pNtHdr) return FALSE;
+		if (GetDataDirectoryEntryRVA(IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR) == 0) return FALSE;
+		if (GetDataDirectoryEntrySize(IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR) < sizeof(IMAGE_COR20_HEADER)) return FALSE;
+		PVOID p = GetDataDirectoryEntryPointer(IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR);
+		return (p != NULL && p != (PVOID)-1) ? TRUE : FALSE;
+	}
 	BOOL IsCoded();
 	void Save(CString st);
 	void SetPathCache(CDllPathCache* p) { m_pPathCache = p; }

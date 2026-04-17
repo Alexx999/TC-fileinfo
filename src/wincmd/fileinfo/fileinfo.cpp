@@ -194,6 +194,7 @@ int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlag
 // Manifest window
 		bool b_manifest = (bool) IsMFTres(*pPE);
 		if (b_manifest) {
+			sheet->m_manifest.SetFillEdit(CreateManifest);
 			sheet->m_manifest.Renew(pPE);
 			sheet->AddPage( &(sheet->m_manifest));
 			sheet->SetPageTitle (4 + b_TLib, _T("Manifest"));
@@ -201,7 +202,6 @@ int __stdcall ListLoadNextW(HWND ParentWin,HWND ListWin,WCHAR* File,int ShowFlag
 
 			int tab0[]={(fo.fontsize<200)?400:fo.fontsize*3, (fo.fontsize<200)?3200:fo.fontsize*25, (fo.fontsize<200)?5500:fo.fontsize*43, (fo.fontsize<200)?6000:fo.fontsize*45};
 			sheet->m_fi.SetTab(4, tab0);
-//			sheet->m_manifest.SetFillEdit(CreateManifest);
 		}
 // disassembler window
 		if ((b_disass) && (pPE->IsValid()))
